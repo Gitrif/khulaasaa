@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Dispatch — Maldives news, cross-checked{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline bg-paper">
+  <div class="max-w-5xl mx-auto px-4 pt-5 pb-4">
+    <div class="flex items-baseline justify-between">
+      <h1 class="font-serif-display text-3xl font-semibold tracking-tight">Dispatch</h1>
+      <button id="signinPill" class="signin-pill" onclick="toggleSignin()">Sign in</button>
+    </div>
+    <p class="mt-1 text-sm text-slate max-w-lg">Every source, treated equally — cross-checked where it matters, sorted where it doesn't.</p>
+    <div class="search-wrap">
+      <input type="text" id="searchBox" class="search-box" placeholder="Search articles or stories&hellip;" oninput="filterCards(this.value)">
+    </div>
+  </div>
+  <nav class="tagnav max-w-5xl mx-auto px-4">
+    <a href="/" class="{{ 'bg-ink text-paper border-ink' if not active_tag and not active_topic else 'border-hairline text-slate' }}">Everything</a>
+    {% for t in all_tags %}
+    <a href="/?tag={{ t.id }}" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_tag == t.id else 'color:' + t.color + ';' }}">{{ t.label }}</a>
+    {% endfor %}
+    <span class="px-1 text-hairline">|</span>
+    {% for tp in all_topics %}
+    <a href="/?topic={{ tp.id }}" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_topic == tp.id else 'color:' + tp.color + ';' }}">{{ tp.label }}</a>
+    {% endfor %}
+  </nav>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 pb-6">
+  <div class="mt-3">{% include "_ad_leaderboard.html" %}</div>
+  <p id="noResults" class="no-results" style="display:none;">No articles or stories match your search.</p>
+
+  <div class="news-grid">
+    <div>
+
+      {% if sections.breaking %}
+      <section class="mb-6">
+        <div class="flex items-center gap-1.5 mb-2">
+          <span class="live-pip"></span>
+          <h2 class="text-sm font-bold uppercase tracking-wide text-flag">Breaking</h2>
+          <span class="text-sm text-slate ml-auto">Live wire &middot; {{ sections.breaking|length }} updates</span>
+        </div>
+        <div class="card-stack">
+          {% for evt in sections.breaking %}
+          <article class="story-card compact" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="toggleDetail(this)">
+            <div class="card-top">
+              <span class="eyebrow" style="color:{{ evt.accent }};">{{ evt.source_objs[0].name if evt.source_objs else 'Unknown' }} &middot; {{ evt.source_objs[0].kind if evt.source_objs else '' }}</span>
+              <span class="card-time">{{ evt.minutes_ago }}m ago</span>
+            </div>
+            <p class="card-headline">{{ evt.headline }}</p>
+            <div class="card-detail">{{ evt.summary }}</div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if sections.major %}
+      <section class="mb-6">
+        <div class="flex items-baseline justify-between mb-2">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate">Major stories</h2>
+          <span class="text-sm text-slate">Tracked, cross-checked narratives</span>
+        </div>
+        <div class="card-stack">
+          {% for evt in sections.major %}
+          <article class="story-card" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="window.location.href='/timeline/{{ evt.story_id }}'">
+            <div class="card-top">
+              {% for t in evt.tag_objs %}<span class="eyebrow" style="color:{{ t.color }};">{{ t.label }}</span>{% endfor %}
+              <span class="card-time">{{ evt.published_raw }}</span>
+            </div>
+            <p class="card-headline">{{ evt.headline }}</p>
+            <div class="badges">
+              {% for s in evt.source_objs %}<span class="source-badge sm"><span class="dot"></span>{{ s.name }}</span>{% endfor %}
+              <button class="follow-btn" onclick="toggleFollow(event,this)">+ Follow</button>
+            </div>
+          </article>
+          {% if loop.index == 1 %}{% include "_ad_infeed.html" %}{% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if sections.general %}
+      <section>
+        <div class="flex items-baseline justify-between mb-2">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate">General news</h2>
+          <span class="text-sm text-slate">Sorted from press releases &amp; Gazette.mv</span>
+        </div>
+        <div class="card-stack">
+          {% for evt in sections.general %}
+          <article class="story-card" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="toggleDetail(this)">
+            <div class="card-top">
+              {% if evt.topic_obj %}<span class="eyebrow" style="color:{{ evt.topic_obj.color }};">{{ evt.topic_obj.label }}</span>{% endif %}
+              <span class="card-time">{{ evt.published_raw }}</span>
+            </div>
+            <p class="card-headline">{{ evt.headline }}</p>
+            <div class="card-detail">{{ evt.summary }}</div>
+            <div class="badges">
+              {% for s in evt.source_objs %}
+              <span class="source-badge sm {{ 'border-gold' if s.kind == 'official' }}"><span class="dot"></span>{{ s.name }}{% if s.kind == 'official' %} · official{% endif %}</span>
+              {% endfor %}
+              <button class="follow-btn" onclick="toggleFollow(event,this)">+ Follow</button>
+            </div>
+          </article>
+          {% if loop.index == 3 %}{% include "_ad_incontent.html" %}{% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if not sections.breaking and not sections.major and not sections.general %}
+      <p class="text-sm text-slate py-12 text-center">Nothing under this filter yet.</p>
+      {% endif %}
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-block">
+        <h3>Most read</h3>
+        {% for item in trending %}
+        <div class="trending-item">
+          <span class="rank">{{ item.rank }}</span>
+          {% if item.story_id %}<a href="/timeline/{{ item.story_id }}">{{ item.headline }}</a>{% else %}<span class="text-sm leading-snug">{{ item.headline }}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% include "_ad_rectangle.html" %}
+    </aside>
+  </div>
+</main>
+
+<footer class="max-w-5xl mx-auto px-4 py-8 text-sm text-slate border-t border-hairline">
+  Mock UI — Phase 1. Every card carries equal visual weight by design: breaking, tracked, and general items differ only by section and accent color, not by size. Search and follow are client-side demos here — Phase 2 wires them to real accounts and a search index. Ads shown are mock creative, not live inventory.
+</footer>
+
+<script>
+let signedIn = false;
+function toggleSignin(){
+  signedIn = !signedIn;
+  const pill = document.getElementById('signinPill');
+  pill.textContent = signedIn ? 'Signed in ✓' : 'Sign in';
+  pill.classList.toggle('signed-in', signedIn);
+}
+function toggleFollow(evt, btn){
+  evt.stopPropagation();
+  if (!signedIn) {
+    const original = btn.textContent;
+    btn.textContent = 'Sign in to follow';
+    btn.classList.add('prompt');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('prompt'); }, 1800);
+    return;
+  }
+  const following = btn.classList.toggle('following');
+  btn.textContent = following ? '✓ Following' : '+ Follow';
+}
+function toggleDetail(card){ card.classList.toggle('open'); }
+function filterCards(query){
+  const q = query.trim().toLowerCase();
+  const cards = document.querySelectorAll('.story-card');
+  let anyVisible = false;
+  cards.forEach(c => {
+    const match = !q || (c.dataset.search || '').includes(q);
+    c.style.display = match ? '' : 'none';
+    if (match) anyVisible = true;
+  });
+  document.querySelectorAll('.card-stack').forEach(stack => {
+    const total = stack.querySelectorAll('.story-card').length;
+    const visible = Array.from(stack.querySelectorAll('.story-card')).some(c => c.style.display !== 'none');
+    if (total) stack.closest('section').style.display = visible ? '' : 'none';
+  });
+  document.getElementById('noResults').style.display = (q && !anyVisible) ? '' : 'none';
+}
+</script>
+{% endblock %}

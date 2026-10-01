@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Broadcast preview{% endblock %}
+{% block body_class %}bg-ink text-paper{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline-dark px-4 pt-6 pb-4">
+  <a href="/admin" class="text-sm text-slate hover:text-paper">&larr; Back to console</a>
+  <h1 class="font-serif-display text-xl font-semibold mt-2">Broadcast preview</h1>
+  <p class="text-sm text-slate mt-1">How this cluster will render once pushed live</p>
+</header>
+
+<main class="px-4 py-6 space-y-6 max-w-md mx-auto">
+  <div>
+    <p class="text-sm text-slate mb-2 uppercase tracking-wide">Telegram</p>
+    <div class="telegram-frame p-4 text-sm leading-relaxed">
+      <p class="font-medium mb-1">{{ cluster.draft_headline }}</p>
+      <p class="text-[15px] opacity-80 mb-2">Summary generated from {{ cluster.article_count }} cross-checked articles.</p>
+      <p class="text-[15px] opacity-80">
+        {% for t in cluster.tag_objs %}#{{ t.label|replace(' ', '') }} {% endfor %}
+      </p>
+      <p class="text-[15px] text-blue-300 mt-2">dispatch.example.mv/timeline/{{ cluster.id }}</p>
+    </div>
+  </div>
+
+  <div>
+    <p class="text-sm text-slate mb-2 uppercase tracking-wide">Viber rich card</p>
+    <div class="viber-frame p-4 text-sm leading-relaxed">
+      <div class="bg-white/10 h-24 mb-3 flex items-center justify-center text-sm opacity-70">
+        [ card image placeholder ]
+      </div>
+      <p class="font-medium mb-1">{{ cluster.draft_headline }}</p>
+      <button class="mt-2 bg-white/15 px-3 py-2 text-sm w-full">Read full coverage</button>
+    </div>
+  </div>
+</main>
+{% endblock %}

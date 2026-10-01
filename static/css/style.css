@@ -1,0 +1,258 @@
+:root {
+  --ink: #10222E;
+  --ink-soft: #1B3140;
+  --paper: #F6F3EC;
+  --paper-soft: #EFEBE1;
+  --lagoon: #2F7C74;
+  --flag: #B3432B;
+  --gold: #C89B3C;
+  --slate: #5B6572;
+  --hairline: #D9D3C4;
+  --hairline-dark: #2A3E4C;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+}
+
+.font-serif-display {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bg-paper { background-color: var(--paper); }
+.bg-paper-soft { background-color: var(--paper-soft); }
+.bg-ink { background-color: var(--ink); }
+.bg-ink-soft { background-color: var(--ink-soft); }
+.text-ink { color: var(--ink); }
+.text-slate { color: var(--slate); }
+.text-lagoon { color: var(--lagoon); }
+.text-flag { color: var(--flag); }
+.text-gold { color: var(--gold); }
+.bg-lagoon { background-color: var(--lagoon); }
+.bg-flag { background-color: var(--flag); }
+.bg-gold { background-color: var(--gold); }
+.border-hairline { border-color: var(--hairline); }
+.border-hairline-dark { border-color: var(--hairline-dark); }
+.border-gold { border-color: var(--gold); }
+
+/* Stacked list rows (breaking strip, general news list) - plain CSS instead
+   of Tailwind's divide-* utilities, since Play CDN doesn't know our custom
+   color names. */
+.stacked-rows > * + * { border-top: 1px solid var(--hairline); }
+
+/* Live breaking pip (replaces the old scrolling ticker) */
+.live-pip { width: 0.4rem; height: 0.4rem; border-radius: 999px; background: var(--flag); display: inline-block; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Breaking wire list - compact, mixed-source live blog style */
+.wire-list { border: 1px solid var(--hairline); border-left: 3px solid var(--flag); background: #fff; }
+.wire-row { padding: 0.55rem 0.7rem; border-top: 1px solid var(--hairline); }
+.wire-row:first-child { border-top: none; }
+.wire-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.15rem; }
+.wire-src { font-size: 0.84rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; padding: 0.05rem 0.35rem; border: 1px solid; }
+.wire-src-wire { color: var(--flag); border-color: var(--flag); }
+.wire-src-official { color: var(--gold); border-color: var(--gold); }
+.wire-src-press { color: var(--slate); border-color: var(--hairline); }
+.wire-time { font-size: 0.9rem; color: var(--slate); margin-left: auto; }
+.wire-headline { font-size: 1.05rem; line-height: 1.35; margin: 0; }
+
+/* Compact card for the major-stories grid (denser than the hero) */
+.event-card-sm { border: 1px solid var(--hairline); border-left: 3px solid var(--slate); background: #fff; padding: 0.7rem 0.8rem; }
+.event-card-sm[data-tag="mmprc"] { border-left-color: var(--flag); }
+.event-card-sm[data-tag="yameen"] { border-left-color: var(--lagoon); }
+.event-card-sm[data-tag="adeeb"] { border-left-color: var(--gold); }
+.event-card-sm[data-tag="bridge"] { border-left-color: var(--slate); }
+.source-badge.sm { padding: 0.08rem 0.4rem; font-size: 0.84rem; }
+
+/* Filled mock ad creative (not empty placeholders) -- fictional brands only */
+.ad-native-label { font-size: 0.79rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate); }
+.ad-native { display: flex; gap: 0.75rem; border: 1px solid var(--hairline); background: var(--paper-soft); padding: 0.75rem; align-items: center; }
+.ad-native-img { width: 3.5rem; height: 3.5rem; flex-shrink: 0; background: var(--ink); color: var(--gold); font-size: 0.77rem; font-weight: 700; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.1; }
+.ad-native-body { display: flex; flex-direction: column; gap: 0.15rem; }
+.ad-native-headline { font-size: 1.05rem; font-weight: 500; margin: 0; }
+.ad-native-cta { font-size: 0.92rem; color: var(--lagoon); font-weight: 600; }
+.ad-incontent { border: 1px solid var(--hairline); background: var(--paper-soft); padding: 0.7rem 0.8rem; }
+.ad-incontent-text { font-size: 1.0rem; margin: 0.2rem 0 0; color: var(--ink); }
+.ad-rect { border: 1px solid var(--hairline); background: var(--paper-soft); padding: 1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.ad-rect-brand { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 1.23rem; }
+.ad-rect-text { font-size: 1.0rem; color: var(--ink); margin: 0; }
+.ad-dims { font-size: 0.79rem; color: var(--slate); margin-top: 0.25rem; }
+.ad-leader { border: 1px solid var(--hairline); background: var(--paper-soft); padding: 0.5rem 0.7rem; display: flex; flex-direction: column; gap: 0.1rem; max-width: 480px; }
+.ad-leader-text { font-size: 1.0rem; }
+@media (min-width: 640px) {
+  .ad-leader { flex-direction: row; align-items: center; gap: 0.6rem; max-width: 728px; }
+  .ad-leader .ad-dims { margin-left: auto; margin-top: 0; }
+}
+
+/* Hero story */
+.hero-card { border: 1px solid var(--hairline); background: #fff; padding: 1.75rem; border-left: 6px solid var(--flag); }
+.hero-card h2 { font-size: 2.24rem; line-height: 1.15; }
+
+/* Grid layout: main column + sidebar on desktop, stacked on mobile */
+.news-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+@media (min-width: 860px) {
+  .news-grid { grid-template-columns: 2fr 1fr; align-items: start; }
+  .major-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+}
+.sidebar { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 1rem; }
+.sidebar-block { border: 1px solid var(--hairline); background: #fff; padding: 1rem; }
+.sidebar-block h3 { font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--slate); margin: 0 0 0.75rem; }
+.trending-item { display: flex; gap: 0.6rem; padding: 0.5rem 0; border-top: 1px solid var(--hairline); }
+.trending-item:first-child { border-top: none; padding-top: 0; }
+.trending-item .rank { font-family: 'Inter', system-ui, sans-serif; font-weight: 800; font-size: 1.12rem; color: var(--hairline); width: 1.2rem; flex-shrink: 0; }
+.trending-item a { font-size: 1.05rem; line-height: 1.35; color: var(--ink); text-decoration: none; }
+.trending-item a:hover { color: var(--lagoon); }
+
+/* Ad placeholders - dashed border, muted, clearly labeled so they never get
+   mistaken for editorial content in review */
+.ad-slot { border: 1px dashed var(--hairline); background: var(--paper-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--slate); font-size: 0.87rem; text-transform: uppercase; letter-spacing: 0.04em; gap: 0.2rem; }
+.ad-slot .dims { font-size: 0.79rem; letter-spacing: 0; text-transform: none; opacity: 0.7; }
+.ad-leaderboard { height: 90px; margin: 0 auto 1.5rem; max-width: 728px; }
+.ad-rectangle { height: 250px; }
+.ad-infeed { grid-column: 1 / -1; height: 120px; }
+
+/* Event / cluster cards: flat, bordered, left accent bar instead of
+   rounded shadow cards -- deliberate departure from default SaaS-card kit */
+.event-card {
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--slate);
+  background: #FFFFFF;
+}
+.event-card[data-tag="mmprc"] { border-left-color: var(--flag); }
+.event-card[data-tag="yameen"] { border-left-color: var(--lagoon); }
+.event-card[data-tag="adeeb"] { border-left-color: var(--gold); }
+.event-card[data-tag="bridge"] { border-left-color: var(--slate); }
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--hairline);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.96rem;
+  color: var(--slate);
+  background: var(--paper-soft);
+}
+
+.source-badge .dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--slate);
+}
+
+/* Timeline */
+.timeline-rail {
+  position: relative;
+  padding-left: 1.75rem;
+}
+.timeline-rail::before {
+  content: "";
+  position: absolute;
+  left: 0.45rem;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 1px;
+  background: var(--hairline);
+}
+.timeline-node {
+  position: relative;
+}
+.timeline-node::before {
+  content: "";
+  position: absolute;
+  left: -1.75rem;
+  top: 0.35rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  outline: 1px solid var(--hairline);
+}
+
+/* Tag toggle chip - admin console, large tap target */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--hairline-dark);
+  min-height: 44px;
+  cursor: pointer;
+  user-select: none;
+}
+.tag-chip input { accent-color: var(--lagoon); width: 1.1rem; height: 1.1rem; }
+
+/* Broadcast preview frames */
+.telegram-frame {
+  background: #17212B;
+  color: #E9EDEF;
+  font-family: 'Inter', sans-serif;
+}
+.viber-frame {
+  background: #6E4FA0;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Single-line scrollable tag/topic nav */
+.tagnav { display: flex; flex-wrap: nowrap; gap: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0 0 1rem; }
+.tagnav::-webkit-scrollbar { display: none; }
+.tagnav a { padding: 0.35rem 0.75rem; font-size: 0.9rem; border: 1px solid var(--hairline); text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+
+/* Sign-in + search */
+.signin-pill { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0.85rem; cursor: pointer; flex-shrink: 0; }
+.signin-pill.signed-in { background: var(--lagoon); border-color: var(--lagoon); }
+.search-wrap { margin-top: 0.65rem; }
+.search-box { width: 100%; border: 1px solid var(--hairline); background: #fff; padding: 0.6rem 0.8rem; font-size: 1rem; font-family: 'Inter', sans-serif; color: var(--ink); }
+.search-box:focus { outline: 2px solid var(--lagoon); outline-offset: -1px; }
+.no-results { font-size: 0.92rem; color: var(--slate); text-align: center; padding: 1.5rem 0; }
+
+/* Unified story card - breaking/major/general share this, differing only by
+   section label and left accent color, never by size (all news is equal) */
+.card-stack { display: flex; flex-direction: column; gap: 0.6rem; }
+.story-card { border: 1px solid var(--hairline); border-left: 4px solid var(--slate); background: #fff; padding: 0.85rem 1rem; cursor: pointer; transition: box-shadow 0.15s ease; }
+.story-card:hover { box-shadow: 0 2px 8px rgba(16, 34, 46, 0.08); }
+.story-card.compact { padding: 0.65rem 0.85rem; }
+.card-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+.eyebrow { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.card-time { font-size: 0.78rem; color: var(--slate); margin-left: auto; white-space: nowrap; }
+.card-headline { font-size: 0.98rem; font-weight: 500; line-height: 1.4; margin: 0; }
+.story-card:not(.compact) .card-headline { font-size: 1.08rem; }
+.card-detail { display: none; font-size: 0.86rem; color: #3a4652; line-height: 1.5; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--hairline); }
+.story-card.open .card-detail { display: block; }
+.story-card .badges { margin-top: 0.5rem; }
+
+/* Follow button */
+.follow-btn { margin-left: auto; border: 1px solid var(--lagoon); background: none; color: var(--lagoon); font-size: 0.76rem; font-weight: 600; padding: 0.25rem 0.6rem; cursor: pointer; white-space: nowrap; }
+.follow-btn.following { background: var(--lagoon); color: #fff; }
+.follow-btn.prompt { border-color: var(--flag); color: var(--flag); }
+
+/* Shared site-level nav (News / Bids / Jobs) */
+.site-nav { background: var(--ink); display: flex; gap: 0; padding: 0 1rem; }
+.site-nav-link { color: var(--slate); text-decoration: none; padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 0.35rem; }
+.site-nav-link.active { color: var(--paper); border-bottom-color: var(--lagoon); }
+.premium-dot { width: 0.35rem; height: 0.35rem; border-radius: 999px; background: var(--gold); display: inline-block; }
+
+/* Bids page */
+.filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; background: var(--paper-soft); border-bottom: 1px solid var(--hairline); }
+.filter-row select { border: 1px solid var(--hairline); background: #fff; padding: 0.4rem 0.6rem; font-size: 0.85rem; font-family: 'Inter', sans-serif; }
+.bid-row { border: 1px solid var(--hairline); border-left: 4px solid var(--slate); background: #fff; padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
+.bid-row.discipline-construction { border-left-color: var(--slate); }
+.bid-row.discipline-it { border-left-color: var(--lagoon); }
+.bid-row.discipline-medical { border-left-color: var(--flag); }
+.bid-row.discipline-real-estate-leasing { border-left-color: var(--gold); }
+.bid-row .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: var(--slate); margin-bottom: 0.3rem; }
+.bid-row .disc-tag { font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.bid-row h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.3rem; }
+.bid-row .ref { font-size: 0.76rem; color: var(--slate); font-family: monospace; }
+.locked-row { position: relative; filter: blur(2px); opacity: 0.55; pointer-events: none; user-select: none; }
+
+/* Jobs page */
+.job-row { border: 1px solid var(--hairline); border-left: 4px solid var(--lagoon); background: #fff; padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
+.job-row h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.3rem; }
+.job-row .meta { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.8rem; color: var(--slate); }

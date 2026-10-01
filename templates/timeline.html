@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ story.title }} — Timeline{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline bg-paper">
+  <div class="max-w-2xl mx-auto px-5 pt-8 pb-5">
+    <a href="/" class="text-sm text-slate hover:text-ink">&larr; All stories</a>
+    <p class="text-sm uppercase tracking-wide mt-3" style="color: {{ tag.color }}">{{ tag.label }}</p>
+    <h1 class="font-serif-display text-3xl font-semibold tracking-tight mt-1">{{ story.title }}</h1>
+    <p class="text-sm text-slate mt-2">{{ milestones|length }} tracked milestones, newest first</p>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-5 py-8">
+  <ol class="timeline-rail space-y-8">
+    {% for m in milestones %}
+    <li class="timeline-node" x-data>
+      <details class="group">
+        <summary class="cursor-pointer list-none">
+          <div class="flex items-baseline gap-3">
+            <time class="text-sm text-slate whitespace-nowrap">{{ m.date_raw }}</time>
+            <div class="h-px flex-1 bg-hairline"></div>
+          </div>
+          <h2 class="font-serif-display text-lg font-medium mt-1.5 leading-snug">
+            {{ m.headline }}
+          </h2>
+          <p class="text-sm text-lagoon mt-1 group-open:hidden">Tap to see outlets covering this &darr;</p>
+        </summary>
+        <div class="mt-2 pl-0 border-l-2 border-hairline pl-3">
+          <p class="text-sm text-ink/80 leading-relaxed mb-3">{{ m.detail }}</p>
+          <div class="flex flex-wrap gap-2">
+            {% for s in m.source_objs %}
+            <span class="source-badge"><span class="dot"></span>{{ s.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </details>
+    </li>
+    {% endfor %}
+  </ol>
+</main>
+
+<footer class="max-w-2xl mx-auto px-5 py-10 text-sm text-slate border-t border-hairline">
+  Mock UI — Phase 1. Milestone expand uses native &lt;details&gt;, no JS framework required.
+</footer>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Bids — Dispatch{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline bg-paper px-4 pt-5 pb-4">
+  <h1 class="font-serif-display text-3xl font-semibold tracking-tight">Bids &amp; Tenders</h1>
+  <p class="text-sm text-slate mt-1">Sourced from gazette.gov.mv · {{ bids|length }} matching{% if active_agency or active_discipline or active_type %} (filtered){% endif %}</p>
+  {% if not is_unlocked %}
+  <div class="paywall-box" style="margin-top:1rem;">
+    <div class="paywall-icon">🔒</div>
+    <h3>Bids &amp; Gazette Alerts — Premium</h3>
+    <p>Sort every open tender by agency, discipline, and type — with instant alerts the moment a new bid matching your field is published.</p>
+    <a href="?unlocked=1" class="paywall-cta" style="text-decoration:none;display:inline-block;">Unlock Premium — Rf 149/month (demo)</a>
+  </div>
+  {% endif %}
+</header>
+
+<form class="filter-row" method="get">
+  {% if is_unlocked %}<input type="hidden" name="unlocked" value="1">{% endif %}
+  <select name="agency" onchange="this.form.submit()">
+    <option value="">All agencies</option>
+    {% for a in agencies %}<option value="{{ a }}" {{ 'selected' if active_agency == a }}>{{ a }}</option>{% endfor %}
+  </select>
+  <select name="discipline" onchange="this.form.submit()">
+    <option value="">All disciplines</option>
+    {% for d in disciplines %}<option value="{{ d }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>{% endfor %}
+  </select>
+  <select name="type" onchange="this.form.submit()">
+    <option value="">All types</option>
+    {% for t in types %}<option value="{{ t }}" {{ 'selected' if active_type == t }}>{{ t }}</option>{% endfor %}
+  </select>
+</form>
+
+<main class="px-4 py-4 max-w-3xl mx-auto">
+  {% for b in bids %}
+  <div class="bid-row discipline-{{ b.discipline|lower|replace(' ', '-')|replace('&', '') }} {{ 'locked-row' if not is_unlocked and loop.index > 2 }}">
+    <div class="meta">
+      <span class="disc-tag" style="color:var(--lagoon);">{{ b.discipline }}</span>
+      <span>{{ b.gazette_type }}</span>
+      <span class="ml-auto" style="margin-left:auto;">{% if b.deadline_iso %}Deadline: {{ b.deadline_iso[:10] }}{% else %}No deadline listed{% endif %}</span>
+    </div>
+    <h3>{{ b.title }}</h3>
+    <div class="meta">
+      <span>{{ b.agency }}</span>
+      {% if b.ref %}<span class="ref">{{ b.ref }}</span>{% endif %}
+      <a href="{{ b.source_url }}" target="_blank" rel="noopener" style="margin-left:auto;color:var(--lagoon);text-decoration:none;">View on gazette.gov.mv &rarr;</a>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-sm text-slate py-12 text-center">No bids match this filter.</p>
+  {% endfor %}
+</main>
+
+<footer class="max-w-3xl mx-auto px-4 py-8 text-sm text-slate border-t border-hairline">
+  These 12 bids are real notices pulled and verified from gazette.gov.mv during development (see scrapers/README.md) — not invented placeholder data. Discipline is our own classification layer; gazette.gov.mv has no native discipline taxonomy for bids (unlike Jobs, where it does).
+</footer>
+{% endblock %}

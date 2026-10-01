@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Jobs — Dispatch{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline bg-paper px-4 pt-5 pb-4">
+  <h1 class="font-serif-display text-3xl font-semibold tracking-tight">Jobs</h1>
+  <p class="text-sm text-slate mt-1">Sourced from gazette.gov.mv · discipline sorting is native here (unlike Bids) · {{ jobs|length }} matching</p>
+</header>
+
+<form class="filter-row" method="get">
+  <select name="discipline" onchange="this.form.submit()">
+    <option value="">All disciplines</option>
+    {% for d in disciplines %}<option value="{{ d }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>{% endfor %}
+  </select>
+</form>
+
+<main class="px-4 py-4 max-w-3xl mx-auto">
+  {% for j in jobs %}
+  <div class="job-row">
+    <h3>{{ j.title }}</h3>
+    <div class="meta">
+      <span style="color:var(--lagoon);font-weight:600;">{{ j.discipline }}</span>
+      <span>{{ j.agency }}</span>
+      <span>{{ j.location }}</span>
+      <span>Deadline: {{ j.deadline_iso[:10] }}</span>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-sm text-slate py-12 text-center">No jobs match this filter.</p>
+  {% endfor %}
+</main>
+
+<footer class="max-w-3xl mx-auto px-4 py-8 text-sm text-slate border-t border-hairline">
+  Mock data for this page (unlike Bids, not pulled live this session) — but the discipline field mirrors gazette.gov.mv's own real job-category taxonomy, confirmed during research.
+</footer>
+{% endblock %}

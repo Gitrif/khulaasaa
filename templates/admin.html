@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Editor console{% endblock %}
+{% block body_class %}bg-ink text-paper{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline-dark px-4 pt-6 pb-4 sticky top-0 bg-ink z-10">
+  <div class="flex items-center justify-between">
+    <h1 class="font-serif-display text-xl font-semibold">Pending clusters</h1>
+    <span class="text-sm text-slate">{{ editor }}</span>
+  </div>
+  <p class="text-sm text-slate mt-1">{{ clusters|length }} awaiting review</p>
+</header>
+
+<main class="px-4 py-4 space-y-4 pb-28">
+  {% for c in clusters %}
+  <form method="post" action="/admin/approve/{{ c.id }}" class="bg-ink-soft border border-hairline-dark p-4">
+    <div class="flex items-center justify-between text-sm text-slate mb-2">
+      <span>{{ c.received_raw }}</span>
+      <span>{{ c.article_count }} articles · {{ (c.confidence * 100)|round|int }}% match</span>
+    </div>
+
+    <h2 class="font-serif-display text-lg font-medium leading-snug mb-3">{{ c.draft_headline }}</h2>
+
+    <div class="flex flex-wrap gap-2 mb-4">
+      {% for s in c.source_objs %}
+      <span class="source-badge bg-transparent border-hairline-dark text-slate"><span class="dot"></span>{{ s.name }}</span>
+      {% endfor %}
+    </div>
+
+    <p class="text-sm text-slate mb-2">Suggested timelines (pre-checked by local LLM)</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      {% for t in all_tags %}
+      <label class="tag-chip bg-ink text-paper" style="border-color: {{ t.color }}66">
+        <input type="checkbox" name="tags" value="{{ t.id }}"
+               {% if t.id in c.suggested_tags %}checked{% endif %}>
+        <span style="color: {{ t.color }}">{{ t.label }}</span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <div class="flex gap-2">
+      <button type="submit"
+        class="flex-1 bg-lagoon text-ink font-medium py-3 min-h-[44px] active:opacity-80">
+        Approve &amp; publish
+      </button>
+      <a href="/admin/broadcast-preview/{{ c.id }}"
+         class="flex-1 border border-hairline-dark text-paper font-medium py-3 min-h-[44px] flex items-center justify-center active:opacity-80">
+        Preview broadcast
+      </a>
+    </div>
+  </form>
+  {% else %}
+  <p class="text-sm text-slate text-center py-16">Queue clear. Nothing pending review.</p>
+  {% endfor %}
+
+  {% if approval_log %}
+  <section class="pt-6 border-t border-hairline-dark">
+    <p class="text-sm text-slate mb-2">Recently approved</p>
+    <ul class="space-y-1 text-sm text-slate">
+      {% for a in approval_log %}
+      <li>{{ a.cluster_id }} &middot; {{ a.tags|join(', ') }} &middot; {{ a.approved_at }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</main>
+
+<nav class="fixed bottom-0 inset-x-0 bg-ink-soft border-t border-hairline-dark px-4 py-3 flex items-center justify-between">
+  <span class="text-sm text-slate">Editor console — Phase 2 mock POST endpoints</span>
+  <a href="/" class="text-sm text-lagoon">View public feed &rarr;</a>
+</nav>
+{% endblock %}
