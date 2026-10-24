@@ -617,9 +617,9 @@
         gSearch.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             const val = gSearch.value.trim();
-            if (val && window.location.pathname !== '/') {
-              window.location.href = '/?q=' + encodeURIComponent(val);
-            }
+            const path = window.location.pathname;
+            const target = (path.startsWith('/bids') || path.startsWith('/jobs')) ? path : '/';
+            window.location.href = target + '?q=' + encodeURIComponent(val);
           }
         });
         const params = new URLSearchParams(window.location.search);
