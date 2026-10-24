@@ -267,10 +267,7 @@
         <nav class="flex items-center gap-1.5 text-xs font-semibold" aria-label="Main Navigation">
           <a href="/" class="nav-tab {{ 'active' if request.url.path == '/' else '' }}">News</a>
           <a href="/bids" class="nav-tab {{ 'active' if request.url.path.startswith('/bids') else '' }}">Tenders</a>
-          <a href="/calculator" class="nav-tab {{ 'active' if request.url.path.startswith('/calculator') or request.url.path.startswith('/tools/construction-estimator') else '' }}">Estimator</a>
           <a href="/jobs" class="nav-tab {{ 'active' if request.url.path == '/jobs' else '' }}">Jobs</a>
-          <a href="/jobs/cv" class="nav-tab {{ 'active' if request.url.path.startswith('/jobs/cv') else '' }}">CV Creator</a>
-          <a href="/about" class="nav-tab {{ 'active' if request.url.path == '/about' else '' }}">About &amp; Legality</a>
         </nav>
         <div class="flex items-center gap-2">
           <a href="/subscription" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition shadow-2xs">
@@ -320,10 +317,6 @@
     <a href="/jobs" class="mobile-nav-item {{ 'active' if request.url.path == '/jobs' else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
       <span>Jobs</span>
-    </a>
-    <a href="/jobs/cv" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/jobs/cv') else '' }}" title="Maldivian CV Creator">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-      <span>CV</span>
     </a>
     <button type="button" onclick="openGlobalAlertsModal('viber')" class="mobile-nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
