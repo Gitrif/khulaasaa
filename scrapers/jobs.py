@@ -446,6 +446,11 @@ def sync_jobs(conn, pages: int = 1, trigger_alerts: bool = True) -> dict[str, An
                     alerts_sent += res.get("delivered", 0)
                 except Exception as exc:
                     logger.warning(f"Error dispatching job alert for {notice_id}: {exc}")
+                try:
+                    from alerts.viber import dispatch_viber_job_alerts
+                    dispatch_viber_job_alerts(conn, [j])
+                except Exception:
+                    pass
         else:
             updated_jobs += 1
 

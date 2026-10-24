@@ -16,6 +16,7 @@ from scrapers.agencies import fetch_all_agency_portals
 from scrapers.gazette import classify_procurement, fetch_listing, fetch_notice
 from scrapers.translator import translate_agency, translate_dhivehi_title, translate_venue
 from alerts.telegram import dispatch_tender_alerts
+from alerts.viber import dispatch_viber_bid_alerts
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +176,10 @@ def _run_bids_sync() -> None:
 
             try:
                 dispatch_tender_alerts(conn, new_records)
+            except Exception:
+                pass
+            try:
+                dispatch_viber_bid_alerts(conn, new_records)
             except Exception:
                 pass
     finally:
