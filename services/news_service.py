@@ -88,6 +88,18 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
         if not force_refresh and _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
             return _LIVE_NEWS_CACHE["data"]
 
+        # Fast path: Serve stored database articles immediately to avoid blocking on network timeouts
+        if not force_refresh:
+            try:
+                stored = query_articles(conn, limit=100)
+                if stored:
+                    clustered = cluster_articles(stored)
+                    _LIVE_NEWS_CACHE["data"] = clustered
+                    _LIVE_NEWS_CACHE["timestamp"] = now
+                    return clustered
+            except Exception:
+                pass
+
         try:
             articles = fetch_all_live_news()
             if articles:
