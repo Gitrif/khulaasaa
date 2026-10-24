@@ -1667,3 +1667,175 @@ body {
 .cv-page-nav .btn-prev:hover {
   background: var(--paper-soft);
 }
+
+/* =====================================================================
+   UNIVERSAL MODAL OVERLAY & POPUP WINDOW SYSTEM
+   ===================================================================== */
+.fixed { position: fixed !important; }
+.inset-0 { top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important; }
+.z-50 { z-index: 99999 !important; }
+
+.modal-overlay,
+#globalUnifiedModal,
+#jobOnboardingModal,
+#proTrialModal,
+#authModal,
+#globalSourcesModal,
+#jobSpecificAlertModal,
+#advancedFilterModal,
+#telegram-panel,
+#proModal,
+#alertModal,
+.global-modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(16, 34, 46, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  box-sizing: border-box !important;
+}
+
+.modal-overlay.hidden,
+#globalUnifiedModal.hidden,
+#jobOnboardingModal.hidden,
+#proTrialModal.hidden,
+#authModal.hidden,
+#globalSourcesModal.hidden,
+#jobSpecificAlertModal.hidden,
+#advancedFilterModal.hidden,
+#telegram-panel.hidden,
+#proModal.hidden,
+#alertModal.hidden,
+.global-modal-backdrop.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.modal-window,
+.modal-content-card {
+  position: relative !important;
+  background-color: #ffffff !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  padding: 1.75rem !important;
+  box-sizing: border-box !important;
+  margin: auto !important;
+}
+
+.modal-close-btn {
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  font-size: 1.5rem !important;
+  line-height: 1 !important;
+  color: var(--slate) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  z-index: 10 !important;
+}
+.modal-close-btn:hover {
+  color: var(--ink) !important;
+  background-color: var(--paper-soft) !important;
+}
+
+/* Modal Form Controls & Social Connect Buttons */
+.modal-auth-btn-tg {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.75rem 1rem !important;
+  background-color: #229ED9 !important;
+  color: #ffffff !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: background-color 0.15s ease !important;
+  box-sizing: border-box !important;
+}
+.modal-auth-btn-tg:hover {
+  background-color: #1c88bc !important;
+  color: #ffffff !important;
+}
+
+.modal-auth-btn-vb {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.75rem 1rem !important;
+  background-color: #7360F2 !important;
+  color: #ffffff !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: background-color 0.15s ease !important;
+  box-sizing: border-box !important;
+}
+.modal-auth-btn-vb:hover {
+  background-color: #5d4bc6 !important;
+  color: #ffffff !important;
+}
+
+.modal-tab-btn {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: var(--slate) !important;
+  padding: 0.5rem 0.75rem !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.modal-tab-btn.active {
+  color: var(--ink) !important;
+  border-bottom-color: var(--ink) !important;
+  font-weight: 700 !important;
+}
+
+.modal-input {
+  width: 100% !important;
+  padding: 0.6rem 0.75rem !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 6px !important;
+  font-size: 0.8125rem !important;
+  background-color: #ffffff !important;
+  color: var(--ink) !important;
+  box-sizing: border-box !important;
+}
+.modal-input:focus {
+  outline: none !important;
+  border-color: var(--ink) !important;
+  box-shadow: 0 0 0 1px var(--ink) !important;
+}

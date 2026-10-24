@@ -316,9 +316,9 @@
   </nav>
 
   <!-- UNIVERSAL MODAL: Sign In / Account & Alert Preferences -->
-  <div id="globalUnifiedModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeGlobalAlertsModal()">
-    <div class="bg-paper border border-hairline max-w-lg w-full p-6 shadow-2xl relative rounded-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-      <button class="absolute top-4 right-4 text-slate hover:text-ink text-2xl font-bold cursor-pointer" onclick="closeGlobalAlertsModal()">&times;</button>
+  <div id="globalUnifiedModal" class="modal-overlay hidden" onclick="if(event.target===this) closeGlobalAlertsModal()">
+    <div class="modal-window" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeGlobalAlertsModal()">&times;</button>
 
       <!-- VIEW 1: SIGN IN / REGISTER (UNAUTHENTICATED) -->
       <div id="modalLoggedOutView" class="space-y-4">
@@ -331,14 +331,14 @@
         <div class="space-y-2 pt-1">
           <a href="https://t.me/khulaasaa_bot?start=auth" target="_blank" rel="noopener noreferrer"
              onclick="localStorage.setItem('khulaasaa_tg_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
-             class="w-full py-2.5 px-4 bg-[#229ED9] hover:bg-[#1D8BC0] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-2 transition shadow-xs">
+             class="modal-auth-btn-tg">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
             <span>Continue with Telegram (@khulaasaa_bot) &rarr;</span>
           </a>
 
           <a href="viber://pa?chatURI=reeldin"
              onclick="localStorage.setItem('khulaasaa_viber_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
-             class="w-full py-2.5 px-4 bg-[#7360F2] hover:bg-[#5C4BC4] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-2 transition shadow-xs">
+             class="modal-auth-btn-vb">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
             <span>Continue with Viber (Khulaasaa Bot) &rarr;</span>
           </a>
@@ -351,10 +351,10 @@
 
         <!-- Mode Toggle: Sign In vs Register -->
         <div class="flex items-center gap-4 border-b border-hairline pb-2">
-          <button type="button" id="authModeLoginBtn" onclick="toggleAuthMode('login')" class="text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer">
+          <button type="button" id="authModeLoginBtn" onclick="toggleAuthMode('login')" class="modal-tab-btn active">
             Sign In
           </button>
-          <button type="button" id="authModeRegisterBtn" onclick="toggleAuthMode('register')" class="text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer">
+          <button type="button" id="authModeRegisterBtn" onclick="toggleAuthMode('register')" class="modal-tab-btn">
             Create Free Account
           </button>
         </div>
@@ -363,11 +363,11 @@
         <form id="modalLoginForm" onsubmit="handleEmailLogin(event)" class="space-y-3 pt-1">
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Email</label>
-            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="modal-input">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Password</label>
-            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="modal-input">
           </div>
           <button type="submit" id="modalAuthBtn" class="w-full py-2.5 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
             Sign In with Email
@@ -379,15 +379,15 @@
         <form id="modalRegisterForm" onsubmit="handleEmailRegister(event)" class="space-y-3 pt-1 hidden">
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Full Name</label>
-            <input type="text" id="modalRegName" required placeholder="Ahmed Naseem" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="text" id="modalRegName" required placeholder="Ahmed Naseem" class="modal-input">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Email</label>
-            <input type="email" id="modalRegEmail" required placeholder="your.name@example.com" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="email" id="modalRegEmail" required placeholder="your.name@example.com" class="modal-input">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Password</label>
-            <input type="password" id="modalRegPass" required minlength="6" placeholder="At least 6 characters" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="password" id="modalRegPass" required minlength="6" placeholder="At least 6 characters" class="modal-input">
           </div>
           <button type="submit" id="modalRegBtn" class="w-full py-2.5 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
             Create Account &amp; Continue
@@ -540,9 +540,9 @@
   </div>
 
   <!-- PRO 1-MONTH TRIAL MODAL -->
-  <div id="proTrialModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeProTrialModal()">
-    <div class="bg-paper border border-hairline max-w-md w-full p-6 shadow-2xl relative rounded-md flex flex-col" onclick="event.stopPropagation()">
-      <button class="absolute top-4 right-4 text-slate hover:text-ink text-2xl font-bold cursor-pointer" onclick="closeProTrialModal()">&times;</button>
+  <div id="proTrialModal" class="modal-overlay hidden" onclick="if(event.target===this) closeProTrialModal()">
+    <div class="modal-window flex flex-col" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeProTrialModal()">&times;</button>
       <div class="flex items-center gap-2 mb-2">
         <span class="badge-pro">PRO</span>
         <h3 class="font-serif-display text-lg font-bold text-ink">1-Month Free Trial</h3>
@@ -592,15 +592,15 @@
       if (mode === 'register') {
         if (loginForm) loginForm.classList.add('hidden');
         if (regForm) regForm.classList.remove('hidden');
-        if (loginBtn) loginBtn.className = 'text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer';
-        if (regBtn) regBtn.className = 'text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer';
+        if (loginBtn) loginBtn.className = 'modal-tab-btn';
+        if (regBtn) regBtn.className = 'modal-tab-btn active';
         if (title) title.textContent = 'Create Free Account';
         if (subtitle) subtitle.textContent = 'Register to create & download CVs and receive instant tender & job alerts.';
       } else {
         if (regForm) regForm.classList.add('hidden');
         if (loginForm) loginForm.classList.remove('hidden');
-        if (regBtn) regBtn.className = 'text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer';
-        if (loginBtn) loginBtn.className = 'text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer';
+        if (regBtn) regBtn.className = 'modal-tab-btn';
+        if (loginBtn) loginBtn.className = 'modal-tab-btn active';
         if (title) title.textContent = 'Sign In to Khulaasaa';
         if (subtitle) subtitle.textContent = 'Access saved CVs, company tender profiles, and real-time alerts.';
       }
