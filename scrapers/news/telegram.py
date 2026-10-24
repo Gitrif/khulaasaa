@@ -26,7 +26,7 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
     """Fetch live public posts from Telegram channel preview (e.g. https://t.me/s/mvcrisis)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
+        resp = requests.get(url, headers=HEADERS, timeout=6)
         if resp.status_code != 200:
             return []
         soup = BeautifulSoup(resp.text, "html.parser")

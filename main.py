@@ -98,6 +98,7 @@ from scrapers.translator import (
     translate_venue,
 )
 from services.news_service import enrich_event, get_live_news
+from services.hooks85_service import register_khulaasaa_manifest
 from services.tenders_service import (
     CACHE_TTL_SECONDS,
     _LIVE_BIDS_IS_SYNCING,
@@ -165,6 +166,10 @@ async def lifespan(app: FastAPI):
         trigger_bids_background_sync(force=False)
         start_telegram_bot_polling()
         set_telegram_chat_menu_button()
+        try:
+            threading.Thread(target=register_khulaasaa_manifest, daemon=True, name="Hooks85ManifestRegister").start()
+        except Exception:
+            pass
         threading.Thread(target=_periodic_sync_worker, daemon=True, name="PeriodicNewsSync").start()
     yield
     # Shutdown lifecycle

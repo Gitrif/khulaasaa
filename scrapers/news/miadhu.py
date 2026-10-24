@@ -30,7 +30,7 @@ def fetch_miadhu_posts(
     """Fetch real-time news articles from Miadhu Online English edition (miadhu.mv/en)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
+        resp = requests.get(url, headers=HEADERS, timeout=6)
         if resp.status_code != 200:
             return []
         soup = BeautifulSoup(resp.text, "html.parser")

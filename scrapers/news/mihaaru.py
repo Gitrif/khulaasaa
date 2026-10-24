@@ -28,7 +28,7 @@ def fetch_mihaaru_posts(
     """Fetch real-time news articles from Mihaaru Online (mihaaru.com)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
+        resp = requests.get(url, headers=HEADERS, timeout=6)
         if resp.status_code != 200:
             return []
         soup = BeautifulSoup(resp.text, "html.parser")

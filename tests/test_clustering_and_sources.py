@@ -178,7 +178,7 @@ def test_all_canonical_sources_have_valid_logos():
 
 def test_home_page_renders_logos_and_no_duplicate_outlets():
     """Verify that outlet logos are rendered and the duplicate 'Compare coverage' row is removed."""
-    response = client.get("/")
+    response = client.get("/?source=mock")
     assert response.status_code == 200
     # No duplicate 'Compare coverage' rows in the UI
     assert "Compare coverage (" not in response.text

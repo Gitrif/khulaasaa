@@ -26,7 +26,7 @@ def fetch_wp_rest_posts(source_key: str, url: str, limit: int = 12) -> list[dict
     """Fetch posts from WordPress REST API (e.g. Haftha Online)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
+        resp = requests.get(url, headers=HEADERS, timeout=6)
         if resp.status_code != 200:
             return []
         posts = resp.json()

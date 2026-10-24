@@ -12,8 +12,15 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
-from data.database import get_db, get_user_from_session
+from data.database import (
+    create_user,
+    get_db,
+    get_user_by_email,
+    get_user_by_id,
+    get_user_from_session,
+)
 from data.utils import format_tender_date, normalize_tender_info
+from services.hooks85_service import verify_hooks85_session
 
 templates = Jinja2Templates(directory="templates")
 templates.env.filters["format_tender_date"] = format_tender_date
@@ -47,7 +54,29 @@ def require_editor(credentials: HTTPBasicCredentials = Depends(security)) -> str
 
 
 def get_current_user(request: Request) -> Optional[dict[str, Any]]:
-    """Retrieve logged-in user from session cookie or Bearer header."""
+    """Retrieve logged-in user from hooks85 Gateway or local session."""
+    h85_cookie = request.cookies.get("hooks85_session")
+    if h85_cookie:
+        h85_user = verify_hooks85_session(h85_cookie)
+        if h85_user and h85_user.get("email"):
+            try:
+                with get_db() as conn:
+                    local_user = get_user_by_email(conn, h85_user["email"])
+                    if not local_user:
+                        uid = create_user(
+                            conn,
+                            email=h85_user["email"],
+                            password="sso_managed_by_hooks85",
+                            full_name=h85_user.get("full_name") or h85_user["email"].split("@")[0],
+                            is_paid=h85_user.get("is_paid", 0),
+                        )
+                        local_user = get_user_by_id(conn, uid)
+                    if local_user:
+                        local_user["hooks85"] = h85_user
+                        return local_user
+            except Exception:
+                return h85_user
+
     token = request.cookies.get("session_token")
     if not token:
         auth_header = request.headers.get("Authorization")
@@ -55,6 +84,19 @@ def get_current_user(request: Request) -> Optional[dict[str, Any]]:
             token = auth_header[7:].strip()
     if not token:
         return None
+
+    # Check if token is a hooks85 JWT
+    if token.startswith("eyJ"):
+        h85_user = verify_hooks85_session(token)
+        if h85_user and h85_user.get("email"):
+            try:
+                with get_db() as conn:
+                    local_user = get_user_by_email(conn, h85_user["email"])
+                    if local_user:
+                        return local_user
+            except Exception:
+                pass
+
     try:
         with get_db() as conn:
             return get_user_from_session(conn, token)

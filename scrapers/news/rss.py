@@ -49,7 +49,7 @@ def fetch_rss_posts(
             req_headers["If-Modified-Since"] = cache_entry["last_modified"]
 
     try:
-        resp = requests.get(url, headers=req_headers, timeout=15)
+        resp = requests.get(url, headers=req_headers, timeout=6)
         
         # HTTP 304: Content has not changed since last fetch
         if resp.status_code == 304 and cache_entry:

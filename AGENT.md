@@ -29,10 +29,16 @@ Khulaasaa is partitioned into 4 focused frontends sharing a unified backend, dat
 ---
 
 ## 3. hooks85 Integration & Auth / Subscription Gateway
-- **Single Sign-On (SSO)**: Authentication is centralized in hooks85 (`hooks.com.mv` / `hooks85 ERP`).
+- **Single Sign-On (SSO) & Essentials-v1 Contract**:
+  - Implemented in `services/hooks85_service.py` adhering to `essentials/v1`.
+  - Registered App Slug: `app_khulaasaa` via `PUT {HOOKS85_GATEWAY_URL}/internal/v1/apps/app_khulaasaa/manifest`.
+  - Primary Auth: `POST {HOOKS85_GATEWAY_URL}/api/v1/auth/password/login` and `POST {HOOKS85_GATEWAY_URL}/api/v1/auth/register`.
+  - Session Verification: `GET {HOOKS85_GATEWAY_URL}/api/v1/auth/session` via `hooks85_session` cookie (cached 30s per essentials-v1 contract).
+  - Dual-mode fallback: Falls back to local SQLite credentials if Gateway is offline.
 - **Subscription & RBAC Management**:
-  - Khulaasaa validates subscription status and credits against hooks85 token / webhook.
-  - Paid plans (Pro Feed, Follow Quotas, Unlimited Document Exports) are provisioned through hooks85 Admin.
+  - Validates subscription status (`billing.status in ("active", "trial")` or `billing.can_write == true`) directly from hooks85 Gateway session.
+  - Payment Gateway at `{HOOKS85_PAYMENT_URL}/api/v1/plans` manages tier entitlements.
+  - Paid plans (Pro Feed, Follow Quotas, Unlimited Document Exports) are provisioned through hooks85 Admin Console.
 - **Borrowed ERP Modules**:
   - Invoicing, Quotation, Letter Generator, Company Profile, and BOQ Maker are maintained as hooks85 core engines and surfaced contextually in Khulaasaa.
   - Free tier documents generated in Khulaasaa contain a subtle footer watermark:  

@@ -80,6 +80,8 @@ def query_articles(
             d["tags"] = json.loads(d["tags"]) if d.get("tags") else []
         except Exception:
             d["tags"] = []
+        if not d.get("sources"):
+            d["sources"] = [d.get("source_key") or "press"]
         results.append(d)
     return results
 

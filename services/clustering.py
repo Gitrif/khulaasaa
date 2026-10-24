@@ -257,6 +257,14 @@ def cluster_articles(raw_articles: list[dict[str, Any]]) -> list[dict[str, Any]]
     Group related news articles across multiple media outlets into unified story cards.
     Handles both editorial tracks (KNOWN_STORY_CLUSTERS) and dynamic 2-source article grouping.
     """
+    normalized: list[dict[str, Any]] = []
+    for art in raw_articles:
+        a = dict(art)
+        if not a.get("sources"):
+            a["sources"] = [a.get("source_key") or "press"]
+        normalized.append(a)
+    raw_articles = normalized
+
     consumed_ids: set[str] = set()
     clustered_feed: list[dict[str, Any]] = []
 

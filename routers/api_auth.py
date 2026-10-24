@@ -25,12 +25,13 @@ from data.database import (
     register_or_update_viber_subscriber,
     update_user_job_alerts,
 )
+from services.hooks85_service import login_via_hooks85, register_via_hooks85
 
 router = APIRouter()
 
 @router.post("/api/auth/register")
 async def api_register(request: Request):
-    """Register a new user account."""
+    """Register a new user account with hooks85 Gateway or local storage."""
     payload = await request.json()
     email = payload.get("email", "").strip().lower()
     password = payload.get("password", "")
@@ -47,22 +48,28 @@ async def api_register(request: Request):
     if not full_name:
         raise HTTPException(status_code=400, detail="Full name is required")
 
+    h85_session_cookie = ""
+    # Attempt registration via hooks85 Gateway
+    h85_res = register_via_hooks85(email, password, full_name)
+    if h85_res and h85_res.get("status") == "ok":
+        h85_session_cookie = h85_res.get("cookie_val") or ""
+
     with get_db() as conn:
         existing = get_user_by_email(conn, email)
         if existing:
-            raise HTTPException(status_code=409, detail="An account with this email already exists")
-
-        user_id = create_user(
-            conn,
-            email=email,
-            password=password,
-            full_name=full_name,
-            phone=phone,
-            telegram_chat_id=telegram_chat_id,
-            viber_user_id=viber_user_id,
-            job_alert_categories=cats,
-            is_paid=0,
-        )
+            user_id = existing["id"]
+        else:
+            user_id = create_user(
+                conn,
+                email=email,
+                password=password,
+                full_name=full_name,
+                phone=phone,
+                telegram_chat_id=telegram_chat_id,
+                viber_user_id=viber_user_id,
+                job_alert_categories=cats,
+                is_paid=0,
+            )
         if telegram_chat_id:
             register_or_update_telegram_subscriber(
                 conn,
@@ -90,21 +97,53 @@ async def api_register(request: Request):
         httponly=True,
         samesite="lax",
     )
+    if h85_session_cookie:
+        response.set_cookie(
+            key="hooks85_session",
+            value=h85_session_cookie,
+            max_age=30 * 24 * 3600,
+            httponly=True,
+            samesite="lax",
+        )
     return response
 
 
 @router.post("/api/auth/login")
 async def api_login(request: Request):
-    """Authenticate and sign in user."""
+    """Authenticate and sign in user via hooks85 Gateway or local credentials."""
     payload = await request.json()
     email = payload.get("email", "").strip()
     password = payload.get("password", "")
 
-    with get_db() as conn:
-        user = authenticate_user(conn, email, password)
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
-        token = create_user_session(conn, user["id"])
+    h85_session_cookie = ""
+    user = None
+
+    # 1. Primary auth check: hooks85 Gateway
+    h85_res = login_via_hooks85(email, password)
+    if h85_res and h85_res.get("status") == "ok":
+        h85_session_cookie = h85_res.get("cookie_val") or ""
+        with get_db() as conn:
+            existing = get_user_by_email(conn, email)
+            if not existing:
+                h85_user = h85_res.get("user") or {}
+                uid = create_user(
+                    conn,
+                    email=email,
+                    password="sso_managed_by_hooks85",
+                    full_name=h85_user.get("full_name") or email.split("@")[0],
+                    is_paid=h85_user.get("is_paid", 0),
+                )
+                user = get_user_by_id(conn, uid)
+            else:
+                user = existing
+            token = create_user_session(conn, user["id"])
+    else:
+        # 2. Fallback: local SQLite accounts
+        with get_db() as conn:
+            user = authenticate_user(conn, email, password)
+            if not user:
+                raise HTTPException(status_code=401, detail="Invalid email or password")
+            token = create_user_session(conn, user["id"])
 
     response = JSONResponse({"status": "ok", "user": user, "token": token})
     response.set_cookie(
@@ -114,6 +153,14 @@ async def api_login(request: Request):
         httponly=True,
         samesite="lax",
     )
+    if h85_session_cookie:
+        response.set_cookie(
+            key="hooks85_session",
+            value=h85_session_cookie,
+            max_age=30 * 24 * 3600,
+            httponly=True,
+            samesite="lax",
+        )
     return response
 
 
@@ -286,6 +333,7 @@ def api_logout(request: Request):
             delete_user_session(conn, token)
     response = JSONResponse({"status": "ok"})
     response.delete_cookie("session_token")
+    response.delete_cookie("hooks85_session")
     return response
 
 
