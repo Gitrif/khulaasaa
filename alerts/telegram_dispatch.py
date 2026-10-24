@@ -7,14 +7,10 @@ Telegram Multi-Channel Alert Dispatcher (Tenders, News, Obituaries, Jobs, Sponso
 
 import html
 import json
-import html
-import json
 import logging
 import sqlite3
 import time
 from typing import Any, Optional
-
-import requests
 
 import requests
 
@@ -77,17 +73,29 @@ def dispatch_tender_alerts(
     Iterates over bids and sends Telegram alerts to all matching active subscribers.
     Returns audit log of sent alerts.
     """
-    # Fetch active subscribers from SQLite
-    subscribers = conn.execute(
-        "SELECT id, chat_id, name, disciplines, keywords, created_at FROM telegram_subscribers WHERE is_active = 1;"
-    ).fetchall()
-
-    if not subscribers:
-        return []
-
-    token, _ = get_telegram_credentials(bot_token=bot_token)
+    token, default_chat = get_telegram_credentials(bot_token=bot_token)
     if not token:
         logger.info("Telegram bot token not configured; skipping dispatch")
+        return []
+
+    # Fetch active subscribers from SQLite
+    raw_subs = conn.execute(
+        "SELECT id, chat_id, name, disciplines, keywords, created_at FROM telegram_subscribers WHERE is_active = 1;"
+    ).fetchall()
+    subscribers = [dict(r) for r in raw_subs]
+
+    # Include default broadcast channel if configured
+    if default_chat and not any(str(s["chat_id"]) == str(default_chat) for s in subscribers):
+        subscribers.append({
+            "id": 0,
+            "chat_id": str(default_chat),
+            "name": "Main Broadcast Channel",
+            "disciplines": '["All"]',
+            "keywords": '["All"]',
+            "created_at": None,
+        })
+
+    if not subscribers:
         return []
 
     sent_records: list[dict[str, Any]] = []
@@ -186,16 +194,27 @@ def dispatch_news_alerts(
     force_resend: bool = False,
 ) -> list[dict[str, Any]]:
     """Iterates over news articles and sends Telegram alerts to matching active subscribers."""
-    subscribers = conn.execute(
-        "SELECT id, chat_id, name, keywords, created_at FROM telegram_subscribers WHERE is_active = 1;"
-    ).fetchall()
-
-    if not subscribers or not articles:
-        return []
-
-    token, _ = get_telegram_credentials(bot_token=bot_token)
+    token, default_chat = get_telegram_credentials(bot_token=bot_token)
     if not token:
         logger.info("Telegram bot token not configured; skipping news dispatch")
+        return []
+
+    raw_subs = conn.execute(
+        "SELECT id, chat_id, name, keywords, created_at FROM telegram_subscribers WHERE is_active = 1;"
+    ).fetchall()
+    subscribers = [dict(r) for r in raw_subs]
+
+    # Include default broadcast channel if configured
+    if default_chat and not any(str(s["chat_id"]) == str(default_chat) for s in subscribers):
+        subscribers.append({
+            "id": 0,
+            "chat_id": str(default_chat),
+            "name": "Main Broadcast Channel",
+            "keywords": '["All"]',
+            "created_at": None,
+        })
+
+    if not subscribers or not articles:
         return []
 
     sent_records: list[dict[str, Any]] = []
@@ -400,6 +419,10 @@ def dispatch_job_alerts(
 
             if "jobs" in kws or "all" in discs or any(d in job_discipline for d in discs):
                 target_chats.add(cid)
+
+        # 3. Default broadcast channel if configured
+        if default_chat:
+            target_chats.add(str(default_chat).strip())
 
         msg_html = format_job_alert_html(job)
         delivered = 0

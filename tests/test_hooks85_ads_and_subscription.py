@@ -96,5 +96,22 @@ class TestHooks85AdsAndSubscription(unittest.TestCase):
             self.assertEqual(sub["plan_tier"], "tender_erp")
             self.assertIn("tender_boq", sub["interested_modules"])
 
+    def test_advertise_page_and_footer_links(self):
+        res = client.get("/advertise")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("Advertise on Khulaasaa MV", res.text)
+        self.assertIn("advertise@khulaasaa.tech", res.text)
+        self.assertIn("Header Leaderboard Banner", res.text)
+        self.assertIn("In-Feed Native Sponsor Card", res.text)
+
+        # Check footer links on home page
+        home = client.get("/")
+        self.assertEqual(home.status_code, 200)
+        self.assertIn('href="/advertise"', home.text)
+        self.assertIn('href="/about"', home.text)
+        self.assertIn('href="/feed.xml"', home.text)
+        self.assertIn('editorial@khulaasaa.tech', home.text)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,12 +5,20 @@ from __future__ import annotations
 
 import time
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse
 
+from core.deps import templates
 from data.database import get_db, list_sponsored_ads, upsert_sponsored_ad
 from alerts.telegram import dispatch_sponsored_broadcast
 from alerts.viber import dispatch_viber_sponsored_broadcast
 
 router = APIRouter()
+
+
+@router.get("/advertise", response_class=HTMLResponse)
+def advertise_page(request: Request):
+    """Advertise with Khulaasaa - Media kit, ad formats, and booking."""
+    return templates.TemplateResponse("advertise.html", {"request": request})
 
 
 @router.get("/api/ads")

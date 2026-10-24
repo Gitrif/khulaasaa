@@ -278,19 +278,78 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Minimal Global Footer with About & Compliance -->
-  <footer class="site-footer border-t border-hairline bg-paper py-4 text-xs text-slate mt-8">
-    <div class="max-w-5xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2 text-slate">
-      <div class="flex items-center gap-2">
-        <span class="font-bold text-ink">Khulaasaa</span>
-        <span>&middot;</span>
-        <a href="/about" class="text-ink font-semibold hover:underline">About &amp; Legality</a>
-        <span>&middot;</span>
-        <a href="/about#removal" class="hover:underline">Content Removal / Opt-Out</a>
+  <!-- COMPREHENSIVE GLOBAL FOOTER -->
+  <footer class="site-footer border-t border-hairline bg-paper pt-10 pb-28 md:pb-12 text-xs text-slate mt-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        
+        <!-- Column 1: Brand & Editorial Mission -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="font-serif-display font-bold text-base text-ink tracking-tight">Khulaasaa</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink text-white">MV</span>
+          </div>
+          <p class="text-xs text-slate leading-relaxed">
+            Independent, non-partisan chronological news synthesis, Government Gazette procurement intelligence, and verified employment discovery for the Republic of Maldives.
+          </p>
+          <div class="pt-1 text-[11px] text-slate-500">
+            <span>Republic of Maldives</span> &middot; <span>Act No. 23/2010 Fair Dealing</span>
+          </div>
+        </div>
+
+        <!-- Column 2: Intelligence & Coverage -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-ink">Coverage &amp; Feeds</h4>
+          <ul class="space-y-1.5 text-xs">
+            <li><a href="/" class="hover:text-ink transition hover:underline">Live News Wire (All Outlets)</a></li>
+            <li><a href="/bids" class="hover:text-ink transition hover:underline">Government Gazette Tenders</a></li>
+            <li><a href="/jobs" class="hover:text-ink transition hover:underline">Careers &amp; Civil Service Vacancies</a></li>
+            <li><a href="/jobs/cv-creator" class="hover:text-ink transition hover:underline">Free Maldivian CV Builder</a></li>
+            <li><a href="/feed.xml" class="hover:text-ink transition hover:underline flex items-center gap-1.5">
+              <svg class="w-3 h-3 text-amber-600 fill-current" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
+              <span>RSS 2.0 Syndication Feed</span>
+            </a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Commercial & Advertise -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-ink">Business &amp; Advertising</h4>
+          <ul class="space-y-1.5 text-xs">
+            <li><a href="/advertise" class="hover:text-ink font-semibold transition hover:underline">Advertise with Us</a></li>
+            <li><a href="/advertise#formats" class="hover:text-ink transition hover:underline">Display Banners &amp; Native Slots</a></li>
+            <li><a href="/advertise#broadcasts" class="hover:text-ink transition hover:underline">Telegram &amp; Viber Broadcasts</a></li>
+            <li><a href="/subscription" class="hover:text-ink transition hover:underline">hooks85 ERP &amp; Tender Suite</a></li>
+            <li><a href="mailto:advertise@khulaasaa.tech" class="text-lagoon hover:underline">advertise@khulaasaa.tech</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Governance & Legal -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-ink">Trust &amp; Governance</h4>
+          <ul class="space-y-1.5 text-xs">
+            <li><a href="/about" class="hover:text-ink font-semibold transition hover:underline">About Us &amp; Standards</a></li>
+            <li><a href="/about#legality" class="hover:text-ink transition hover:underline">Copyright &amp; Legal Basis</a></li>
+            <li><a href="/about#removal" class="hover:text-ink transition hover:underline text-flag">Content Removal / Opt-Out</a></li>
+            <li><a href="/compliance" class="hover:text-ink transition hover:underline">Publisher Compliance Desk</a></li>
+            <li><a href="mailto:editorial@khulaasaa.tech" class="text-lagoon hover:underline">editorial@khulaasaa.tech</a></li>
+          </ul>
+        </div>
+
       </div>
-      <div class="flex items-center gap-3 text-slate">
-        <a href="/about" class="hover:underline">About &amp; Compliance</a>
-        <a href="/feed.xml" class="hover:underline">RSS</a>
+
+      <!-- Bottom Sub-Footer Bar -->
+      <div class="pt-6 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate">
+        <div>
+          &copy; 2026 Khulaasaa MV. All rights reserved. Zero full-text republishing policy.
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="/about" class="hover:text-ink hover:underline">Editorial Ethics</a>
+          <span>&middot;</span>
+          <a href="/about#removal" class="hover:text-ink hover:underline">Takedown Request (24-48h SLA)</a>
+          <span>&middot;</span>
+          <a href="/feed.xml" class="hover:text-ink hover:underline">XML</a>
+        </div>
       </div>
     </div>
   </footer>
