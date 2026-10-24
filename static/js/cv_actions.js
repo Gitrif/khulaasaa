@@ -54,11 +54,20 @@ async function downloadCvPdf() {
 
 // Modal Handlers
 function openAuthModal(tab = 'login') {
-  document.getElementById("authModal").classList.remove("hidden");
+  if (typeof openGlobalAlertsModal === 'function') {
+    openGlobalAlertsModal(tab === 'register' ? 'register' : 'login');
+    return;
+  }
+  const modal = document.getElementById("authModal");
+  if (modal) modal.classList.remove("hidden");
   switchAuthTab(tab);
 }
 function closeAuthModal() {
-  document.getElementById("authModal").classList.add("hidden");
+  if (typeof closeGlobalAlertsModal === 'function') {
+    closeGlobalAlertsModal();
+  }
+  const modal = document.getElementById("authModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 function switchAuthTab(tab) {

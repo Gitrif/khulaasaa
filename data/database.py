@@ -74,6 +74,7 @@ from data.repos.users import (
     get_user_by_viber_id,
     update_user_plan,
     update_user_job_alerts,
+    update_user_alert_settings,
     create_user_session,
     get_user_from_session,
     delete_user_session,

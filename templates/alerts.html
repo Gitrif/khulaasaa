@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Telegram Alert Preferences — Khulaasaa{% endblock %}
+{% block title %}Real-Time Alert Preferences — Khulaasaa{% endblock %}
 
 {% block content %}
 <header class="border-b border-hairline bg-paper">
@@ -7,7 +7,7 @@
     <div class="flex items-center gap-2 mb-3">
       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#7360F2]/10 text-[#7360F2] text-xs font-semibold">
         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
-        <span>Viber (Most Popular)</span>
+        <span>Viber Bot</span>
       </span>
       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#229ED9]/10 text-[#229ED9] text-xs font-semibold">
         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
@@ -18,227 +18,291 @@
       Real-Time Alert Preferences
     </h1>
     <p class="mt-2 text-sm text-slate leading-relaxed">
-      Subscribe to live Maldivian news, urgent Janaza notices, tenders, and job postings directly through Viber or Telegram.
+      Configure instant procurement tenders and employment vacancy alerts delivered directly to your Telegram and Viber channels.
     </p>
   </div>
 </header>
 
 <main class="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
-  <!-- Viber Bot Card (Primary Maldives Channel) -->
-  <div class="bg-white border-2 border-purple-200 rounded-lg p-5 shadow-xs space-y-3">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full bg-[#7360F2]"></span>
-        <h2 class="text-sm font-bold uppercase tracking-wide text-ink">Viber Bot — Khulaasaa</h2>
+  <!-- Sign In Prompt for Unauthenticated Visitors -->
+  {% if not current_user %}
+  <div class="bg-amber-50 border border-amber-200 rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+    <div>
+      <span class="font-bold text-ink text-sm block">Sign in to save and synchronize your alerts</span>
+      <span class="text-xs text-slate">Connect your Telegram and Viber channels to receive personalized tender and job alerts tailored to your trade discipline.</span>
+    </div>
+    <button type="button" onclick="openGlobalAlertsModal('auth')" class="px-5 py-2.5 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition whitespace-nowrap cursor-pointer shadow-xs">
+      Sign In / Register &rarr;
+    </button>
+  </div>
+  {% else %}
+  <div class="bg-white border border-hairline rounded-lg p-4 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+      <span class="text-xs text-slate">Signed in as:</span>
+      <span class="text-xs font-bold text-ink">{{ current_user.full_name or current_user.email }}</span>
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded {{ 'bg-amber-100 text-amber-800' if current_user.is_paid else 'bg-slate-100 text-slate-700' }}">{{ 'PRO' if current_user.is_paid else 'Free' }}</span>
+    </div>
+    <button type="button" onclick="openGlobalAlertsModal('settings')" class="text-xs text-ink font-semibold border border-hairline px-3 py-1 rounded hover:bg-paper-soft cursor-pointer">
+      Manage in Modal
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Connected Channels (Telegram & Viber) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Telegram Card -->
+    <div class="bg-white border border-sky-200 rounded-lg p-5 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#229ED9]"></span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-ink">Telegram Channel</h2>
+        </div>
+        <span class="text-[11px] font-mono text-[#229ED9]">@{{ bot_username or 'khulaasaa_bot' }}</span>
       </div>
-      <span class="text-[11px] px-2 py-0.5 rounded bg-purple-100 text-[#7360F2] font-semibold">URI: reeldin</span>
+      <div>
+        <label for="pageChatId" class="block text-xs font-semibold text-slate mb-1">Telegram Chat ID</label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="pageChatId" 
+            name="chat_id" 
+            value="{{ current_user.telegram_chat_id if current_user else (subscriber.chat_id if subscriber else (chat_id or '')) }}"
+            placeholder="e.g. 6066403903" 
+            class="flex-1 px-3 py-2 text-xs border border-hairline rounded font-mono bg-paper-soft text-ink"
+          >
+          <button type="button" onclick="testPageAlert('telegram')" class="px-3 py-2 text-xs font-semibold border border-sky-200 text-[#229ED9] bg-sky-50 rounded hover:bg-sky-100 cursor-pointer">
+            Test
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs pt-1">
+        <span class="text-[11px] text-slate">Connect bot:</span>
+        <a href="https://t.me/{{ bot_username or 'khulaasaa_bot' }}?start=connect" target="_blank" class="text-xs font-semibold text-[#229ED9] hover:underline">
+          Open @{{ bot_username or 'khulaasaa_bot' }} &rarr;
+        </a>
+      </div>
     </div>
-    <p class="text-xs text-slate leading-relaxed">
-      Most Maldivians use Viber. Tap below to launch <b>Khulaasaa</b> in Viber — you will be automatically subscribed to all news, Janaza, tenders, and job alerts!
-    </p>
-    <div class="flex flex-col sm:flex-row gap-2 pt-1">
-      <a href="viber://pa?chatURI=reeldin" 
-         class="px-4 py-2.5 text-xs font-semibold rounded bg-[#7360F2] text-white hover:bg-[#5C4BC4] transition inline-flex items-center justify-center gap-1.5 shadow-xs">
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
-        <span>Connect with Viber (1-Click) &rarr;</span>
-      </a>
-      <button type="button" onclick="document.getElementById('alertsViberQrBox').classList.toggle('hidden')"
-              class="px-3.5 py-2 text-xs font-semibold rounded border border-purple-200 text-[#7360F2] bg-purple-50/50 hover:bg-purple-100 transition inline-flex items-center justify-center gap-1.5">
-        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm13 0h3v3h-3v-3zm0 3h3v3h-3v-3zm-3-3h3v3h-3v-3zm0 3h3v3h-3v-3z"/></svg>
-        <span>Show QR Code (Desktop)</span>
-      </button>
-    </div>
-    <div id="alertsViberQrBox" class="hidden p-3 bg-paper-soft border border-hairline rounded text-center">
-      <p class="text-xs text-slate mb-2 font-medium">Scan with your smartphone camera or Viber scanner:</p>
-      <img src="/static/images/viber_qr.png" alt="Scan to connect Viber bot" class="w-32 h-32 mx-auto border border-hairline rounded p-1 bg-white shadow-xs">
-      <div class="text-[10px] text-slate mt-1.5 font-mono">viber://pa?chatURI=reeldin</div>
+
+    <!-- Viber Card -->
+    <div class="bg-white border border-purple-200 rounded-lg p-5 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#7360F2]"></span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-ink">Viber Channel</h2>
+        </div>
+        <span class="text-[11px] font-mono text-[#7360F2]">URI: reeldin</span>
+      </div>
+      <div>
+        <label for="pageViberId" class="block text-xs font-semibold text-slate mb-1">Viber User ID / Phone</label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="pageViberId" 
+            name="viber_user_id" 
+            value="{{ current_user.viber_user_id if current_user else '' }}"
+            placeholder="e.g. +960 7770000 or Viber ID" 
+            class="flex-1 px-3 py-2 text-xs border border-hairline rounded font-mono bg-paper-soft text-ink"
+          >
+          <button type="button" onclick="testPageAlert('viber')" class="px-3 py-2 text-xs font-semibold border border-purple-200 text-[#7360F2] bg-purple-50 rounded hover:bg-purple-100 cursor-pointer">
+            Test
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs pt-1">
+        <span class="text-[11px] text-slate">Launch in app:</span>
+        <a href="viber://pa?chatURI=reeldin" class="text-xs font-semibold text-[#7360F2] hover:underline">
+          Connect in Viber (1-Click) &rarr;
+        </a>
+      </div>
     </div>
   </div>
 
-  <form id="preferencesForm" onsubmit="savePreferences(event)" class="space-y-6">
-    <!-- Chat ID Bar -->
-    <div class="bg-white border border-hairline rounded p-4 shadow-xs">
-      <label for="chatId" class="block text-xs font-bold uppercase tracking-wider text-slate mb-1">
-        Telegram Chat ID
-      </label>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <input 
-          type="text" 
-          id="chatId" 
-          name="chat_id" 
-          required 
-          value="{{ subscriber.chat_id if subscriber else (chat_id or '') }}"
-          placeholder="e.g. 6066403903" 
-          class="flex-1 px-3 py-2 text-sm border border-hairline rounded font-mono focus:outline-none focus:border-ink"
-        >
-        <a 
-          href="https://t.me/{{ bot_username or 'khulaasaa_bot' }}?start=alerts_all" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          class="px-4 py-2 text-xs font-semibold rounded bg-[#229ED9] text-white hover:bg-[#1D8BC0] transition inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
-        >
-          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-          Open Bot in Telegram
-        </a>
+  <form id="preferencesForm" onsubmit="savePagePreferences(event)" class="space-y-6">
+
+    <!-- Tenders & Procurement Feeds -->
+    <div class="bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4">
+      <div class="flex items-center justify-between border-b border-hairline pb-3">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wide text-ink">
+            Tender &amp; SOE Procurement Alerts
+          </h2>
+          <p class="text-xs text-slate mt-0.5">Filter by procurement source and technical discipline.</p>
+        </div>
+        <label class="flex items-center gap-2 text-xs cursor-pointer">
+          <input type="checkbox" id="pageTendersEnabled" checked class="w-4 h-4 accent-emerald-600 rounded">
+          <span class="font-bold text-ink">Active</span>
+        </label>
       </div>
-      <p class="text-[11px] text-slate mt-1.5">
-        Don't know your ID? Open our bot above and type <code>/start</code> — the bot will reply with your Chat ID.
-      </p>
-    </div>
 
-    <!-- Main Alert Toggles -->
-    <div class="bg-white border border-hairline rounded p-5 shadow-xs space-y-4">
-      <h2 class="text-sm font-bold uppercase tracking-wide text-ink border-b border-hairline pb-2">
-        Primary Notification Feeds
-      </h2>
-
-      <!-- All News -->
-      <label class="flex items-start justify-between gap-3 p-2 rounded hover:bg-paper-soft cursor-pointer">
-        <div>
-          <span class="text-sm font-semibold text-ink block">All News Stream</span>
-          <span class="text-xs text-slate block leading-relaxed">
-            Real-time notifications for every verified Maldivian news report (Sun, Mihaaru, Dhauru, Atoll Times, etc.).
-          </span>
+      <!-- Sources -->
+      <div>
+        <div class="text-xs font-bold text-slate mb-2">Tender Sources:</div>
+        {% set user_tsrc = current_user.tender_alert_sources if current_user else ['all'] %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="all" class="accent-emerald-600" {{ 'checked' if 'all' in user_tsrc else '' }}>
+            <span class="font-semibold text-ink">All Sources</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="gazette" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'gazette' in user_tsrc) else '' }}>
+            <span>Gazette (gov.mv)</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="hdc" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'hdc' in user_tsrc) else '' }}>
+            <span>HDC</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="sto" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'sto' in user_tsrc) else '' }}>
+            <span>STO</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="stelco" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'stelco' in user_tsrc) else '' }}>
+            <span>STELCO</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="mwsc" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'mwsc' in user_tsrc) else '' }}>
+            <span>MWSC</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="macl" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'macl' in user_tsrc) else '' }}>
+            <span>MACL</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tsrc" value="fenaka" class="accent-emerald-600" {{ 'checked' if ('all' in user_tsrc or 'fenaka' in user_tsrc) else '' }}>
+            <span>Fenaka</span>
+          </label>
         </div>
-        <input 
-          type="checkbox" 
-          name="all_news" 
-          id="toggleAllNews" 
-          class="w-5 h-5 accent-emerald-600 rounded mt-0.5 cursor-pointer"
-          {{ 'checked' if (not subscriber or 'all_news' in keywords) else '' }}
-        >
-      </label>
+      </div>
 
-      <!-- Breaking News -->
-      <label class="flex items-start justify-between gap-3 p-2 rounded hover:bg-paper-soft cursor-pointer">
-        <div>
-          <span class="text-sm font-semibold text-flag block">Breaking News Priority Alerts</span>
-          <span class="text-xs text-slate block leading-relaxed">
-            Immediate dispatch for emergency advisories, presidential decrees, and urgent national developments.
-          </span>
+      <!-- Disciplines -->
+      <div class="pt-2">
+        <div class="text-xs font-bold text-slate mb-2">Tender Trade Disciplines:</div>
+        {% set user_discs = current_user.tender_alert_disciplines if current_user else (disciplines or ['All']) %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="All" class="accent-emerald-600" {{ 'checked' if 'All' in user_discs else '' }}>
+            <span class="font-semibold text-ink">All Disciplines</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="Construction" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Construction' in user_discs) else '' }}>
+            <span>Construction</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="IT" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'IT' in user_discs) else '' }}>
+            <span>IT &amp; Telecom</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="Logistics" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Logistics' in user_discs) else '' }}>
+            <span>Marine &amp; Logistics</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="Healthcare" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Healthcare' in user_discs) else '' }}>
+            <span>Healthcare &amp; Medical</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_tdisc" value="Consultancy" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Consultancy' in user_discs) else '' }}>
+            <span>Consultancy &amp; Design</span>
+          </label>
         </div>
-        <input 
-          type="checkbox" 
-          name="breaking" 
-          id="toggleBreaking" 
-          class="w-5 h-5 accent-emerald-600 rounded mt-0.5 cursor-pointer"
-          {{ 'checked' if (not subscriber or 'breaking' in keywords) else '' }}
-        >
-      </label>
-
-      <!-- Janaza / Obituaries -->
-      <label class="flex items-start justify-between gap-3 p-2 rounded hover:bg-paper-soft cursor-pointer">
-        <div>
-          <span class="text-sm font-semibold text-ink block">Janaza &amp; Obituaries</span>
-          <span class="text-xs text-slate block leading-relaxed">
-            Funeral announcements, cemetery mosque locations (Aasahara, Hulhumalé, etc.), and prayer times.
-          </span>
-        </div>
-        <input 
-          type="checkbox" 
-          name="janaza" 
-          id="toggleJanaza" 
-          class="w-5 h-5 accent-emerald-600 rounded mt-0.5 cursor-pointer"
-          {{ 'checked' if (not subscriber or 'janaza' in keywords) else '' }}
-        >
-      </label>
-
-      <!-- Gazette Tenders -->
-      <label class="flex items-start justify-between gap-3 p-2 rounded hover:bg-paper-soft cursor-pointer">
-        <div>
-          <span class="text-sm font-semibold text-ink block">Government Tenders &amp; Procurement</span>
-          <span class="text-xs text-slate block leading-relaxed">
-            Gazette tenders, SOE procurement notices (HDC, STO, STELCO, MWSC), and RFPs.
-          </span>
-        </div>
-        <input 
-          type="checkbox" 
-          name="tenders" 
-          id="toggleTenders" 
-          class="w-5 h-5 accent-emerald-600 rounded mt-0.5 cursor-pointer"
-          onchange="toggleDisciplineSection(this.checked)"
-          {{ 'checked' if (not subscriber or 'All' in disciplines or disciplines|length > 0) else '' }}
-        >
-      </label>
-    </div>
-
-    <!-- Tender Discipline Filter -->
-    <div id="disciplineBox" class="bg-white border border-hairline rounded p-5 shadow-xs space-y-3">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate">
-        Tender Industries &amp; Disciplines
-      </h3>
-      <p class="text-xs text-slate">
-        Leave "All Disciplines" selected to receive every tender, or select specific sectors:
-      </p>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-        {% set user_discs = disciplines or ['All'] %}
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disc_all" value="All" class="accent-emerald-600" {{ 'checked' if 'All' in user_discs else '' }}>
-          <span class="font-semibold text-ink">All Disciplines</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disciplines" value="Construction" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Construction' in user_discs) else '' }}>
-          <span>Construction</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disciplines" value="IT" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'IT' in user_discs) else '' }}>
-          <span>IT &amp; Telecom</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disciplines" value="Logistics" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Logistics' in user_discs) else '' }}>
-          <span>Marine &amp; Logistics</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disciplines" value="Healthcare" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Healthcare' in user_discs) else '' }}>
-          <span>Healthcare &amp; Pharma</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="disciplines" value="Consultancy" class="accent-emerald-600" {{ 'checked' if ('All' in user_discs or 'Consultancy' in user_discs) else '' }}>
-          <span>Consultancy &amp; Design</span>
-        </label>
       </div>
     </div>
 
-    <!-- Storyline Tracks -->
-    <div class="bg-white border border-hairline rounded p-5 shadow-xs space-y-3">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate">
-        Dedicated Storyline Tracks
-      </h3>
-      <p class="text-xs text-slate">
-        Follow long-running multi-stage stories in the Maldives:
-      </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-        {% set user_kw = keywords or [] %}
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="topics" value="ras-male" class="accent-emerald-600" {{ 'checked' if ('ras-male' in user_kw or not subscriber) else '' }}>
-          <span class="font-medium">Ras Malé Eco-City Project</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="topics" value="tgst" class="accent-emerald-600" {{ 'checked' if ('tgst' in user_kw or not subscriber) else '' }}>
-          <span class="font-medium">TGST &amp; Tourism Tax Reforms</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="topics" value="green-tax" class="accent-emerald-600" {{ 'checked' if ('green-tax' in user_kw or not subscriber) else '' }}>
-          <span class="font-medium">Green Tax &amp; Climate Adaptation</span>
-        </label>
-        <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
-          <input type="checkbox" name="topics" value="bridge-safety" class="accent-emerald-600" {{ 'checked' if ('bridge-safety' in user_kw or not subscriber) else '' }}>
-          <span class="font-medium">Sinamalé Bridge &amp; Highway Traffic</span>
+    <!-- Jobs & Employment Feeds -->
+    <div class="bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4">
+      <div class="flex items-center justify-between border-b border-hairline pb-3">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wide text-ink">
+            Job Vacancy &amp; Career Alerts
+          </h2>
+          <p class="text-xs text-slate mt-0.5">Filter by employment sector and job category.</p>
+        </div>
+        <label class="flex items-center gap-2 text-xs cursor-pointer">
+          <input type="checkbox" id="pageJobsEnabled" checked class="w-4 h-4 accent-emerald-600 rounded">
+          <span class="font-bold text-ink">Active</span>
         </label>
       </div>
+
+      <!-- Sources -->
+      <div>
+        <div class="text-xs font-bold text-slate mb-2">Job Sources:</div>
+        {% set user_jsrc = current_user.job_alert_sources if current_user else ['all'] %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jsrc" value="all" class="accent-emerald-600" {{ 'checked' if 'all' in user_jsrc else '' }}>
+            <span class="font-semibold text-ink">All Employers</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jsrc" value="gazette" class="accent-emerald-600" {{ 'checked' if ('all' in user_jsrc or 'gazette' in user_jsrc) else '' }}>
+            <span>Civil Service Gazette</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jsrc" value="soe" class="accent-emerald-600" {{ 'checked' if ('all' in user_jsrc or 'soe' in user_jsrc) else '' }}>
+            <span>State-Owned Enterprises</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jsrc" value="private" class="accent-emerald-600" {{ 'checked' if ('all' in user_jsrc or 'private' in user_jsrc) else '' }}>
+            <span>Private Employers</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="pt-2">
+        <div class="text-xs font-bold text-slate mb-2">Job Sectors &amp; Disciplines:</div>
+        {% set user_jcats = current_user.job_alert_categories if current_user else ['all'] %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="all" class="accent-emerald-600" {{ 'checked' if 'all' in user_jcats else '' }}>
+            <span class="font-semibold text-ink">All Categories</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="it" class="accent-emerald-600" {{ 'checked' if ('all' in user_jcats or 'it' in user_jcats) else '' }}>
+            <span>IT &amp; Software</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="admin" class="accent-emerald-600" {{ 'checked' if ('all' in user_jcats or 'admin' in user_jcats) else '' }}>
+            <span>Administration &amp; HR</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="engineering" class="accent-emerald-600" {{ 'checked' if ('all' in user_jcats or 'engineering' in user_jcats) else '' }}>
+            <span>Engineering &amp; Technical</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="healthcare" class="accent-emerald-600" {{ 'checked' if ('all' in user_jcats or 'healthcare' in user_jcats) else '' }}>
+            <span>Healthcare &amp; Clinical</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border border-hairline rounded text-xs cursor-pointer hover:bg-paper-soft">
+            <input type="checkbox" name="page_jcat" value="finance" class="accent-emerald-600" {{ 'checked' if ('all' in user_jcats or 'finance' in user_jcats) else '' }}>
+            <span>Finance &amp; Audit</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- News Stream Alerts: Coming Soon Banner -->
+    <div class="bg-paper-soft border border-hairline rounded-lg p-4 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-semibold text-ink">News Stream Notifications</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate border border-hairline">Alerts Coming Soon</span>
+        </div>
+        <p class="text-xs text-slate mt-0.5">Real-time alerts for verified general news articles will be enabled in an upcoming deployment.</p>
+      </div>
+      <input type="checkbox" disabled class="w-4 h-4 cursor-not-allowed opacity-50">
     </div>
 
     <!-- Action Bar -->
     <div class="flex items-center justify-between gap-4 pt-2">
       <button 
         type="submit" 
-        id="saveBtn"
-        class="px-6 py-2.5 rounded bg-ink text-white text-sm font-semibold hover:bg-ink/90 transition shadow-sm"
+        id="pageSaveBtn"
+        class="px-6 py-2.5 rounded bg-ink text-white text-sm font-semibold hover:bg-slate-800 transition shadow-sm cursor-pointer"
       >
         Save Alert Preferences
       </button>
-      <span id="saveStatus" class="text-xs font-semibold text-emerald-700 hidden">
+      <span id="pageSaveStatus" class="text-xs font-semibold text-emerald-700 hidden">
         Preferences saved successfully!
       </span>
     </div>
@@ -246,67 +310,96 @@
 </main>
 
 <script>
-function toggleDisciplineSection(enabled) {
-  const box = document.getElementById('disciplineBox');
-  if (box) {
-    box.style.opacity = enabled ? '1' : '0.4';
-    box.style.pointerEvents = enabled ? 'auto' : 'none';
+async function testPageAlert(channel) {
+  const targetId = channel === 'telegram' 
+    ? document.getElementById('pageChatId').value.trim() 
+    : document.getElementById('pageViberId').value.trim();
+
+  if (!targetId) {
+    alert('Please enter your ' + (channel === 'telegram' ? 'Telegram Chat ID' : 'Viber ID') + ' first.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/alerts/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: channel, target_id: targetId })
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      alert(data.message || 'Test alert delivered successfully!');
+    } else {
+      alert(data.detail || 'Could not deliver test alert. Please verify your ID.');
+    }
+  } catch (err) {
+    alert('Error sending test alert: ' + err.message);
   }
 }
 
-async function savePreferences(e) {
+async function savePagePreferences(e) {
   e.preventDefault();
-  const btn = document.getElementById('saveBtn');
-  const status = document.getElementById('saveStatus');
+  const btn = document.getElementById('pageSaveBtn');
+  const status = document.getElementById('pageSaveStatus');
   btn.disabled = true;
   btn.innerText = 'Saving...';
   status.classList.add('hidden');
 
-  const chatId = document.getElementById('chatId').value.trim();
-  if (!chatId) {
-    alert('Please enter your Telegram Chat ID.');
-    btn.disabled = false;
-    btn.innerText = 'Save Alert Preferences';
-    return;
-  }
+  const chatId = document.getElementById('pageChatId').value.trim();
+  const viberId = document.getElementById('pageViberId').value.trim();
 
-  const allNews = document.getElementById('toggleAllNews').checked;
-  const breaking = document.getElementById('toggleBreaking').checked;
-  const janaza = document.getElementById('toggleJanaza').checked;
-  const tenders = document.getElementById('toggleTenders').checked;
+  const tDisc = [];
+  document.querySelectorAll('input[name="page_tdisc"]:checked').forEach(el => tDisc.push(el.value));
+  const tSrc = [];
+  document.querySelectorAll('input[name="page_tsrc"]:checked').forEach(el => tSrc.push(el.value));
 
-  const disciplines = [];
-  if (tenders) {
-    const discAll = document.querySelector('input[name="disc_all"]').checked;
-    if (discAll) {
-      disciplines.push('All');
-    } else {
-      document.querySelectorAll('input[name="disciplines"]:checked').forEach(el => disciplines.push(el.value));
-      if (disciplines.length === 0) disciplines.push('All');
-    }
-  }
+  const jCat = [];
+  document.querySelectorAll('input[name="page_jcat"]:checked').forEach(el => jCat.push(el.value));
+  const jSrc = [];
+  document.querySelectorAll('input[name="page_jsrc"]:checked').forEach(el => jSrc.push(el.value));
 
-  const topics = [];
-  document.querySelectorAll('input[name="topics"]:checked').forEach(el => topics.push(el.value));
+  const isEnabled = document.getElementById('pageTendersEnabled').checked || document.getElementById('pageJobsEnabled').checked;
 
   try {
-    const resp = await fetch('/api/alerts/preferences', {
+    const resp = await fetch('/api/user/alert-settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: chatId,
-        all_news: allNews,
-        breaking: breaking,
-        janaza: janaza,
-        tenders: tenders,
-        disciplines: disciplines,
-        topics: topics
+        telegram_chat_id: chatId,
+        viber_user_id: viberId,
+        tender_alert_disciplines: tDisc.length ? tDisc : ['All'],
+        tender_alert_sources: tSrc.length ? tSrc : ['all'],
+        job_alert_categories: jCat.length ? jCat : ['all'],
+        job_alert_sources: jSrc.length ? jSrc : ['all'],
+        alerts_enabled: isEnabled
       })
     });
     const data = await resp.json();
-    if (resp.ok && data.ok) {
-      status.innerText = 'Preferences saved! Telegram alerts updated.';
+    if (resp.ok && data.status === 'ok') {
+      status.innerText = 'Alert preferences saved successfully!';
       status.classList.remove('hidden');
+      if (chatId) localStorage.setItem('khulaasaa_tg_connected', '1');
+      if (viberId) localStorage.setItem('khulaasaa_viber_connected', '1');
+      if (typeof refreshGlobalAuthPill === 'function') refreshGlobalAuthPill();
+    } else if (resp.status === 401) {
+      // Fallback for guest Telegram subscribers
+      const legacyResp = await fetch('/api/alerts/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          tenders: true,
+          disciplines: tDisc,
+          keywords: tSrc.concat(jCat)
+        })
+      });
+      const legacyData = await legacyResp.json();
+      if (legacyResp.ok && legacyData.ok) {
+        status.innerText = 'Preferences saved for Telegram chat ' + chatId + '! (Tip: Sign in to sync across devices)';
+        status.classList.remove('hidden');
+      } else {
+        alert('Please sign in to save preferences.');
+        openGlobalAlertsModal('auth');
+      }
     } else {
       alert(data.detail || 'Failed to save preferences.');
     }

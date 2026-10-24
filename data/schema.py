@@ -156,6 +156,10 @@ CREATE TABLE IF NOT EXISTS users (
     telegram_chat_id TEXT,
     viber_user_id TEXT,
     job_alert_categories TEXT DEFAULT '["all"]', -- JSON array of disciplines e.g. ["IT", "Administration"]
+    job_alert_sources TEXT DEFAULT '["all"]', -- JSON array of sources e.g. ["Gazette", "SOE", "Private"]
+    tender_alert_disciplines TEXT DEFAULT '["All"]', -- JSON array e.g. ["Construction", "IT"]
+    tender_alert_sources TEXT DEFAULT '["all"]', -- JSON array e.g. ["Gazette", "HDC", "STO"]
+    alerts_enabled INTEGER DEFAULT 1,
     is_paid INTEGER DEFAULT 0, -- 0 for Free tier, 1 for Pro/Paid tier
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

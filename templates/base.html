@@ -315,143 +315,225 @@
     </button>
   </nav>
 
-  <!-- UNIVERSAL MODAL: Viber & Telegram Connect + User Authentication -->
+  <!-- UNIVERSAL MODAL: Sign In / Account & Alert Preferences -->
   <div id="globalUnifiedModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeGlobalAlertsModal()">
-    <div class="bg-paper border border-hairline max-w-md w-full p-6 shadow-2xl relative rounded-md min-h-[390px] flex flex-col justify-start" onclick="event.stopPropagation()">
+    <div class="bg-paper border border-hairline max-w-lg w-full p-6 shadow-2xl relative rounded-md max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
       <button class="absolute top-4 right-4 text-slate hover:text-ink text-2xl font-bold cursor-pointer" onclick="closeGlobalAlertsModal()">&times;</button>
 
-      <!-- Modal Tabs: Viber | Telegram | WhatsApp | Web Sign In -->
-      <div class="flex border-b border-hairline mb-4 text-xs font-semibold">
-        <button type="button" id="tabBtnViber" onclick="switchGlobalModalTab('viber')" class="pb-2.5 px-3 border-b-2 border-[#7360F2] text-[#7360F2] flex items-center gap-1.5 cursor-pointer">
-          <span class="w-2 h-2 rounded-full bg-[#7360F2]"></span>
-          <span>Viber Bot</span>
-        </button>
-        <button type="button" id="tabBtnTelegram" onclick="switchGlobalModalTab('telegram')" class="pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer">
-          <span class="w-2 h-2 rounded-full bg-[#229ED9]"></span>
-          <span>Telegram Bot</span>
-        </button>
-        <button type="button" id="tabBtnWhatsapp" onclick="switchGlobalModalTab('whatsapp')" class="pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer">
-          <span class="w-2 h-2 rounded-full bg-[#25D366]"></span>
-          <span>WhatsApp Bids</span>
-        </button>
-        <button type="button" id="tabBtnAuth" onclick="switchGlobalModalTab('auth')" class="pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer ml-auto">
-          <span>Web Sign In</span>
-        </button>
-      </div>
-
-      <!-- TAB 1: Viber Bot (Single 1-Click Connect Button) -->
-      <div id="tabContentViber" class="space-y-4">
+      <!-- VIEW 1: SIGN IN / REGISTER (UNAUTHENTICATED) -->
+      <div id="modalLoggedOutView" class="space-y-4">
         <div>
-          <h3 class="font-serif-display text-lg font-bold text-ink">Khulaasaa on Viber</h3>
-          <p class="text-xs text-slate">Auto-subscribe to Maldives breaking news, tenders, and job alerts.</p>
+          <h3 id="modalAuthTitle" class="font-serif-display text-xl font-bold text-ink">Sign In to Khulaasaa</h3>
+          <p id="modalAuthSubtitle" class="text-xs text-slate mt-1">Access saved CVs, company bids, and real-time Telegram &amp; Viber alerts.</p>
         </div>
 
-        <div class="p-4 bg-white border border-purple-200 rounded text-center">
-          <p class="text-xs text-slate mb-2 font-medium">Scan with camera or Viber app:</p>
-          <img src="/static/images/viber_qr.png" alt="Khulaasaa Viber Bot QR" class="w-32 h-32 mx-auto border border-hairline rounded p-1 bg-white shadow-xs">
-          <div class="mt-3">
-            <a href="viber://pa?chatURI=reeldin" onclick="localStorage.setItem('khulaasaa_viber_connected', '1'); refreshGlobalAuthPill();" class="w-full py-2.5 px-4 bg-[#7360F2] hover:bg-[#5C4BC4] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-1.5 transition shadow-xs">
-              <span>Open in Viber App (1-Click) &rarr;</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 2: Telegram Bot (Single 1-Click Connect Button) -->
-      <div id="tabContentTelegram" class="space-y-4 hidden">
-        <div>
-          <h3 class="font-serif-display text-lg font-bold text-ink">Khulaasaa on Telegram</h3>
-          <p class="text-xs text-slate">Verified breaking alerts, Gazette tenders &amp; live news.</p>
-        </div>
-
-        <div class="p-6 bg-white border border-sky-200 rounded text-center space-y-4">
-          <div class="w-16 h-16 mx-auto bg-sky-50 text-[#229ED9] rounded-full flex items-center justify-center">
-            <svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-          </div>
-          <p class="text-xs text-slate">Connect in 1 tap to receive real-time updates directly in Telegram chat.</p>
-          <a href="https://t.me/khulaasaa_bot?start=connect" target="_blank" rel="noopener noreferrer"
-             onclick="localStorage.setItem('khulaasaa_tg_connected', '1'); refreshGlobalAuthPill();"
+        <!-- 1-Click Fast Connect Buttons (Telegram & Viber) -->
+        <div class="space-y-2 pt-1">
+          <a href="https://t.me/khulaasaa_bot?start=auth" target="_blank" rel="noopener noreferrer"
+             onclick="localStorage.setItem('khulaasaa_tg_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
              class="w-full py-2.5 px-4 bg-[#229ED9] hover:bg-[#1D8BC0] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-2 transition shadow-xs">
-            <span>Open @khulaasaa_bot in Telegram (1-Click) &rarr;</span>
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+            <span>Continue with Telegram (@khulaasaa_bot) &rarr;</span>
+          </a>
+
+          <a href="viber://pa?chatURI=reeldin"
+             onclick="localStorage.setItem('khulaasaa_viber_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
+             class="w-full py-2.5 px-4 bg-[#7360F2] hover:bg-[#5C4BC4] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-2 transition shadow-xs">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
+            <span>Continue with Viber (Khulaasaa Bot) &rarr;</span>
           </a>
         </div>
-      </div>
 
-      <!-- TAB 3: WhatsApp (Tenders & SOE Bids Alerts - Paid & 1-Month Trial) -->
-      <div id="tabContentWhatsapp" class="space-y-4 hidden">
-        <div>
-          <div class="flex items-center justify-between">
-            <h3 class="font-serif-display text-lg font-bold text-ink">WhatsApp Tender Alerts</h3>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Pro / 1-Month Trial</span>
-          </div>
-          <p class="text-xs text-slate">Instant Government Gazette tenders and SOE procurement alerts delivered straight to your WhatsApp.</p>
-        </div>
-
-        <div class="p-6 bg-white border border-emerald-200 rounded text-center space-y-4">
-          <div class="w-16 h-16 mx-auto bg-emerald-50 text-[#25D366] rounded-full flex items-center justify-center">
-            <svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
-          </div>
-          <p class="text-xs text-slate">Paid &amp; 1-Month Trial subscribers get real-time tender updates with submission dates, venue locations, and procurement documents.</p>
-          <a href="https://wa.me/?text=Hello%20Khulaasaa%20I%20would%20like%20to%20activate%20Tender%20Alerts" target="_blank" rel="noopener noreferrer"
-             onclick="localStorage.setItem('khulaasaa_is_paid', '1');"
-             class="w-full py-2.5 px-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold text-xs rounded inline-flex items-center justify-center gap-2 transition shadow-xs">
-            <span>Connect WhatsApp Alerts (1-Click) &rarr;</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- TAB 4: Web Sign In & Register -->
-      <div id="tabContentAuth" class="space-y-3.5 hidden">
-        <div>
-          <h3 id="modalAuthTitle" class="font-serif-display text-lg font-bold text-ink">Sign In to Khulaasaa</h3>
-          <p id="modalAuthSubtitle" class="text-xs text-slate">Access saved CVs, company tender profiles, and real-time alerts.</p>
+        <div class="relative flex items-center justify-center my-3">
+          <div class="border-t border-hairline w-full"></div>
+          <span class="bg-paper px-2 text-[11px] uppercase tracking-wider text-slate font-medium">or continue with email</span>
         </div>
 
         <!-- Mode Toggle: Sign In vs Register -->
-        <div class="flex items-center gap-2 border-b border-hairline pb-2">
+        <div class="flex items-center gap-4 border-b border-hairline pb-2">
           <button type="button" id="authModeLoginBtn" onclick="toggleAuthMode('login')" class="text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer">
             Sign In
           </button>
           <button type="button" id="authModeRegisterBtn" onclick="toggleAuthMode('register')" class="text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer">
-            Create Account
+            Create Free Account
           </button>
         </div>
 
-        <!-- Email & Password Sign In Form -->
-        <form id="modalLoginForm" onsubmit="handleEmailLogin(event)" class="space-y-2.5 pt-1">
+        <!-- Login Form -->
+        <form id="modalLoginForm" onsubmit="handleEmailLogin(event)" class="space-y-3 pt-1">
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Email</label>
-            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Password</label>
-            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
           </div>
-          <button type="submit" id="modalAuthBtn" class="w-full py-2 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
+          <button type="submit" id="modalAuthBtn" class="w-full py-2.5 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
             Sign In with Email
           </button>
           <div id="modalAuthStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden"></div>
         </form>
 
         <!-- Register Form -->
-        <form id="modalRegisterForm" onsubmit="handleEmailRegister(event)" class="space-y-2.5 pt-1 hidden">
+        <form id="modalRegisterForm" onsubmit="handleEmailRegister(event)" class="space-y-3 pt-1 hidden">
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Full Name</label>
-            <input type="text" id="modalRegName" required placeholder="Ahmed Naseem" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="text" id="modalRegName" required placeholder="Ahmed Naseem" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Email</label>
-            <input type="email" id="modalRegEmail" required placeholder="your.name@example.com" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="email" id="modalRegEmail" required placeholder="your.name@example.com" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Password</label>
-            <input type="password" id="modalRegPass" required minlength="6" placeholder="At least 6 characters" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+            <input type="password" id="modalRegPass" required minlength="6" placeholder="At least 6 characters" class="w-full px-3 py-2 border border-hairline rounded text-xs bg-white text-ink">
           </div>
-          <button type="submit" id="modalRegBtn" class="w-full py-2 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
+          <button type="submit" id="modalRegBtn" class="w-full py-2.5 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
             Create Account &amp; Continue
           </button>
           <div id="modalRegStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden"></div>
         </form>
+      </div>
+
+      <!-- VIEW 2: LOGGED IN USER SETTINGS & ALERT PREFERENCES -->
+      <div id="modalLoggedInView" class="space-y-5 hidden">
+        <div class="flex items-center justify-between border-b border-hairline pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="modalUserName" class="font-bold text-sm text-ink truncate max-w-[200px]">User Account</span>
+              <span id="modalUserPlanBadge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">Free</span>
+            </div>
+            <div id="modalUserEmail" class="text-xs text-slate truncate max-w-[240px]">user@example.com</div>
+          </div>
+          <button type="button" onclick="handleGlobalLogout()" class="text-xs text-slate hover:text-flag underline cursor-pointer">
+            Sign out
+          </button>
+        </div>
+
+        <!-- Connection Channels: Telegram & Viber -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate">Connected Alert Channels</h4>
+
+          <!-- Telegram Connection Card -->
+          <div class="p-3 bg-white border border-hairline rounded space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="inline-flex items-center gap-1.5 font-semibold text-[#229ED9]">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                <span>Telegram Bot</span>
+              </span>
+              <span id="tgStatusBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Not Connected</span>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="modalTgChatId" placeholder="Telegram Chat ID or @username" class="flex-1 px-2.5 py-1.5 text-xs border border-hairline rounded font-mono bg-paper-soft text-ink">
+              <button type="button" onclick="testModalAlert('telegram')" class="px-2.5 py-1.5 text-xs font-semibold border border-sky-200 text-[#229ED9] bg-sky-50 rounded hover:bg-sky-100 cursor-pointer">
+                Test
+              </button>
+            </div>
+            <div class="text-[11px] text-slate flex justify-between items-center">
+              <span>Don't know ID? Start our bot:</span>
+              <a href="https://t.me/khulaasaa_bot?start=connect" target="_blank" class="text-[#229ED9] underline font-semibold">@khulaasaa_bot &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Viber Connection Card -->
+          <div class="p-3 bg-white border border-hairline rounded space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="inline-flex items-center gap-1.5 font-semibold text-[#7360F2]">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
+                <span>Viber Channel</span>
+              </span>
+              <span id="vbStatusBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Not Connected</span>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="modalVbUserId" placeholder="Viber User ID or mobile phone" class="flex-1 px-2.5 py-1.5 text-xs border border-hairline rounded font-mono bg-paper-soft text-ink">
+              <button type="button" onclick="testModalAlert('viber')" class="px-2.5 py-1.5 text-xs font-semibold border border-purple-200 text-[#7360F2] bg-purple-50 rounded hover:bg-purple-100 cursor-pointer">
+                Test
+              </button>
+            </div>
+            <div class="text-[11px] text-slate flex justify-between items-center">
+              <span>Connect via Viber App:</span>
+              <a href="viber://pa?chatURI=reeldin" class="text-[#7360F2] underline font-semibold">reeldin &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TENDER ALERTS PREFERENCES -->
+        <div class="space-y-2 pt-1 border-t border-hairline">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink">Tender &amp; RFP Alerts</span>
+            <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+              <input type="checkbox" id="modalTendersEnabled" checked class="accent-emerald-600">
+              <span class="font-semibold text-slate">Active</span>
+            </label>
+          </div>
+          <div class="p-3 bg-white border border-hairline rounded space-y-2 text-xs">
+            <div class="font-semibold text-slate">Disciplines:</div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="All" checked class="accent-emerald-600"><span>All Disciplines</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="Construction" class="accent-emerald-600"><span>Construction</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="IT" class="accent-emerald-600"><span>IT &amp; Telecom</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="Logistics" class="accent-emerald-600"><span>Marine &amp; Logistics</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="Healthcare" class="accent-emerald-600"><span>Healthcare</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tdisc" value="Consultancy" class="accent-emerald-600"><span>Consultancy</span></label>
+            </div>
+            <div class="font-semibold text-slate pt-1">Sources:</div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="all" checked class="accent-emerald-600"><span>All Sources</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="gazette" class="accent-emerald-600"><span>Gazette (gov.mv)</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="hdc" class="accent-emerald-600"><span>HDC</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="sto" class="accent-emerald-600"><span>STO</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="stelco" class="accent-emerald-600"><span>STELCO</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_tsrc" value="mwsc" class="accent-emerald-600"><span>MWSC</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- JOB ALERTS PREFERENCES -->
+        <div class="space-y-2 pt-1 border-t border-hairline">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink">Job &amp; Career Alerts</span>
+            <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+              <input type="checkbox" id="modalJobsEnabled" checked class="accent-emerald-600">
+              <span class="font-semibold text-slate">Active</span>
+            </label>
+          </div>
+          <div class="p-3 bg-white border border-hairline rounded space-y-2 text-xs">
+            <div class="font-semibold text-slate">Categories:</div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="all" checked class="accent-emerald-600"><span>All Vacancies</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="it" class="accent-emerald-600"><span>IT &amp; Software</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="admin" class="accent-emerald-600"><span>Administration &amp; HR</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="engineering" class="accent-emerald-600"><span>Engineering</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="healthcare" class="accent-emerald-600"><span>Healthcare</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jcat" value="finance" class="accent-emerald-600"><span>Finance &amp; Audit</span></label>
+            </div>
+            <div class="font-semibold text-slate pt-1">Sources:</div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jsrc" value="all" checked class="accent-emerald-600"><span>All Sources</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jsrc" value="gazette" class="accent-emerald-600"><span>Civil Service Gazette</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jsrc" value="soe" class="accent-emerald-600"><span>State-Owned Enterprises</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" name="m_jsrc" value="private" class="accent-emerald-600"><span>Private Employers</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEWS ALERTS (COMING SOON) -->
+        <div class="pt-1 border-t border-hairline flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-ink">News Stream Alerts</span>
+            <span class="block text-[11px] text-slate">Live verified Maldivian news coverage</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-paper-soft text-slate border border-hairline">Alerts Coming Soon</span>
+        </div>
+
+        <!-- SAVE BUTTON -->
+        <div class="pt-2">
+          <button type="button" id="modalSaveSettingsBtn" onclick="saveModalAlertSettings()" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
+            Save Preferences
+          </button>
+          <div id="modalSettingsStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden text-center"></div>
+        </div>
       </div>
 
     </div>
@@ -524,14 +606,177 @@
       }
     }
 
-    function openGlobalAlertsModal(initialTab = 'viber') {
+    async function openGlobalAlertsModal(mode = 'auto') {
       const modal = document.getElementById('globalUnifiedModal');
+      const outView = document.getElementById('modalLoggedOutView');
+      const inView = document.getElementById('modalLoggedInView');
       if (modal) modal.classList.remove('hidden');
-      if (!isUserAuthenticated() && initialTab !== 'auth') {
-        switchGlobalModalTab('auth');
+
+      let user = null;
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data && data.user) user = data.user;
+      } catch (err) {}
+
+      if (user && mode !== 'auth_force') {
+        if (outView) outView.classList.add('hidden');
+        if (inView) inView.classList.remove('hidden');
+        populateModalUserData(user);
       } else {
-        switchGlobalModalTab(initialTab);
+        if (inView) inView.classList.add('hidden');
+        if (outView) outView.classList.remove('hidden');
+        toggleAuthMode(mode === 'register' ? 'register' : 'login');
       }
+    }
+
+    function populateModalUserData(user) {
+      const nameEl = document.getElementById('modalUserName');
+      const emailEl = document.getElementById('modalUserEmail');
+      const planBadge = document.getElementById('modalUserPlanBadge');
+      const tgInput = document.getElementById('modalTgChatId');
+      const vbInput = document.getElementById('modalVbUserId');
+      const tgBadge = document.getElementById('tgStatusBadge');
+      const vbBadge = document.getElementById('vbStatusBadge');
+
+      if (nameEl) nameEl.textContent = user.full_name || 'Khulaasaa Member';
+      if (emailEl) emailEl.textContent = user.email || '';
+      if (planBadge) {
+        planBadge.textContent = user.is_paid ? 'PRO' : 'Free';
+        planBadge.className = user.is_paid ? 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800' : 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700';
+      }
+
+      if (tgInput) tgInput.value = user.telegram_chat_id || '';
+      if (tgBadge) {
+        if (user.telegram_chat_id) {
+          tgBadge.textContent = 'Connected';
+          tgBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold';
+        } else {
+          tgBadge.textContent = 'Not Connected';
+          tgBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600';
+        }
+      }
+
+      if (vbInput) vbInput.value = user.viber_user_id || '';
+      if (vbBadge) {
+        if (user.viber_user_id) {
+          vbBadge.textContent = 'Connected';
+          vbBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold';
+        } else {
+          vbBadge.textContent = 'Not Connected';
+          vbBadge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600';
+        }
+      }
+
+      const tDisc = user.tender_alert_disciplines || ['All'];
+      document.querySelectorAll('input[name="m_tdisc"]').forEach(cb => {
+        cb.checked = tDisc.includes('All') || tDisc.includes(cb.value);
+      });
+      const tSrc = user.tender_alert_sources || ['all'];
+      document.querySelectorAll('input[name="m_tsrc"]').forEach(cb => {
+        cb.checked = tSrc.includes('all') || tSrc.includes(cb.value);
+      });
+      const jCat = user.job_alert_categories || ['all'];
+      document.querySelectorAll('input[name="m_jcat"]').forEach(cb => {
+        cb.checked = jCat.includes('all') || jCat.includes(cb.value);
+      });
+      const jSrc = user.job_alert_sources || ['all'];
+      document.querySelectorAll('input[name="m_jsrc"]').forEach(cb => {
+        cb.checked = jSrc.includes('all') || jSrc.includes(cb.value);
+      });
+
+      const tEnabled = document.getElementById('modalTendersEnabled');
+      if (tEnabled) tEnabled.checked = user.alerts_enabled !== false;
+      const jEnabled = document.getElementById('modalJobsEnabled');
+      if (jEnabled) jEnabled.checked = user.alerts_enabled !== false;
+    }
+
+    async function saveModalAlertSettings() {
+      const btn = document.getElementById('modalSaveSettingsBtn');
+      const status = document.getElementById('modalSettingsStatus');
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      if (status) status.classList.add('hidden');
+
+      const tgChatId = (document.getElementById('modalTgChatId')?.value || '').trim();
+      const vbUserId = (document.getElementById('modalVbUserId')?.value || '').trim();
+
+      const tDisc = [];
+      document.querySelectorAll('input[name="m_tdisc"]:checked').forEach(cb => tDisc.push(cb.value));
+      const tSrc = [];
+      document.querySelectorAll('input[name="m_tsrc"]:checked').forEach(cb => tSrc.push(cb.value));
+      const jCat = [];
+      document.querySelectorAll('input[name="m_jcat"]:checked').forEach(cb => jCat.push(cb.value));
+      const jSrc = [];
+      document.querySelectorAll('input[name="m_jsrc"]:checked').forEach(cb => jSrc.push(cb.value));
+
+      const isEnabled = document.getElementById('modalTendersEnabled')?.checked || document.getElementById('modalJobsEnabled')?.checked;
+
+      try {
+        const res = await fetch('/api/user/alert-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegram_chat_id: tgChatId,
+            viber_user_id: vbUserId,
+            tender_alert_disciplines: tDisc.length ? tDisc : ['All'],
+            tender_alert_sources: tSrc.length ? tSrc : ['all'],
+            job_alert_categories: jCat.length ? jCat : ['all'],
+            job_alert_sources: jSrc.length ? jSrc : ['all'],
+            alerts_enabled: Boolean(isEnabled)
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          if (status) {
+            status.textContent = 'Alert preferences saved successfully!';
+            status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block text-center';
+          }
+          if (tgChatId) localStorage.setItem('khulaasaa_tg_connected', '1');
+          if (vbUserId) localStorage.setItem('khulaasaa_viber_connected', '1');
+          refreshGlobalAuthPill();
+          if (data.user) populateModalUserData(data.user);
+        } else {
+          if (status) {
+            status.textContent = data.detail || 'Failed to save settings.';
+            status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block text-center';
+          }
+        }
+      } catch (err) {
+        if (status) {
+          status.textContent = 'Error: ' + err.message;
+          status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block text-center';
+        }
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Preferences'; }
+      }
+    }
+
+    async function testModalAlert(channel) {
+      const targetInput = channel === 'telegram' ? document.getElementById('modalTgChatId') : document.getElementById('modalVbUserId');
+      const targetId = (targetInput?.value || '').trim();
+      if (!targetId) {
+        alert('Please enter your ' + (channel === 'telegram' ? 'Telegram Chat ID' : 'Viber ID') + ' first.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/alerts/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel: channel, target_id: targetId })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          alert(data.message || 'Test alert delivered successfully!');
+        } else {
+          alert(data.detail || 'Could not deliver test alert. Please verify your ID.');
+        }
+      } catch (err) {
+        alert('Error sending test alert: ' + err.message);
+      }
+    }
+
+    function switchGlobalModalTab(tabName) {
+      openGlobalAlertsModal(tabName);
     }
 
     function closeGlobalAlertsModal() {
@@ -602,42 +847,7 @@
       }
     }
 
-    function switchGlobalModalTab(tabName) {
-      const vContent = document.getElementById('tabContentViber');
-      const tContent = document.getElementById('tabContentTelegram');
-      const wContent = document.getElementById('tabContentWhatsapp');
-      const aContent = document.getElementById('tabContentAuth');
-      const vBtn = document.getElementById('tabBtnViber');
-      const tBtn = document.getElementById('tabBtnTelegram');
-      const wBtn = document.getElementById('tabBtnWhatsapp');
-      const aBtn = document.getElementById('tabBtnAuth');
 
-      if (!vContent || !tContent || !aContent) return;
-
-      vContent.classList.add('hidden');
-      tContent.classList.add('hidden');
-      if (wContent) wContent.classList.add('hidden');
-      aContent.classList.add('hidden');
-
-      vBtn.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer';
-      tBtn.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer';
-      if (wBtn) wBtn.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer';
-      aBtn.className = 'pb-2.5 px-3 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer ml-auto';
-
-      if (tabName === 'viber' || tabName === 'alerts') {
-        vContent.classList.remove('hidden');
-        vBtn.className = 'pb-2.5 px-3 border-b-2 border-[#7360F2] text-[#7360F2] flex items-center gap-1.5 cursor-pointer';
-      } else if (tabName === 'telegram') {
-        tContent.classList.remove('hidden');
-        tBtn.className = 'pb-2.5 px-3 border-b-2 border-[#229ED9] text-[#229ED9] flex items-center gap-1.5 cursor-pointer';
-      } else if (tabName === 'whatsapp') {
-        if (wContent) wContent.classList.remove('hidden');
-        if (wBtn) wBtn.className = 'pb-2.5 px-3 border-b-2 border-[#25D366] text-[#25D366] flex items-center gap-1.5 cursor-pointer';
-      } else {
-        aContent.classList.remove('hidden');
-        aBtn.className = 'pb-2.5 px-3 border-b-2 border-ink text-ink font-bold flex items-center gap-1.5 cursor-pointer ml-auto';
-      }
-    }
 
     async function handleEmailLogin(e) {
       e.preventDefault();

@@ -111,11 +111,19 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception:
             pass
 
-        # Migration: ensure viber_user_id exists on users table
+        # Migration: ensure viber_user_id and alert columns exist on users table
         try:
             u_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
             if u_cols and "viber_user_id" not in u_cols:
                 conn.execute("ALTER TABLE users ADD COLUMN viber_user_id TEXT;")
+            if u_cols and "job_alert_sources" not in u_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN job_alert_sources TEXT DEFAULT '[\"all\"]';")
+            if u_cols and "tender_alert_disciplines" not in u_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN tender_alert_disciplines TEXT DEFAULT '[\"All\"]';")
+            if u_cols and "tender_alert_sources" not in u_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN tender_alert_sources TEXT DEFAULT '[\"all\"]';")
+            if u_cols and "alerts_enabled" not in u_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN alerts_enabled INTEGER DEFAULT 1;")
         except Exception:
             pass
 

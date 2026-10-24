@@ -274,17 +274,20 @@ def story_detail(request: Request, story_id: str):
 @router.get("/alerts", response_class=HTMLResponse)
 def alerts_page(request: Request, chat_id: Optional[str] = None):
     """Web portal for fine-tuning Telegram alert categories and keywords."""
+    user = get_current_user(request)
+    if not chat_id and user and user.get("telegram_chat_id"):
+        chat_id = user["telegram_chat_id"]
     subscriber = None
-    disciplines = ["All"]
-    keywords = ["all_news", "breaking", "janaza", "ras-male", "sultan-park", "tgst"]
+    disciplines = (user.get("tender_alert_disciplines") if user else None) or ["All"]
+    keywords = ["all_news", "breaking", "janaza"]
     if chat_id:
         try:
             with get_db() as conn:
                 sub_data = get_telegram_subscriber(conn, chat_id)
                 if sub_data:
                     subscriber = sub_data
-                    disciplines = sub_data.get("disciplines") or ["All"]
-                    keywords = sub_data.get("keywords") or ["all_news", "breaking", "janaza"]
+                    disciplines = sub_data.get("disciplines") or disciplines
+                    keywords = sub_data.get("keywords") or keywords
         except Exception:
             pass
 
@@ -294,6 +297,7 @@ def alerts_page(request: Request, chat_id: Optional[str] = None):
         "alerts.html",
         {
             "request": request,
+            "current_user": user,
             "chat_id": chat_id,
             "subscriber": subscriber,
             "disciplines": disciplines,
