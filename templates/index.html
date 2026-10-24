@@ -1,84 +1,115 @@
 {% extends "base.html" %}
-{% block title %}Dispatch — Maldives news, cross-checked{% endblock %}
+{% block title %}Khulaasaa — Maldives news, cross-checked{% endblock %}
 
 {% block content %}
-<header class="border-b border-hairline bg-paper">
-  <div class="max-w-5xl mx-auto px-4 pt-5 pb-4">
-    <div class="flex items-baseline justify-between">
-      <h1 class="font-serif-display text-3xl font-semibold tracking-tight">Dispatch</h1>
-      <button id="signinPill" class="signin-pill" onclick="toggleSignin()">Sign in</button>
+<!-- Sub-Appbar Filter & Sort Bar (Heading removed, Sort menu directly below App Bar) -->
+<div class="border-b border-hairline bg-paper-soft/60 py-2">
+  <div class="max-w-5xl mx-auto px-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+    <!-- Category / Narrative Filter Pills -->
+    <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar filter-pills flex-1 min-w-0">
+      <a href="/" data-partial-target="#news-container" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}" title="See all news stories">
+        All Stories
+      </a>
+      <span class="text-hairline mx-1">|</span>
+      <a href="/?tag=ras-male" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
+      <a href="/?tag=sultan-park" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
+      <a href="/?tag=tgst-tax" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
+      <a href="/?tag=green-tax" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
+      <a href="/?tag=traffic-reform" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
+      <a href="/?tag=bridge-safety" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
+      <button id="toggleFilterBtn" class="filter-pill border-dashed" onclick="toggleFilterDrawer()">More Filters ▾</button>
     </div>
-    <p class="mt-1 text-sm text-slate max-w-lg">Every source, treated equally — cross-checked where it matters, sorted where it doesn't.</p>
-    <div class="search-wrap">
-      <input type="text" id="searchBox" class="search-box" placeholder="Search articles or stories&hellip;" oninput="filterCards(this.value)">
-    </div>
+
+
   </div>
-  <nav class="tagnav max-w-5xl mx-auto px-4">
-    <a href="/" class="{{ 'bg-ink text-paper border-ink' if not active_tag and not active_topic else 'border-hairline text-slate' }}">Everything</a>
-    {% for t in all_tags %}
-    <a href="/?tag={{ t.id }}" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_tag == t.id else 'color:' + t.color + ';' }}">{{ t.label }}</a>
-    {% endfor %}
-    <span class="px-1 text-hairline">|</span>
-    {% for tp in all_topics %}
-    <a href="/?topic={{ tp.id }}" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_topic == tp.id else 'color:' + tp.color + ';' }}">{{ tp.label }}</a>
-    {% endfor %}
-  </nav>
-</header>
 
-<main class="max-w-5xl mx-auto px-4 pb-6">
-  <div class="mt-3">{% include "_ad_leaderboard.html" %}</div>
-  <p id="noResults" class="no-results" style="display:none;">No articles or stories match your search.</p>
-
-  <div class="news-grid">
-    <div>
-
-      {% if sections.breaking %}
-      <section class="mb-6">
-        <div class="flex items-center gap-1.5 mb-2">
-          <span class="live-pip"></span>
-          <h2 class="text-sm font-bold uppercase tracking-wide text-flag">Breaking</h2>
-          <span class="text-sm text-slate ml-auto">Live wire &middot; {{ sections.breaking|length }} updates</span>
-        </div>
-        <div class="card-stack">
-          {% for evt in sections.breaking %}
-          <article class="story-card compact" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="toggleDetail(this)">
-            <div class="card-top">
-              <span class="eyebrow" style="color:{{ evt.accent }};">{{ evt.source_objs[0].name if evt.source_objs else 'Unknown' }} &middot; {{ evt.source_objs[0].kind if evt.source_objs else '' }}</span>
-              <span class="card-time">{{ evt.minutes_ago }}m ago</span>
-            </div>
-            <p class="card-headline">{{ evt.headline }}</p>
-            <div class="card-detail">{{ evt.summary }}</div>
-          </article>
+  <!-- Expandable Detailed Filter Drawer -->
+  <div id="filterDrawer" class="max-w-5xl mx-auto px-4 pt-3 pb-1 border-t border-hairline mt-2 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">Tracked National Narratives &amp; Projects:</span>
+        <div class="flex flex-wrap gap-1.5">
+          {% for t in all_tags %}
+          <a href="/?tag={{ t.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_tag == t.id else 'color:' + t.color + ';' }}">{{ t.label }}</a>
           {% endfor %}
         </div>
-      </section>
-      {% endif %}
+      </div>
+      <div>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">News Topics &amp; Disciplines:</span>
+        <div class="flex flex-wrap gap-1.5">
+          {% for tp in all_topics %}
+          <a href="/?topic={{ tp.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_topic == tp.id else 'color:' + tp.color + ';' }}">{{ tp.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<main class="max-w-5xl mx-auto px-4 pt-4 pb-6">
+  <!-- Active Section Filter Banner (if filtering by tag or topic) -->
+  {% if active_tag or active_topic %}
+  <div class="my-3 bg-white border border-lagoon/40 rounded p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+    <div class="flex items-center gap-2 text-xs">
+      <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+      <span class="text-slate font-medium">Filtered Section:</span>
+      <span class="font-bold text-ink px-2 py-0.5 rounded bg-paper-soft border border-hairline">
+        {{ active_tag_obj.label if active_tag_obj else (active_topic_obj.label if active_topic_obj else active_tag or active_topic) }}
+      </span>
+      <span class="text-slate">({{ (sections.major|length) + (sections.breaking|length) + (sections.general|length) }} stories matching)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="/" class="px-3 py-1.5 bg-ink text-white hover:bg-ink-soft text-xs font-semibold rounded transition flex items-center gap-1 shadow-xs">
+        <span>&larr; See All News</span>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% set total_stories = (sections.major|length) + (sections.breaking|length) + (sections.general|length) %}
+  {% if total_stories >= 5 %}
+  <div class="mt-3">{% include "_ad_leaderboard.html" %}</div>
+  {% endif %}
+  <p id="noResults" class="no-results" style="display:none;">No articles or stories match your search.</p>
+
+  <div class="news-grid" itemscope itemtype="https://schema.org/ItemList">
+    <div id="news-container">
+
+      <!-- 1. Major Stories FIRST: Cross-checked, tracked multi-outlet narratives -->
       {% if sections.major %}
       <section class="mb-6">
         <div class="flex items-baseline justify-between mb-2">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-slate">Major stories</h2>
-          <span class="text-sm text-slate">Tracked, cross-checked narratives</span>
+          <span class="text-sm text-slate">Tracked, cross-checked narratives &middot; {{ sections.major|length }}</span>
         </div>
         <div class="card-stack">
           {% for evt in sections.major %}
-          <article class="story-card" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="window.location.href='/timeline/{{ evt.story_id }}'">
-            <div class="card-top">
-              {% for t in evt.tag_objs %}<span class="eyebrow" style="color:{{ t.color }};">{{ t.label }}</span>{% endfor %}
-              <span class="card-time">{{ evt.published_raw }}</span>
-            </div>
-            <p class="card-headline">{{ evt.headline }}</p>
-            <div class="badges">
-              {% for s in evt.source_objs %}<span class="source-badge sm"><span class="dot"></span>{{ s.name }}</span>{% endfor %}
-              <button class="follow-btn" onclick="toggleFollow(event,this)">+ Follow</button>
-            </div>
-          </article>
-          {% if loop.index == 1 %}{% include "_ad_infeed.html" %}{% endif %}
+          {% include "components/story_card.html" %}
+          {% if loop.index % 5 == 0 %}
+            <div class="my-3">{% include "_ad_infeed.html" %}</div>
+          {% endif %}
           {% endfor %}
         </div>
       </section>
       {% endif %}
 
+      <!-- 2. Breaking News SECOND: Only rendered if outlet explicitly declares it as breaking -->
+      {% if sections.breaking %}
+      <section class="mb-6">
+        <div class="flex items-center gap-1.5 mb-2">
+          <span class="live-pip"></span>
+          <h2 class="text-sm font-bold uppercase tracking-wide text-flag">Breaking News</h2>
+          <span class="text-sm text-slate ml-auto">Verified breaking &middot; {{ sections.breaking|length }} updates</span>
+        </div>
+        <div class="card-stack">
+          {% for evt in sections.breaking %}
+          {% include "components/story_card.html" %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- 3. General News -->
       {% if sections.general %}
       <section>
         <div class="flex items-baseline justify-between mb-2">
@@ -87,21 +118,10 @@
         </div>
         <div class="card-stack">
           {% for evt in sections.general %}
-          <article class="story-card" data-search="{{ evt.search_blob }}" style="border-left-color:{{ evt.accent }};" onclick="toggleDetail(this)">
-            <div class="card-top">
-              {% if evt.topic_obj %}<span class="eyebrow" style="color:{{ evt.topic_obj.color }};">{{ evt.topic_obj.label }}</span>{% endif %}
-              <span class="card-time">{{ evt.published_raw }}</span>
-            </div>
-            <p class="card-headline">{{ evt.headline }}</p>
-            <div class="card-detail">{{ evt.summary }}</div>
-            <div class="badges">
-              {% for s in evt.source_objs %}
-              <span class="source-badge sm {{ 'border-gold' if s.kind == 'official' }}"><span class="dot"></span>{{ s.name }}{% if s.kind == 'official' %} · official{% endif %}</span>
-              {% endfor %}
-              <button class="follow-btn" onclick="toggleFollow(event,this)">+ Follow</button>
-            </div>
-          </article>
-          {% if loop.index == 3 %}{% include "_ad_incontent.html" %}{% endif %}
+          {% include "components/story_card.html" %}
+          {% if loop.index % 5 == 0 %}
+            <div class="my-3">{% include "_ad_incontent.html" %}</div>
+          {% endif %}
           {% endfor %}
         </div>
       </section>
@@ -112,46 +132,211 @@
       {% endif %}
     </div>
 
-    <aside class="sidebar">
-      <div class="sidebar-block">
-        <h3>Most read</h3>
-        {% for item in trending %}
-        <div class="trending-item">
-          <span class="rank">{{ item.rank }}</span>
-          {% if item.story_id %}<a href="/timeline/{{ item.story_id }}">{{ item.headline }}</a>{% else %}<span class="text-sm leading-snug">{{ item.headline }}</span>{% endif %}
-        </div>
-        {% endfor %}
-      </div>
-      {% include "_ad_rectangle.html" %}
-    </aside>
+    
   </div>
+  {% if total_stories < 5 %}
+  <div class="mt-6 border-t border-hairline pt-4">{% include "_ad_leaderboard.html" %}</div>
+  {% endif %}
 </main>
 
-<footer class="max-w-5xl mx-auto px-4 py-8 text-sm text-slate border-t border-hairline">
-  Mock UI — Phase 1. Every card carries equal visual weight by design: breaking, tracked, and general items differ only by section and accent color, not by size. Search and follow are client-side demos here — Phase 2 wires them to real accounts and a search index. Ads shown are mock creative, not live inventory.
-</footer>
+
 
 <script>
-let signedIn = false;
-function toggleSignin(){
-  signedIn = !signedIn;
-  const pill = document.getElementById('signinPill');
-  pill.textContent = signedIn ? 'Signed in ✓' : 'Sign in';
-  pill.classList.toggle('signed-in', signedIn);
+let currentTelegramUser = null;
+
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
-function toggleFollow(evt, btn){
+
+function getTelegramUrl(payload) {
+  const p = payload ? '?start=' + encodeURIComponent(payload) : '';
+  if (isMobileDevice()) {
+    return 'tg://resolve?domain=khulaasaa_bot' + (payload ? '&start=' + encodeURIComponent(payload) : '');
+  }
+  return 'https://t.me/khulaasaa_bot' + p;
+}
+
+// Initialize Telegram Mini App & Connection State
+document.addEventListener('DOMContentLoaded', function() {
+  const primaryBtn = document.getElementById('tgConnectPrimaryBtn');
+  if (primaryBtn) {
+    primaryBtn.href = getTelegramUrl('connect');
+  }
+  const manageBtn = document.getElementById('tgManageInBotBtn');
+  if (manageBtn) {
+    manageBtn.href = getTelegramUrl('settings');
+  }
+
+  // 1. Check if running inside Telegram Mini App
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      currentTelegramUser = tg.initDataUnsafe.user;
+      localStorage.setItem('khulaasaa_tg_connected', '1');
+      if (currentTelegramUser.username) {
+        localStorage.setItem('khulaasaa_tg_name', '@' + currentTelegramUser.username);
+      } else if (currentTelegramUser.first_name) {
+        localStorage.setItem('khulaasaa_tg_name', currentTelegramUser.first_name);
+      }
+      showConnectedState(true);
+      return;
+    }
+  }
+
+  // 2. Check if user already connected previously
+  if (localStorage.getItem('khulaasaa_tg_connected') === '1') {
+    showConnectedState(true);
+  } else {
+    showConnectedState(false);
+  }
+
+  // 3. Auto-open settings if launched from Telegram deep-link
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('settings') === '1') {
+    openTelegramModal();
+  }
+});
+
+function showConnectedState(connected) {
+  const unconnectedView = document.getElementById('tgUnconnectedView');
+  const connectedView = document.getElementById('tgConnectedView');
+  const signinPill = document.getElementById('signinPill');
+  const userLabel = document.getElementById('tgConnectedUserLabel');
+
+  if (connected) {
+    if (unconnectedView) unconnectedView.classList.add('hidden');
+    if (connectedView) connectedView.classList.remove('hidden');
+    const storedName = localStorage.getItem('khulaasaa_tg_name') || 'Telegram Connected';
+    if (signinPill) {
+      signinPill.textContent = storedName + ' (Active)';
+      signinPill.classList.add('signed-in');
+    }
+    if (userLabel) {
+      userLabel.textContent = 'Connected as ' + storedName;
+    }
+  } else {
+    if (unconnectedView) unconnectedView.classList.remove('hidden');
+    if (connectedView) connectedView.classList.add('hidden');
+    if (signinPill) {
+      signinPill.textContent = 'Sign in with Telegram';
+      signinPill.classList.remove('signed-in');
+    }
+  }
+}
+
+function handleTelegramConnectClick(e) {
+  localStorage.setItem('khulaasaa_tg_connected', '1');
+  localStorage.setItem('khulaasaa_tg_name', 'Telegram User');
+  // Transition modal smoothly to alert settings for when user returns
+  setTimeout(() => {
+    showConnectedState(true);
+  }, 1000);
+}
+
+function disconnectTelegram() {
+  localStorage.removeItem('khulaasaa_tg_connected');
+  localStorage.removeItem('khulaasaa_tg_name');
+  showConnectedState(false);
+}
+
+function toggleSignin() {
+  openTelegramModal();
+}
+
+function openTelegramModal() {
+  if (typeof openGlobalAlertsModal === 'function') {
+    openGlobalAlertsModal('telegram');
+  }
+}
+
+function closeTelegramModal() {
+  if (typeof closeGlobalAlertsModal === 'function') {
+    closeGlobalAlertsModal();
+  }
+}
+
+async function saveAlertPreferences() {
+  const b = document.getElementById('alertBreaking')?.checked;
+  const f = document.getElementById('alertFollowed')?.checked;
+  const t = document.getElementById('alertTenders')?.checked;
+  const j = document.getElementById('alertJobs')?.checked;
+
+  let keywords = [];
+  if (b) keywords.push('breaking');
+  if (f) keywords.push('ras-male', 'sultan-park', 'tgst', 'bridge-safety');
+  if (j) keywords.push('jobs');
+  let disciplines = t ? ['All'] : [];
+
+  const feedback = document.getElementById('tgPrefFeedback');
+  if (feedback) {
+    feedback.classList.remove('hidden');
+    setTimeout(() => { feedback.classList.add('hidden'); }, 2500);
+  }
+
+  // If in Mini App, immediately sync with server API
+  if (currentTelegramUser) {
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      try { window.Telegram.WebApp.HapticFeedback.selectionChanged(); } catch(e){}
+    }
+    try {
+      await fetch('/api/alerts/telegram/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: String(currentTelegramUser.id),
+          name: (currentTelegramUser.first_name || '') + (currentTelegramUser.username ? ' (@' + currentTelegramUser.username + ')' : ''),
+          disciplines: disciplines,
+          keywords: keywords,
+        })
+      });
+    } catch(err) {}
+  }
+function openArticleUrl(url) {
+  if (!url) return;
+  if (window.Telegram?.WebApp?.openLink) {
+    window.Telegram.WebApp.openLink(url);
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
+function shareStory(evt, headline, url) {
   evt.stopPropagation();
-  if (!signedIn) {
-    const original = btn.textContent;
-    btn.textContent = 'Sign in to follow';
-    btn.classList.add('prompt');
-    setTimeout(() => { btn.textContent = original; btn.classList.remove('prompt'); }, 1800);
-    return;
+  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+  const shareText = headline + ' — Khulaasaa Dispatch';
+  const tgShareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(fullUrl) + '&text=' + encodeURIComponent(shareText);
+
+  if (isMobileDevice() && navigator.share) {
+    navigator.share({
+      title: headline,
+      text: shareText,
+      url: fullUrl
+    }).catch(() => {
+      window.open(tgShareUrl, '_blank');
+    });
+  } else {
+    window.open(tgShareUrl, '_blank');
+  }
+}
+
+async function toggleFollow(evt, btn){
+  evt.stopPropagation();
+  if (window.Telegram?.WebApp?.HapticFeedback) {
+    try { window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e){}
   }
   const following = btn.classList.toggle('following');
-  btn.textContent = following ? '✓ Following' : '+ Follow';
+  btn.textContent = following ? 'Following' : '+ Follow';
+  if (following) {
+    if (currentTelegramUser) {
+      saveAlertPreferences();
+    } else {
+      openTelegramModal();
+    }
+  }
 }
+
 function toggleDetail(card){ card.classList.toggle('open'); }
+
 function filterCards(query){
   const q = query.trim().toLowerCase();
   const cards = document.querySelectorAll('.story-card');
@@ -168,5 +353,187 @@ function filterCards(query){
   });
   document.getElementById('noResults').style.display = (q && !anyVisible) ? '' : 'none';
 }
+
+function toggleFilterDrawer() {
+  const drawer = document.getElementById('filterDrawer');
+  const btn = document.getElementById('toggleFilterBtn');
+  if (!drawer) return;
+  const isHidden = drawer.classList.toggle('hidden');
+  if (btn) btn.textContent = isHidden ? 'More Filters ▾' : 'Fewer Filters ▴';
+}
+
+function handleViberConnectClick(e) {
+  localStorage.setItem('khulaasaa_tg_connected', '1');
+  localStorage.setItem('khulaasaa_tg_name', 'Viber User');
+  setTimeout(() => {
+    showConnectedState(true);
+  }, 1000);
+}
+
+async function submitUnifiedSubscription(e) {
+  e.preventDefault();
+  const platform = document.getElementById('subPlatform') ? document.getElementById('subPlatform').value : 'viber';
+  const targetId = document.getElementById('unifiedChatId') ? document.getElementById('unifiedChatId').value.trim() : '';
+  const statusEl = document.getElementById('unifiedStatusMsg');
+  const submitBtn = document.getElementById('unifiedSubmitBtn');
+
+  if (!targetId) return;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Activating...';
+  }
+
+  try {
+    const endpoint = platform === 'viber' ? '/api/alerts/viber/subscribe' : '/api/alerts/telegram/subscribe';
+    const payload = platform === 'viber'
+      ? { viber_user_id: targetId, name: 'Web Subscriber', categories: ['all', 'news', 'janaza', 'bids', 'jobs'] }
+      : {
+          chat_id: targetId,
+          name: 'Web Subscriber',
+          disciplines: document.getElementById('alertTenders')?.checked ? ['All'] : [],
+          keywords: ['breaking', 'ras-male', 'sultan-park', 'tgst']
+        };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      localStorage.setItem('khulaasaa_tg_connected', '1');
+      localStorage.setItem('khulaasaa_tg_name', (platform === 'viber' ? 'Viber: ' : 'Telegram: ') + targetId);
+      showConnectedState(true);
+      if (statusEl) {
+        statusEl.className = 'text-xs py-1.5 px-2.5 rounded bg-green-50 text-green-800 border border-green-200 block';
+        statusEl.textContent = (platform === 'viber' ? 'Viber' : 'Telegram') + ' alerts connected successfully!';
+      }
+      setTimeout(() => { closeTelegramModal(); }, 1500);
+    } else {
+      if (statusEl) {
+        statusEl.className = 'text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block';
+        statusEl.textContent = (data.error || data.detail || 'Failed to connect. Please verify ID.');
+      }
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.className = 'text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block';
+      statusEl.textContent = 'Error: ' + err.message;
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save';
+    }
+  }
+}
+
+async function submitTelegramSubscription(e) {
+  return submitUnifiedSubscription(e);
+}
 </script>
+
+  <script>
+    let pendingSortCriterion = null;
+
+    function isUserProOrTrial() {
+      return localStorage.getItem('khulaasaa_is_paid') === '1' || window.__khulaasaa_is_paid === true;
+    }
+
+    function openProTrialModal(criterion) {
+      pendingSortCriterion = criterion;
+      const modal = document.getElementById('proTrialModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeProTrialModal() {
+      const modal = document.getElementById('proTrialModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function activateOneMonthTrial() {
+      const btn = document.getElementById('startTrialBtn') || document.getElementById('activateTrialBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Activating Trial...';
+      }
+      try {
+        const res = await fetch('/api/auth/start-trial', { method: 'POST' });
+        const data = await res.json();
+        if (data && data.status === 'ok') {
+          localStorage.setItem('khulaasaa_is_paid', '1');
+          window.__khulaasaa_is_paid = true;
+          closeProTrialModal();
+          alert('1-Month Free Pro Trial Activated! You now have custom feed sorting and Viber/WhatsApp bid alert access.');
+          if (pendingSortCriterion) {
+            const select = document.getElementById('feedSortSelect');
+            if (select) select.value = pendingSortCriterion;
+            executeFeedSort(pendingSortCriterion);
+          }
+        }
+      } catch (e) {
+        localStorage.setItem('khulaasaa_is_paid', '1');
+        window.__khulaasaa_is_paid = true;
+        closeProTrialModal();
+        if (pendingSortCriterion) executeFeedSort(pendingSortCriterion);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Start 1-Month Free Trial (Instant)';
+        }
+      }
+    }
+
+    function handleFeedSort(criterion) {
+      if (criterion === 'latest') {
+        executeFeedSort('latest');
+        return;
+      }
+      if (!isUserProOrTrial()) {
+        const select = document.getElementById('feedSortSelect');
+        if (select) select.value = 'latest';
+        openProTrialModal(criterion);
+        return;
+      }
+      executeFeedSort(criterion);
+    }
+
+    function executeFeedSort(criterion) {
+      const container = document.getElementById('news-container');
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll('.story-card'));
+      if (!cards.length) return;
+
+      if (criterion === 'outlets') {
+        cards.sort((a, b) => {
+          const countA = parseInt(a.getAttribute('data-outlets') || '1', 10);
+          const countB = parseInt(b.getAttribute('data-outlets') || '1', 10);
+          return countB - countA;
+        });
+      } else if (criterion === 'urgent') {
+        cards.sort((a, b) => {
+          const isBreakA = a.getAttribute('data-is-breaking') === '1' ? 1 : 0;
+          const isBreakB = b.getAttribute('data-is-breaking') === '1' ? 1 : 0;
+          return isBreakB - isBreakA;
+        });
+      }
+
+      cards.forEach(card => {
+        if (card.parentElement) {
+          card.parentElement.appendChild(card);
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data && data.user && data.user.is_paid) {
+          localStorage.setItem('khulaasaa_is_paid', '1');
+          window.__khulaasaa_is_paid = true;
+        }
+      } catch (e) {}
+    });
+  </script>
 {% endblock %}

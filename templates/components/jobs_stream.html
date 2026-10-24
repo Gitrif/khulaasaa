@@ -1,0 +1,16 @@
+{# Reusable Jobs Stream Component (used by both initial page load and partial fetch) #}
+<div id="jobs-stream" class="space-y-3">
+  {% for j in jobs %}
+    {% include "components/job_card.html" %}
+    {% if loop.index % 4 == 0 %}
+      <div style="margin: 16px 0;">{% include "_ad_infeed.html" %}</div>
+    {% endif %}
+  {% else %}
+    <div class="bg-white border border-hairline rounded p-12 text-center text-slate">
+      <p class="text-sm">No job openings found matching this filter.</p>
+      <a href="/jobs" class="inline-block mt-2 text-xs text-lagoon font-semibold hover:underline">
+        Clear filters
+      </a>
+    </div>
+  {% endfor %}
+</div>

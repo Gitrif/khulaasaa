@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Ad Manager — Khulaasaa Editor{% endblock %}
+{% block body_class %}bg-ink text-paper{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline-dark px-4 pt-6 pb-4 sticky top-0 bg-ink z-10">
+  <div class="flex items-center justify-between">
+    <h1 class="font-serif-display text-xl font-semibold">Commercial Ad Manager</h1>
+    <span class="text-sm text-slate">{{ editor }}</span>
+  </div>
+  <p class="text-sm text-slate mt-1">Manage sponsored campaigns with quota limits (e.g. 1,000 impressions) and duration (e.g. 1 month)</p>
+</header>
+
+<nav class="flex border-b border-hairline-dark px-4 bg-ink overflow-x-auto whitespace-nowrap">
+  <a href="/admin" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Story Moderation
+  </a>
+  <a href="/admin/ads" class="py-3 px-4 text-sm font-medium border-b-2 border-lagoon text-lagoon">
+    Ad Manager
+  </a>
+  <a href="/admin/sources" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Provider Sources &amp; Logos
+  </a>
+  <a href="/admin/obituaries" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Obituaries / Janaza
+  </a>
+</nav>
+
+{% if message %}
+<div class="mx-4 mt-4 p-3 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm rounded flex items-center justify-between">
+  <span>{{ message }}</span>
+</div>
+{% endif %}
+
+<main class="px-4 py-4 space-y-6 pb-28 max-w-5xl mx-auto">
+
+  <!-- KPI summary cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center rounded">
+      <div class="text-2xl font-semibold text-paper">{{ ads|length }}</div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Total Campaigns</div>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center rounded">
+      <div class="text-2xl font-semibold text-emerald-400">
+        {{ ads | selectattr('is_serving', 'equalto', True) | list | length }}
+      </div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Currently Serving</div>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center rounded">
+      <div class="text-2xl font-semibold text-lagoon">
+        {{ ads | map(attribute='impressions') | sum }}
+      </div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Delivered Views</div>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center rounded">
+      <div class="text-2xl font-semibold text-amber-400">
+        {{ ads | selectattr('is_quota_filled', 'equalto', True) | list | length + ads | selectattr('is_expired', 'equalto', True) | list | length }}
+      </div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Needs Renewal</div>
+    </div>
+  </div>
+
+  <!-- Ad Campaigns List -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-serif-display text-lg font-medium">Sponsor Campaigns</h2>
+        <p class="text-xs text-slate mt-0.5">Campaigns automatically pause when their paid impression quota or calendar duration expires.</p>
+      </div>
+      <a href="#new-campaign-form" class="text-xs text-lagoon hover:underline font-semibold px-3 py-1.5 rounded bg-lagoon/10 border border-lagoon/30">+ New Sponsor Ad</a>
+    </div>
+
+    {% for ad in ads %}
+    <div class="bg-ink-soft border border-hairline-dark p-4 space-y-3 rounded-lg shadow-sm">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="font-bold text-base text-paper">{{ ad.sponsor_name }}</h3>
+            
+            {% if ad.status_label == 'Active' %}
+            <span class="px-2 py-0.5 text-xs font-bold rounded bg-emerald-950 text-emerald-400 border border-emerald-600/40 inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live &amp; Serving
+            </span>
+            {% elif ad.status_label == 'Quota Reached' %}
+            <span class="px-2 py-0.5 text-xs font-bold rounded bg-amber-950 text-amber-300 border border-amber-600/40">
+              Quota Reached ({{ ad.impressions }}/{{ ad.max_impressions }})
+            </span>
+            {% elif ad.status_label == 'Expired' %}
+            <span class="px-2 py-0.5 text-xs font-bold rounded bg-rose-950 text-rose-300 border border-rose-600/40">
+              Expired by Date
+            </span>
+            {% else %}
+            <span class="px-2 py-0.5 text-xs font-bold rounded bg-ink text-slate border border-hairline-dark">
+              Paused Manually
+            </span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-slate font-mono mt-0.5">{{ ad.campaign_name }}</p>
+        </div>
+
+        <div class="text-right flex flex-col items-end gap-1">
+          <span class="text-xs px-2 py-0.5 rounded bg-ink border border-hairline-dark text-paper">
+            {% if ad.target_category == 'bids' %}Tenders &amp; Bids
+            {% elif ad.target_category == 'news' %}News &amp; Stories
+            {% elif ad.target_category == 'jobs' %}Jobs &amp; Vacancies
+            {% else %}All Channels{% endif %}
+          </span>
+          <div class="text-xs text-slate font-mono font-medium">
+            {{ ad.impressions }} {% if ad.max_impressions %} / {{ ad.max_impressions }} views{% else %} views (Unlimited){% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quota and Expiration Progress Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-ink/70 rounded border border-hairline-dark text-xs">
+        <!-- Impression Quota Bar -->
+        <div>
+          <div class="flex items-center justify-between text-slate mb-1">
+            <span class="font-medium">Impression Quota:</span>
+            {% if ad.max_impressions %}
+              <span class="font-mono text-paper">{{ ad.impressions }} / {{ ad.max_impressions }} ({{ ad.quota_percent }}%)</span>
+            {% else %}
+              <span class="text-emerald-400 font-medium">Unlimited</span>
+            {% endif %}
+          </div>
+          {% if ad.max_impressions %}
+          <div class="w-full bg-ink rounded-full h-2 border border-hairline-dark overflow-hidden">
+            <div class="h-2 rounded-full {{ 'bg-amber-400' if ad.is_quota_filled else 'bg-emerald-500' }}" style="width: {{ ad.quota_percent }}%;"></div>
+          </div>
+          {% else %}
+          <div class="w-full bg-ink rounded-full h-2 border border-hairline-dark">
+            <div class="h-2 rounded-full bg-emerald-500/40 w-full"></div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Duration & Calendar Expiration -->
+        <div>
+          <div class="flex items-center justify-between text-slate mb-1">
+            <span class="font-medium">Time / Duration:</span>
+            {% if ad.expires_at %}
+              {% if ad.is_expired %}
+                <span class="text-rose-400 font-medium">Ended {{ ad.expires_at[:10] }}</span>
+              {% else %}
+                <span class="text-emerald-400 font-medium">{{ ad.days_remaining }} days left (until {{ ad.expires_at[:10] }})</span>
+              {% endif %}
+            {% else %}
+              <span class="text-emerald-400 font-medium">No time limit (Ongoing)</span>
+            {% endif %}
+          </div>
+          <div class="text-[11px] text-slate">
+            Pricing Model: <span class="capitalize text-paper font-mono">{{ ad.pricing_tier or 'Custom' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview of the creative -->
+      <div class="p-3 bg-ink border border-hairline-dark text-xs rounded">
+        <div class="text-[10px] text-slate uppercase tracking-wider mb-1 font-bold">Creative Preview:</div>
+        <div class="text-paper/90 leading-relaxed font-sans">
+          {{ ad.text_html | safe }}
+        </div>
+        {% if ad.link_url %}
+        <div class="mt-2 text-xs font-mono text-lagoon truncate">
+          <a href="{{ ad.link_url }}" target="_blank" rel="noopener" class="hover:underline">{{ ad.link_url }}</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Renewal & Extension Controls -->
+      <div class="pt-2 border-t border-hairline-dark text-xs flex items-center justify-between gap-3 flex-wrap">
+        <!-- Quick Extend Form -->
+        <form method="post" action="/admin/ads/{{ ad.id }}/extend" class="flex items-center gap-2 flex-wrap">
+          <span class="text-slate font-medium">Top-up / Renew:</span>
+          <button type="submit" name="add_impressions" value="1000" class="px-2.5 py-1 rounded bg-ink border border-hairline-dark text-paper hover:border-lagoon hover:text-lagoon transition">
+            +1,000 Views
+          </button>
+          <button type="submit" name="add_impressions" value="5000" class="px-2.5 py-1 rounded bg-ink border border-hairline-dark text-paper hover:border-lagoon hover:text-lagoon transition">
+            +5,000 Views
+          </button>
+          <button type="submit" name="add_days" value="30" class="px-2.5 py-1 rounded bg-ink border border-hairline-dark text-paper hover:border-lagoon hover:text-lagoon transition">
+            +1 Month (30 Days)
+          </button>
+          <button type="submit" name="reset_impressions" value="1" title="Reset delivered impression counter back to 0" class="px-2 py-1 rounded bg-ink border border-hairline-dark text-slate hover:text-paper transition">
+            Reset Counter
+          </button>
+        </form>
+
+        <!-- Actions: Toggle, Broadcast, Delete -->
+        <div class="flex items-center gap-2">
+          <!-- Toggle active/paused -->
+          <form method="post" action="/admin/ads/{{ ad.id }}/toggle">
+            <button type="submit" class="px-3 py-1 border border-hairline-dark text-paper hover:bg-ink rounded transition-colors">
+              {% if ad.is_active == 1 %}Pause{% else %}Resume{% endif %}
+            </button>
+          </form>
+
+          <!-- Broadcast to Telegram -->
+          <form method="post" action="/admin/ads/{{ ad.id }}/broadcast" onsubmit="return confirm('Send sponsored announcement to Telegram & Viber subscribers now?');">
+            <button type="submit" class="px-3 py-1 bg-lagoon/20 border border-lagoon/50 text-lagoon hover:bg-lagoon hover:text-ink font-medium rounded transition-colors">
+              Broadcast
+            </button>
+          </form>
+
+          <!-- Delete button -->
+          <form method="post" action="/admin/ads/{{ ad.id }}/delete" onsubmit="return confirm('Permanently delete this campaign?');">
+            <button type="submit" class="px-2.5 py-1 text-coral/80 hover:text-coral hover:underline">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-slate text-sm bg-ink-soft border border-hairline-dark rounded">
+      No campaigns configured yet. Add your first sponsor below.
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- Create New Campaign Form -->
+  <section id="new-campaign-form" class="bg-ink-soft border border-hairline-dark p-5 space-y-4 rounded-lg shadow-sm">
+    <div class="border-b border-hairline-dark pb-3">
+      <h2 class="font-serif-display text-lg font-medium">+ Add New Sponsored Campaign</h2>
+      <p class="text-xs text-slate mt-0.5">Configure client sponsorship terms: set quota limit (e.g. 1,000 views) or time duration (e.g. 1 month).</p>
+    </div>
+
+    <form method="post" action="/admin/ads/create" class="space-y-4 text-sm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-slate uppercase tracking-wider mb-1 font-semibold">Sponsor Business Name *</label>
+          <input type="text" name="sponsor_name" required placeholder="e.g. Coral Mart / hooks85 POS"
+                 class="w-full bg-ink border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs">
+        </div>
+        <div>
+          <label class="block text-xs text-slate uppercase tracking-wider mb-1 font-semibold">Campaign Slug / Identifier *</label>
+          <input type="text" name="campaign_name" required placeholder="e.g. coral-mart-october-2026"
+                 class="w-full bg-ink border border-hairline-dark px-3 py-2 text-paper font-mono text-xs rounded focus:border-lagoon focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Billing Limits & Duration Settings -->
+      <div class="p-4 rounded-md bg-ink border border-hairline-dark space-y-3">
+        <div class="text-xs font-bold text-paper uppercase tracking-wider">Campaign Limits &amp; Paid Package Setup</div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- Impression Quota -->
+          <div>
+            <label class="block text-xs text-slate mb-1">Impression Quota (Views)</label>
+            <select name="max_impressions" class="w-full bg-ink-soft border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs font-medium">
+              <option value="">Unlimited / No View Limit</option>
+              <option value="1000" selected>1,000 Impressions (Starter)</option>
+              <option value="2500">2,500 Impressions</option>
+              <option value="5000">5,000 Impressions (Pro)</option>
+              <option value="10000">10,000 Impressions (High-Traffic)</option>
+              <option value="25000">25,000 Impressions (Master Banner)</option>
+            </select>
+          </div>
+
+          <!-- Time Duration Preset -->
+          <div>
+            <label class="block text-xs text-slate mb-1">Duration (Calendar Limit)</label>
+            <select name="duration_days" class="w-full bg-ink-soft border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs font-medium">
+              <option value="">No Time Limit (Until Quota Ends)</option>
+              <option value="7">1 Week (7 Days)</option>
+              <option value="14">2 Weeks (14 Days)</option>
+              <option value="30" selected>1 Month (30 Days)</option>
+              <option value="60">2 Months (60 Days)</option>
+              <option value="90">3 Months (90 Days)</option>
+              <option value="365">1 Year (365 Days)</option>
+            </select>
+          </div>
+
+          <!-- Pricing Tier Label -->
+          <div>
+            <label class="block text-xs text-slate mb-1">Package / Tier Note</label>
+            <input type="text" name="pricing_tier" placeholder="e.g. Paid MVR 500 / 1 Month"
+                   class="w-full bg-ink-soft border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs">
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate leading-normal">
+          Note: If both quota and duration are set (e.g. 1,000 views and 30 days), the campaign will automatically pause whenever <strong>either</strong> limit is reached first.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-slate uppercase tracking-wider mb-1 font-semibold">Audience Target Channel</label>
+          <select name="target_category" class="w-full bg-ink border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs">
+            <option value="all">All Channels (Web Feed, Tenders, Jobs &amp; Alerts)</option>
+            <option value="bids">Gazette Bids &amp; Tender Alerts Only</option>
+            <option value="jobs">Jobs &amp; Career Vacancies Only</option>
+            <option value="news">Breaking News &amp; Story Timelines Only</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate uppercase tracking-wider mb-1 font-semibold">Click-Through Link URL</label>
+          <input type="url" name="link_url" placeholder="https://..."
+                 class="w-full bg-ink border border-hairline-dark px-3 py-2 text-paper rounded focus:border-lagoon focus:outline-none text-xs">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate uppercase tracking-wider mb-1 font-semibold">
+          Creative HTML Message *
+          <span class="normal-case text-slate font-normal">(supports &lt;b&gt;, &lt;strong&gt;, &lt;a&gt;)</span>
+        </label>
+        <textarea name="text_html" rows="3" required placeholder="&lt;b&gt;Partner Offer:&lt;/b&gt; Special rates on hardware and POS solutions. Visit &lt;a href=&quot;https://...&quot;&gt;domain.mv&lt;/a&gt;"
+                  class="w-full bg-ink border border-hairline-dark p-3 text-paper rounded focus:border-lagoon focus:outline-none font-sans text-xs leading-relaxed"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate">
+          <input type="checkbox" name="is_active" value="1" checked class="rounded bg-ink border-hairline-dark text-lagoon">
+          <span>Activate campaign immediately upon saving</span>
+        </label>
+        <button type="submit" class="bg-lagoon text-ink font-bold px-5 py-2.5 rounded min-h-[40px] hover:opacity-90 active:scale-95 transition text-xs shadow-sm">
+          Save &amp; Launch Campaign
+        </button>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+<nav class="fixed bottom-0 inset-x-0 bg-ink-soft border-t border-hairline-dark px-4 py-3 flex items-center justify-between z-10">
+  <span class="text-xs text-slate">Ad Manager — Khulaasaa Commercial Quota &amp; Duration System</span>
+  <a href="/" class="text-xs text-lagoon font-semibold">View public feed &rarr;</a>
+</nav>
+{% endblock %}

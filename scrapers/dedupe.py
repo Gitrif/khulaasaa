@@ -33,7 +33,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Optional, Callable, Any
 
 
 def normalize_reference(ref: str) -> str:
@@ -49,9 +49,10 @@ def normalize_reference(ref: str) -> str:
 
 def normalize_title(title: str) -> str:
     t = title.lower().strip()
+    t = re.sub(r"&", " and ", t)
     t = re.sub(r"[^\w\s]", "", t)   # drop punctuation
     t = re.sub(r"\s+", " ", t)
-    return t
+    return t.strip()
 
 
 @dataclass
@@ -64,9 +65,10 @@ class SourceRecord:
     title: str
     published_iso: Optional[str]
     deadline_iso: Optional[str]
-    document_urls: list[str] = field(default_factory=list)  # BOQ/tender doc links,
-                                                              # often only present on
-                                                              # the agency's own site
+    document_urls: list[str] = field(default_factory=list)
+    submission_location: Optional[str] = None
+    info_date: Optional[str] = None
+    info_location: Optional[str] = None
 
 
 @dataclass
@@ -79,6 +81,9 @@ class MergedBid:
     deadline_iso: Optional[str]
     discipline: Optional[str] = None
     sources: list[SourceRecord] = field(default_factory=list)
+    submission_location: Optional[str] = None
+    info_date: Optional[str] = None
+    info_location: Optional[str] = None
 
     @property
     def source_names(self) -> list[str]:
@@ -90,6 +95,36 @@ class MergedBid:
         for s in self.sources:
             urls.extend(s.document_urls)
         return list(dict.fromkeys(urls))
+
+    @property
+    def is_open(self) -> bool:
+        if not self.deadline_iso:
+            return True
+        try:
+            deadline = datetime.fromisoformat(self.deadline_iso)
+            now = datetime.now(deadline.tzinfo) if deadline.tzinfo else datetime.now()
+            return deadline > now
+        except Exception:
+            return True
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary representation matching the UI/API expectations."""
+        primary_source = self.sources[0] if self.sources else None
+        return {
+            "ref": self.reference_number,
+            "agency": self.agency,
+            "title": self.title,
+            "published_iso": self.published_iso,
+            "deadline_iso": self.deadline_iso,
+            "discipline": self.discipline or "Other",
+            "is_open": self.is_open,
+            "source_names": self.source_names,
+            "document_urls": self.all_document_urls,
+            "source_url": primary_source.source_url if primary_source else "",
+            "submission_location": self.submission_location,
+            "info_date": self.info_date,
+            "info_location": self.info_location,
+        }
 
 
 def _fallback_match(a: SourceRecord, b: SourceRecord) -> bool:
@@ -150,6 +185,9 @@ def _build_merged(group: list[SourceRecord]) -> MergedBid:
     # Prefer a deadline if any source has one (agency sites and gazette
     # don't always both carry it).
     deadline = next((g.deadline_iso for g in group if g.deadline_iso), None)
+    submission_loc = next((g.submission_location for g in group if g.submission_location), None)
+    info_dt = next((g.info_date for g in group if g.info_date), None)
+    info_loc = next((g.info_location for g in group if g.info_location), None)
     return MergedBid(
         reference_number=next((g.reference_number for g in group if g.reference_number), None),
         agency=earliest.agency,
@@ -157,4 +195,50 @@ def _build_merged(group: list[SourceRecord]) -> MergedBid:
         published_iso=earliest.published_iso,
         deadline_iso=deadline,
         sources=group,
+        submission_location=submission_loc,
+        info_date=info_dt,
+        info_location=info_loc,
     )
+
+
+def aggregate_bids(
+    records: list[SourceRecord | Any],
+    classifier: Optional[Callable[[str], str]] = None,
+) -> list[MergedBid]:
+    """
+    End-to-end bids aggregation:
+    Takes SourceRecords or objects with a .to_source_record() method (like BidNotice),
+    merges duplicates across sources, classifies disciplines, and returns canonical MergedBids.
+    """
+    normalized_records: list[SourceRecord] = []
+    for r in records:
+        if isinstance(r, SourceRecord):
+            normalized_records.append(r)
+        elif hasattr(r, "to_source_record"):
+            normalized_records.append(r.to_source_record())
+        elif isinstance(r, dict):
+            normalized_records.append(
+                SourceRecord(
+                    source_name=r.get("source_name", "unknown"),
+                    source_url=r.get("source_url", ""),
+                    reference_number=r.get("reference_number") or r.get("ref"),
+                    agency=r.get("agency", ""),
+                    title=r.get("title", ""),
+                    published_iso=r.get("published_iso"),
+                    deadline_iso=r.get("deadline_iso"),
+                    document_urls=r.get("document_urls", []),
+                    submission_location=r.get("submission_location"),
+                    info_date=r.get("info_date"),
+                    info_location=r.get("info_location"),
+                )
+            )
+        else:
+            raise TypeError(f"Unsupported record type: {type(r)}")
+
+    merged = merge_records(normalized_records)
+
+    if classifier:
+        for bid in merged:
+            bid.discipline = classifier(bid.title)
+
+    return merged

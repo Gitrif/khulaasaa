@@ -8,8 +8,22 @@
     <h1 class="font-serif-display text-xl font-semibold">Pending clusters</h1>
     <span class="text-sm text-slate">{{ editor }}</span>
   </div>
-  <p class="text-sm text-slate mt-1">{{ clusters|length }} awaiting review</p>
 </header>
+
+<nav class="flex border-b border-hairline-dark px-4 bg-ink overflow-x-auto whitespace-nowrap">
+  <a href="/admin" class="py-3 px-4 text-sm font-medium border-b-2 border-lagoon text-lagoon">
+    Story Moderation
+  </a>
+  <a href="/admin/ads" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Ad Manager
+  </a>
+  <a href="/admin/sources" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Provider Sources &amp; Logos
+  </a>
+  <a href="/admin/obituaries" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Obituaries / Janaza
+  </a>
+</nav>
 
 <main class="px-4 py-4 space-y-4 pb-28">
   {% for c in clusters %}
@@ -23,7 +37,14 @@
 
     <div class="flex flex-wrap gap-2 mb-4">
       {% for s in c.source_objs %}
-      <span class="source-badge bg-transparent border-hairline-dark text-slate"><span class="dot"></span>{{ s.name }}</span>
+      <span class="source-badge bg-transparent border-hairline-dark text-slate">
+        {% if s.logo %}
+        <img src="{{ s.logo }}" alt="" class="w-3.5 h-3.5 object-contain rounded-xs flex-shrink-0" onerror="this.style.display='none'">
+        {% else %}
+        <span class="dot"></span>
+        {% endif %}
+        {{ s.name }}
+      </span>
       {% endfor %}
     </div>
 

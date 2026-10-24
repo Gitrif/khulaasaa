@@ -1,0 +1,11 @@
+{# Reusable Bids Stream Component (used by both initial page load and partial fetch) #}
+<div id="bids-stream">
+  {% for b in bids %}
+    {% include "components/bid_card.html" %}
+    {% if loop.index % 6 == 0 %}
+      {% include "_ad_infeed.html" %}
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-slate py-12 text-center">No bids match this filter.</p>
+  {% endfor %}
+</div>

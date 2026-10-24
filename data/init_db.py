@@ -1,0 +1,327 @@
+"""
+Database initialization and schema migration runner for Khulaasaa.
+"""
+from __future__ import annotations
+
+import logging
+import os
+import sqlite3
+from pathlib import Path
+from typing import Optional
+
+from data.schema import SCHEMA_SQL
+from data.initial_entities import INITIAL_ENTITIES, INITIAL_SPONSORED_ADS, VERIFIED_HISTORIC_BIDS
+from data.taxonomy import extract_atoll_and_island, INITIAL_OBITUARIES, INITIAL_JOBS
+from data.connection import get_db
+from data.utils import slugify
+from data.repos.bid_milestones import purge_expired_bids
+from data.repos.obituaries import purge_expired_obituaries
+from data.repos.bids import upsert_bid
+from data.repos.jobs import upsert_job
+
+logger = logging.getLogger(__name__)
+
+def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
+    """Initialize SQLite schema and seed canonical entity dictionary."""
+    if db_path is None and (os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")):
+        schema_path = Path(__file__).resolve().parent.parent / "supabase" / "schema.sql"
+        if schema_path.exists():
+            try:
+                from data.postgres_adapter import get_postgres_db
+                with get_postgres_db() as pg_conn:
+                    with pg_conn._conn.cursor() as cur:
+                        cur.execute(schema_path.read_text(encoding="utf-8"))
+                    pg_conn.commit()
+            except Exception:
+                pass
+        return
+
+    with get_db(db_path) as conn:
+        conn.executescript(SCHEMA_SQL)
+
+
+        # Migration: ensure title_en, sources, and procurement_nature columns exist on existing bids tables
+        columns = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
+        if columns and "title_en" not in columns:
+            conn.execute("ALTER TABLE bids ADD COLUMN title_en TEXT;")
+        if columns and "sources" not in columns:
+            conn.execute("ALTER TABLE bids ADD COLUMN sources TEXT DEFAULT '[\"gazette.gov.mv\"]';")
+        if columns and "procurement_nature" not in columns:
+            conn.execute("ALTER TABLE bids ADD COLUMN procurement_nature TEXT NOT NULL DEFAULT 'Supply';")
+
+        # Migration: ensure atoll and region columns exist on existing obituaries tables
+        ob_columns = [row[1] for row in conn.execute("PRAGMA table_info(obituaries);").fetchall()]
+        if ob_columns and "atoll_code" not in ob_columns:
+            conn.execute("ALTER TABLE obituaries ADD COLUMN atoll_code TEXT DEFAULT 'K-MALE';")
+        if ob_columns and "atoll_name_dv" not in ob_columns:
+            conn.execute("ALTER TABLE obituaries ADD COLUMN atoll_name_dv TEXT DEFAULT 'މާލެ / ހުޅުމާލެ';")
+        if ob_columns and "island_name" not in ob_columns:
+            conn.execute("ALTER TABLE obituaries ADD COLUMN island_name TEXT DEFAULT 'މާލެ';")
+        if ob_columns and "region_group" not in ob_columns:
+            conn.execute("ALTER TABLE obituaries ADD COLUMN region_group TEXT DEFAULT 'male';")
+        if ob_columns and "sort_order" not in ob_columns:
+            conn.execute("ALTER TABLE obituaries ADD COLUMN sort_order INTEGER DEFAULT 0;")
+
+        # Migration: ensure quota and duration columns exist on sponsored_ads
+        ad_columns = [row[1] for row in conn.execute("PRAGMA table_info(sponsored_ads);").fetchall()]
+        if ad_columns and "max_impressions" not in ad_columns:
+            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN max_impressions INTEGER DEFAULT NULL;")
+        if ad_columns and "expires_at" not in ad_columns:
+            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN expires_at TIMESTAMP DEFAULT NULL;")
+        if ad_columns and "pricing_tier" not in ad_columns:
+            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN pricing_tier TEXT DEFAULT 'custom';")
+
+        # Migration: ensure entity_type, country, and international contractor columns exist on company_profiles
+        cp_columns = [row[1] for row in conn.execute("PRAGMA table_info(company_profiles);").fetchall()]
+        if cp_columns and "entity_type" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN entity_type TEXT DEFAULT 'maldivian';")
+        if cp_columns and "country_of_origin" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN country_of_origin TEXT DEFAULT 'Maldives';")
+        if cp_columns and "foreign_reg_no" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN foreign_reg_no TEXT DEFAULT '';")
+        if cp_columns and "foreign_tax_id" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN foreign_tax_id TEXT DEFAULT '';")
+        if cp_columns and "local_agent_name" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_name TEXT DEFAULT '';")
+        if cp_columns and "local_agent_reg" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_reg TEXT DEFAULT '';")
+        if cp_columns and "local_agent_phone" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_phone TEXT DEFAULT '';")
+        if cp_columns and "local_agent_email" not in cp_columns:
+            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_email TEXT DEFAULT '';")
+
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_obituaries_atoll ON obituaries(sort_order, atoll_code, island_name, funeral_date DESC);"
+        )
+
+        # Migration: ensure subscribed_at exists on telegram_subscribers
+        sub_columns = [row[1] for row in conn.execute("PRAGMA table_info(telegram_subscribers);").fetchall()]
+        if sub_columns and "subscribed_at" not in sub_columns:
+            conn.execute("ALTER TABLE telegram_subscribers ADD COLUMN subscribed_at TIMESTAMP;")
+            conn.execute("UPDATE telegram_subscribers SET subscribed_at = created_at WHERE subscribed_at IS NULL;")
+
+        # Migration: ensure is_paid exists on telegram_subscribers and viber_subscribers
+        try:
+            tg_cols = [row[1] for row in conn.execute("PRAGMA table_info(telegram_subscribers);").fetchall()]
+            if tg_cols and "is_paid" not in tg_cols:
+                conn.execute("ALTER TABLE telegram_subscribers ADD COLUMN is_paid INTEGER DEFAULT 0;")
+            vb_cols = [row[1] for row in conn.execute("PRAGMA table_info(viber_subscribers);").fetchall()]
+            if vb_cols and "is_paid" not in vb_cols:
+                conn.execute("ALTER TABLE viber_subscribers ADD COLUMN is_paid INTEGER DEFAULT 0;")
+        except Exception:
+            pass
+
+        # Migration: ensure viber_user_id exists on users table
+        try:
+            u_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
+            if u_cols and "viber_user_id" not in u_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN viber_user_id TEXT;")
+        except Exception:
+            pass
+
+
+        # Refresh v_bids_enriched view
+        conn.execute("DROP VIEW IF EXISTS v_bids_enriched;")
+        conn.execute(
+            """
+            CREATE VIEW v_bids_enriched AS
+            SELECT
+                b.id,
+                b.notice_id,
+                b.reference_number,
+                b.title,
+                COALESCE(b.title_en, b.title) AS title_en,
+                b.gazette_type,
+                b.discipline,
+                COALESCE(b.procurement_nature, 'Supply') AS procurement_nature,
+                b.published_date,
+                b.submission_date,
+                b.submission_location,
+                b.info_date,
+                b.info_location,
+                b.source_url,
+                b.sources,
+                b.document_urls,
+                b.is_active,
+                e.id AS entity_id,
+                COALESCE(e.name_en, 'Unknown Agency') AS agency_name_en,
+                e.name_dv AS agency_name_dv,
+                COALESCE(e.entity_type, 'Other') AS entity_type,
+                e.slug AS entity_slug,
+                e.location AS entity_location,
+                e.website AS entity_website
+            FROM bids b
+            LEFT JOIN entities e ON b.entity_id = e.id;
+            """
+        )
+
+        # Seed canonical entities (always ensure canonical items exist)
+        for ent in INITIAL_ENTITIES:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO entities (slug, name_en, name_dv, entity_type, location, website)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ent["slug"],
+                    ent["name_en"],
+                    ent["name_dv"],
+                    ent["entity_type"],
+                    ent["location"],
+                    ent["website"],
+                ),
+            )
+
+        # Migration: Heal any entities where name_en or slug contains raw Thaana
+        try:
+            from scrapers.translator import is_dhivehi, translate_agency, clean_residual_thaana
+            all_entities = conn.execute("SELECT id, slug, name_en, name_dv, entity_type FROM entities;").fetchall()
+            for erow in all_entities:
+                raw_name = erow["name_dv"] or erow["name_en"]
+                if is_dhivehi(erow["name_en"]) or is_dhivehi(erow["slug"]):
+                    clean_en = clean_residual_thaana(translate_agency(raw_name))
+                    clean_slug = slugify(clean_en)
+                    if erow["entity_type"] == "Council" and not clean_slug.startswith("council-"):
+                        clean_slug = f"council-{clean_slug}"
+                    cand_slug = clean_slug
+                    s_idx = 1
+                    while conn.execute("SELECT 1 FROM entities WHERE slug = ? AND id != ?", (cand_slug, erow["id"])).fetchone():
+                        cand_slug = f"{clean_slug}-{s_idx}"
+                        s_idx += 1
+                    conn.execute(
+                        "UPDATE entities SET name_en = ?, name_dv = COALESCE(name_dv, ?), slug = ? WHERE id = ?;",
+                        (clean_en, raw_name if is_dhivehi(raw_name) else None, cand_slug, erow["id"]),
+                    )
+        except Exception:
+            pass
+
+        # Heal bids where title_en contains raw Thaana or needs upgraded translation
+        try:
+            from scrapers.translator import is_dhivehi, translate_dhivehi_title, clean_residual_thaana
+            bids_to_heal = conn.execute(
+                """
+                SELECT b.id, b.title, b.title_en, b.reference_number, b.submission_location, e.name_en AS agency_name_en
+                FROM bids b
+                LEFT JOIN entities e ON b.entity_id = e.id;
+                """
+            ).fetchall()
+            for brow in bids_to_heal:
+                t_raw = brow["title"]
+                if is_dhivehi(t_raw):
+                    new_title_en = clean_residual_thaana(translate_dhivehi_title(t_raw))
+                    conn.execute("UPDATE bids SET title_en = ? WHERE id = ?;", (new_title_en, brow["id"]))
+
+                # Heal generic submission_location
+                sub_loc = brow["submission_location"]
+                agency_name = brow["agency_name_en"] or "Agency"
+                ref_num = brow["reference_number"] or ""
+                if not sub_loc or sub_loc in [
+                    "This Office",
+                    "Council Secretariat / Agency Office",
+                    "Local Council Secretariat",
+                    "Council Secretariat",
+                ]:
+                    if "13-K" in ref_num:
+                        fixed_loc = "National Tender Board, Ministry of Finance, Ameenee Magu, Male'"
+                    elif "HDC" in agency_name or "Housing Development Corporation" in agency_name:
+                        fixed_loc = "HDC Building Reception, Hulhumale'"
+                    elif "Council" in agency_name:
+                        fixed_loc = f"{agency_name} Secretariat"
+                    elif "Ministry" in agency_name:
+                        fixed_loc = f"{agency_name}, Male'"
+                    else:
+                        fixed_loc = f"{agency_name} Office"
+                    conn.execute("UPDATE bids SET submission_location = ? WHERE id = ?;", (fixed_loc, brow["id"]))
+        except Exception:
+            pass
+
+        # Purge bids that expired more than 30 days ago and placeholder notices
+        try:
+            purge_expired_bids(conn, retention_days=30)
+        except Exception:
+            pass
+
+        # Seed initial sponsored ads
+        for ad in INITIAL_SPONSORED_ADS:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO sponsored_ads (campaign_name, sponsor_name, text_html, target_category, link_url)
+                VALUES (?, ?, ?, ?, ?);
+                """,
+                (ad["campaign_name"], ad["sponsor_name"], ad["text_html"], ad["target_category"], ad["link_url"]),
+            )
+
+        # Seed initial obituaries
+        for ob in INITIAL_OBITUARIES:
+            geo = extract_atoll_and_island(ob.get("address_dv"), ob.get("address_en"), ob.get("funeral_mosque_dv"), ob.get("funeral_mosque_en"))
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO obituaries (
+                    slug, name_dv, name_en, address_dv, address_en, age,
+                    funeral_mosque_dv, funeral_mosque_en, prayer_time_dv, prayer_time_en,
+                    funeral_date, death_date, photo_url, contact_numbers, source_channel, announcement_type,
+                    atoll_code, atoll_name_dv, island_name, region_group, sort_order
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    ob["slug"],
+                    ob["name_dv"],
+                    ob.get("name_en"),
+                    ob.get("address_dv"),
+                    ob.get("address_en"),
+                    ob.get("age"),
+                    ob.get("funeral_mosque_dv"),
+                    ob.get("funeral_mosque_en"),
+                    ob.get("prayer_time_dv"),
+                    ob.get("prayer_time_en"),
+                    ob.get("funeral_date"),
+                    ob.get("death_date"),
+                    ob.get("photo_url"),
+                    ob.get("contact_numbers"),
+                    ob.get("source_channel", "KashunamaadhuMV"),
+                    ob.get("announcement_type", "Janaza"),
+                    ob.get("atoll_code") or geo["atoll_code"],
+                    ob.get("atoll_name_dv") or geo["atoll_name_dv"],
+                    ob.get("island_name") or geo["island_name"],
+                    ob.get("region_group") or geo["region_group"],
+                    ob.get("sort_order", geo["sort_order"]),
+                ),
+            )
+
+        # Heal existing obituaries with atoll & island extraction
+        try:
+            cur_obs = conn.execute("SELECT id, address_dv, address_en, funeral_mosque_dv, funeral_mosque_en FROM obituaries WHERE atoll_code IS NULL OR atoll_code = 'K-MALE';").fetchall()
+            for erow in cur_obs:
+                geo = extract_atoll_and_island(erow["address_dv"], erow["address_en"], erow["funeral_mosque_dv"], erow["funeral_mosque_en"])
+                conn.execute(
+                    "UPDATE obituaries SET atoll_code = ?, atoll_name_dv = ?, island_name = ?, region_group = ?, sort_order = ? WHERE id = ?;",
+                    (geo["atoll_code"], geo["atoll_name_dv"], geo["island_name"], geo["region_group"], geo["sort_order"], erow["id"]),
+                )
+        except Exception:
+            pass
+
+        # Purge obituaries older than 7 days
+        try:
+            purge_expired_obituaries(conn, retention_days=7)
+        except Exception:
+            pass
+
+        # Seed initial verified bids if requested
+        if seed_bids:
+            for b in VERIFIED_HISTORIC_BIDS:
+                upsert_bid(conn, dict(b))
+
+        # Seed / sync initial jobs
+        try:
+            for j in INITIAL_JOBS:
+                upsert_job(conn, j)
+        except Exception:
+            pass
+
+
+
+# ---------------------------------------------------------------------
+# Entity Dictionary Functions
+# ---------------------------------------------------------------------
+

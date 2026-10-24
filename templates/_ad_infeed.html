@@ -1,8 +1,46 @@
-<div class="ad-native">
-  <div class="ad-native-img">IslandTel</div>
-  <div class="ad-native-body">
-    <span class="ad-native-label">Sponsored</span>
-    <p class="ad-native-headline">Unlimited island-to-island calls, now Rf 99/month</p>
-    <span class="ad-native-cta">Learn more &rarr;</span>
-  </div>
-</div>
+{% if active_ads and active_ads|length > 0 %}
+  {% set current_ad = active_ads[loop.index0 % active_ads|length] if loop is defined else active_ads[0] %}
+  <article class="story-card ad-card bg-white border border-hairline rounded-md p-4 sm:p-5 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
+    <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-hairline/60">
+      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        Sponsored &bull; {{ current_ad.sponsor_name }}
+      </span>
+      <span class="text-[10px] text-slate uppercase tracking-wider font-semibold">Official Business Platform</span>
+    </div>
+    <div class="py-1">
+      <div class="font-sans text-xs sm:text-sm text-ink leading-relaxed">
+        {{ current_ad.text_html | safe }}
+      </div>
+    </div>
+    <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-2 border-t border-hairline/60 flex-wrap">
+      {% if current_ad.link_url %}
+      <a href="{{ current_ad.link_url }}" class="source-action-btn" title="Explore {{ current_ad.sponsor_name }}">
+        <span class="source-btn-text">Explore {{ current_ad.sponsor_name }} &rarr;</span>
+      </a>
+      {% endif %}
+      <span class="text-[11px] text-slate-400">hooks85 Business Network</span>
+    </div>
+  </article>
+{% else %}
+  <article class="story-card ad-card bg-white border border-hairline rounded-md p-4 sm:p-5 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
+    <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-hairline/60">
+      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        Sponsored &bull; hooks85 POS
+      </span>
+      <span class="text-[10px] text-slate uppercase tracking-wider font-semibold">Official Business Platform</span>
+    </div>
+    <div class="py-1">
+      <div class="font-sans text-xs sm:text-sm text-ink leading-relaxed">
+        <strong>Modern Cloud Point of Sale &amp; Maldivian Retail ERP:</strong> Offline-ready billing, barcode scanning, thermal receipt printing, and MIRA GST compliance for local shops, marts &amp; contractors.
+      </div>
+    </div>
+    <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-2 border-t border-hairline/60 flex-wrap">
+      <a href="/subscription?ref=infeed" class="source-action-btn" title="Explore hooks85 POS">
+        <span class="source-btn-text">Explore hooks85 &rarr;</span>
+      </a>
+      <span class="text-[11px] text-slate-400">hooks85 Business Network</span>
+    </div>
+  </article>
+{% endif %}

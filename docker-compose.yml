@@ -10,7 +10,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8300:8000"
     env_file:
       # `required: false` (Compose Spec, needs Docker Compose v2.24+) means
       # this won't hard-fail if you haven't run `cp .env.example .env` yet
@@ -20,14 +20,15 @@ services:
       # `cp .env.example .env` first and it'll work regardless of version.
       - path: .env
         required: false
-    # volumes:
-    #   Placeholder for when a real SQLite DB exists (see original roadmap:
-    #   "Configure a persistent volume mount (./data:/app/data) to
-    #   safeguard production SQLite database records"). Currently nothing
-    #   writes here -- data/mock_data.py's APPROVAL_LOG is in-memory and
-    #   resets on every container restart. Uncomment once main.py actually
-    #   opens a DB file at that path.
-    #   - ./data:/app/data
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    environment:
+      - KHULAASAA_DB_PATH=/app/data/khulaasaa.db
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-khulaasaa_bot}
+      - APP_URL=${APP_URL:-https://jump-wind-briefing-collapse.trycloudflare.com}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]

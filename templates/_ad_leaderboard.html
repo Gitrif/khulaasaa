@@ -1,5 +1,36 @@
-<div class="ad-leader">
-  <span class="ad-native-label">Sponsored</span>
-  <span class="ad-leader-text"><strong>BlueWave Air</strong> — Malé &rarr; Hanimaadhoo from Rf 890</span>
-  <span class="ad-dims">320&times;50 mobile / 728&times;90 desktop</span>
-</div>
+{% if active_ads and active_ads|length > 0 %}
+  {% set current_ad = active_ads[0] %}
+  <article class="story-card ad-card bg-white border border-hairline rounded-md p-3.5 sm:p-4 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+          Sponsored &bull; {{ current_ad.sponsor_name }}
+        </span>
+        <div class="font-sans text-xs sm:text-sm text-ink leading-snug truncate">
+          {{ current_ad.text_html | safe }}
+        </div>
+      </div>
+      <a href="{{ current_ad.link_url or '/subscription' }}" class="source-action-btn shrink-0" title="Learn more about {{ current_ad.sponsor_name }}">
+        <span class="source-btn-text">Learn More &rarr;</span>
+      </a>
+    </div>
+  </article>
+{% else %}
+  <article class="story-card ad-card bg-white border border-hairline rounded-md p-3.5 sm:p-4 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+          Sponsored &bull; hooks85 POS
+        </span>
+        <div class="font-sans text-xs sm:text-sm text-ink leading-snug truncate">
+          <strong>hooks85 POS &amp; Business ERP</strong> &mdash; Modern Point of Sale, MIRA-compliant GST invoicing &amp; tender management.
+        </div>
+      </div>
+      <a href="/subscription?ref=leaderboard" class="source-action-btn shrink-0" title="Explore hooks85 POS">
+        <span class="source-btn-text">Explore hooks85 &rarr;</span>
+      </a>
+    </div>
+  </article>
+{% endif %}

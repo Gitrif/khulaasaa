@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Provider Sources &amp; Logos — Editor Console{% endblock %}
+{% block body_class %}bg-ink text-paper{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline-dark px-4 pt-6 pb-4 sticky top-0 bg-ink z-10">
+  <div class="flex items-center justify-between">
+    <h1 class="font-serif-display text-xl font-semibold">Provider Sources &amp; Logos</h1>
+    <span class="text-sm text-slate">{{ editor }}</span>
+  </div>
+  <p class="text-xs text-slate mt-1">Review provider coverage, verify logos, and upload replacement icons for newsrooms</p>
+</header>
+
+<nav class="flex border-b border-hairline-dark px-4 bg-ink overflow-x-auto whitespace-nowrap">
+  <a href="/admin" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Story Moderation
+  </a>
+  <a href="/admin/ads" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Ad Manager
+  </a>
+  <a href="/admin/sources" class="py-3 px-4 text-sm font-medium border-b-2 border-lagoon text-lagoon">
+    Provider Sources &amp; Logos
+  </a>
+  <a href="/admin/obituaries" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Obituaries / Janaza
+  </a>
+</nav>
+
+{% if message %}
+<div class="mx-4 mt-4 p-3 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm rounded">
+  {{ message }}
+</div>
+{% endif %}
+
+<main class="max-w-5xl mx-auto px-4 py-6 space-y-6 pb-28">
+
+  <!-- Overview Stats -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="bg-ink-soft border border-hairline-dark p-3 rounded">
+      <span class="text-xs text-slate block mb-1">Total Sources</span>
+      <span class="text-2xl font-bold font-mono">{{ sources|length }}</span>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 rounded">
+      <span class="text-xs text-slate block mb-1">Active Logos</span>
+      <span class="text-2xl font-bold font-mono text-emerald-400">{{ active_count }}</span>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 rounded">
+      <span class="text-xs text-slate block mb-1">Missing Logos</span>
+      <span class="text-2xl font-bold font-mono {% if missing_count > 0 %}text-amber-400{% else %}text-slate{% endif %}">{{ missing_count }}</span>
+    </div>
+  </div>
+
+  <!-- Provider List -->
+  <div class="bg-ink-soft border border-hairline-dark rounded p-4">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate">Active Newsrooms &amp; Outlets ({{ sources|length }})</h2>
+      <span class="text-xs text-slate">Logos display at 18&times;18px on web and feed cards</span>
+    </div>
+
+    <div class="divide-y divide-hairline-dark">
+      {% for s in sources %}
+      <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Logo Preview & Details -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded border border-hairline-dark bg-paper/5 flex items-center justify-center p-1 flex-shrink-0">
+            {% if s.has_logo %}
+            <img src="{{ s.logo }}" alt="{{ s.name }}" class="w-7 h-7 object-contain" onerror="this.style.display='none'">
+            {% else %}
+            <span class="text-base font-bold text-slate">{{ s.initial }}</span>
+            {% endif %}
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-medium text-paper text-sm">{{ s.name }}</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase tracking-wider {% if s.kind == 'official' %}bg-gold/15 text-gold border border-gold/30{% elif s.kind == 'wire' %}bg-lagoon/15 text-lagoon border border-lagoon/30{% else %}bg-paper/10 text-slate border border-hairline-dark{% endif %}">
+                {{ s.kind }}
+              </span>
+              {% if s.has_logo %}
+              <span class="text-[10px] font-medium text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                Logo Active
+              </span>
+              {% else %}
+              <span class="text-[10px] font-medium text-amber-400 bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                Logo Missing
+              </span>
+              {% endif %}
+            </div>
+            <div class="text-xs text-slate mt-0.5 flex items-center gap-2">
+              <code>{{ s.id }}</code>
+              <span>&middot;</span>
+              <a href="https://{{ s.domain }}" target="_blank" rel="noopener noreferrer" class="hover:text-paper hover:underline">
+                {{ s.domain }} &nearr;
+              </a>
+              <span>&middot;</span>
+              <span class="text-[11px] text-slate/80">{{ s.logo }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <form action="/admin/sources/{{ s.id }}/upload-logo" method="post" enctype="multipart/form-data" class="flex items-center gap-1.5">
+            <input type="file" name="logo_file" accept=".png,.svg,.jpg,.jpeg,.webp,.ico" required
+                   class="text-xs text-slate file:mr-2 file:py-1 file:px-2 file:rounded file:border file:border-hairline-dark file:text-xs file:font-medium file:bg-ink file:text-paper hover:file:bg-paper/10 cursor-pointer">
+            <button type="submit" class="bg-paper/10 hover:bg-paper/20 text-paper text-xs font-medium px-2.5 py-1.5 rounded border border-hairline-dark transition whitespace-nowrap">
+              Upload
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Add New Source Section -->
+  <div class="bg-ink-soft border border-hairline-dark rounded p-4">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate mb-2">Register New Provider Source</h2>
+    <p class="text-xs text-slate mb-4">Add a new newsroom or primary source with automatic logo provisioning.</p>
+
+    <form action="/admin/sources/create" method="post" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <div>
+        <label class="block text-xs text-slate mb-1">Source ID / Slug (e.g. vnews)</label>
+        <input type="text" name="source_id" required placeholder="vnews" class="w-full bg-ink border border-hairline-dark px-3 py-2 rounded text-paper text-xs">
+      </div>
+      <div>
+        <label class="block text-xs text-slate mb-1">Display Name (e.g. VNews Online)</label>
+        <input type="text" name="name" required placeholder="VNews Online" class="w-full bg-ink border border-hairline-dark px-3 py-2 rounded text-paper text-xs">
+      </div>
+      <div>
+        <label class="block text-xs text-slate mb-1">Domain (e.g. vnews.mv)</label>
+        <input type="text" name="domain" required placeholder="vnews.mv" class="w-full bg-ink border border-hairline-dark px-3 py-2 rounded text-paper text-xs">
+      </div>
+      <div>
+        <label class="block text-xs text-slate mb-1">Kind</label>
+        <select name="kind" class="w-full bg-ink border border-hairline-dark px-3 py-2 rounded text-paper text-xs">
+          <option value="press">Press (Independent Newsroom)</option>
+          <option value="official">Official (Government / State)</option>
+          <option value="wire">Wire (Real-time Alert Channel)</option>
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-xs text-slate mb-1">Logo File (PNG, SVG, or WEBP)</label>
+        <input type="file" name="logo_file" accept=".png,.svg,.jpg,.jpeg,.webp,.ico" class="text-xs text-slate file:mr-2 file:py-1 file:px-2 file:rounded file:border file:border-hairline-dark file:text-xs file:font-medium file:bg-ink file:text-paper hover:file:bg-paper/10 cursor-pointer">
+      </div>
+      <div class="sm:col-span-2 pt-2">
+        <button type="submit" class="bg-lagoon hover:bg-lagoon/90 text-ink font-semibold text-xs py-2.5 px-4 rounded transition">
+          Add Provider Source &rarr;
+        </button>
+      </div>
+    </form>
+  </div>
+
+</main>
+
+<nav class="fixed bottom-0 inset-x-0 bg-ink-soft border-t border-hairline-dark px-4 py-3 flex items-center justify-between">
+  <span class="text-xs text-slate">Khulaasaa News &amp; Procurement Aggregator &bull; Provider Management</span>
+  <a href="/" class="text-xs text-lagoon hover:underline">View live feed &rarr;</a>
+</nav>
+{% endblock %}

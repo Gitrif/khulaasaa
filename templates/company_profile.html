@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}Corporate Company Profile Builder | Khulaasaa Bids{% endblock %}
+
+{% block content %}
+<div class="bg-paper-soft min-h-screen py-6 print:py-0 print:bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+
+    <!-- Top Action Bar (Hidden on Print) -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6 print:hidden">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">Bids &amp; Tenders Suite</span>
+          <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-xs font-bold">Corporate Edition</span>
+        </div>
+        <h1 class="text-2xl font-serif-display font-bold text-ink mt-1">Company Profile Builder</h1>
+        <p class="text-xs text-slate mt-0.5">
+          Generate an executive, tender-ready Maldivian corporate profile for government gazette bids, vendor registries, and corporate proposals.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="loadSampleCompanyProfile()" class="px-3 py-2 bg-white border border-hairline rounded hover:bg-cream text-xs font-semibold text-slate transition flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4 text-lagoon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          Load Mai &amp; Emi Sample
+        </button>
+
+        <button type="button" onclick="saveCompanyProfileToServer()" class="px-3 py-2 bg-paper hover:bg-cream border border-hairline rounded text-xs font-semibold text-ink transition flex items-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4 text-lagoon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+          Save Profile
+        </button>
+
+        <button type="button" id="btnDownloadProfileTop" onclick="downloadCompanyProfilePdf()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Direct download to multi-page A4 PDF without system headers">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>Download A4 PDF</span>
+        </button>
+
+        <button type="button" onclick="printCompanyProfile()" class="px-3.5 py-2 bg-ink hover:bg-ink-soft text-white font-semibold text-xs rounded transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Print clean without browser headers/footers">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span>Print Clean</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Workspace Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 print:block">
+
+      <!-- LEFT: Editor Controls (Hidden on Print) -->
+      <div class="lg:col-span-5 space-y-4 print:hidden">
+
+        <!-- Accordion 1: Corporate Registration & Info -->
+        <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-hairline bg-paper-soft/40 flex items-center justify-between">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              1. Corporate Identity &amp; Registration
+            </h2>
+            <a href="/subscription?plan=tender_erp&ref=profile_builder" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold flex items-center gap-1">
+              <span>hooks85 ERP Sync</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+          </div>
+          <div class="p-4 space-y-3.5 text-xs">
+
+            <!-- Entity Type Toggle: Maldivian MED vs International -->
+            <div>
+              <label class="block font-semibold text-slate mb-1.5">Business Registration Jurisdiction</label>
+              <div class="grid grid-cols-2 gap-2 bg-paper-soft p-1 rounded-md border border-hairline">
+                <button type="button" id="btnEntityMaldives" onclick="setEntityType('maldivian')" class="py-1.5 px-3 rounded text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-800 shadow-xs border border-emerald-300">
+                  <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  <span>Maldivian Company (MED)</span>
+                </button>
+                <button type="button" id="btnEntityIntl" onclick="setEntityType('international')" class="py-1.5 px-3 rounded text-xs font-semibold text-slate transition flex items-center justify-center gap-1.5 hover:text-ink">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>International / Foreign Bidder</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate mb-1">Registered Company Name</label>
+              <input type="text" id="cpName" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-medium" placeholder="e.g. Mai &amp; Emi Investments Pvt Ltd">
+            </div>
+
+            <!-- MALDIVIAN FIELDS -->
+            <div id="sectionMaldivesFields" class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="font-semibold text-slate">MED Reg. No.</label>
+                    <a href="https://business.egov.mv" target="_blank" rel="noopener noreferrer" class="text-[10px] text-lagoon hover:underline font-mono">Verify MED &rarr;</a>
+                  </div>
+                  <input type="text" id="cpRegNo" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-mono" placeholder="e.g. C04812021">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Registration Date</label>
+                  <input type="text" id="cpRegDate" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="e.g. 19th April 2021">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate mb-1">MIRA TIN Number</label>
+                  <input type="text" id="cpTin" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-mono" placeholder="e.g. 1130267">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Year of Profile</label>
+                  <input type="text" id="cpYear" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="e.g. 2026">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate mb-1">Registered Address (Maldives)</label>
+                <input type="text" id="cpAddress" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="e.g. G. Sinamale 1 1202, Buruzu Magu, Male' 20112, Maldives">
+              </div>
+            </div>
+
+            <!-- INTERNATIONAL / OVERSEAS CONTRACTOR FIELDS (MANUAL ENTRY) -->
+            <div id="sectionIntlFields" class="space-y-3" style="display: none;">
+              <div class="p-3 bg-amber-50/70 border border-amber-200 rounded text-amber-900 text-[11px] leading-normal">
+                <strong>International Bidder Advisory:</strong> Under Maldivian public procurement regulations (National Tender Board &amp; Finance Ministry), international companies bidding without a local MED entity must provide home country registration, foreign tax ID, and local Maldivian agent / JV details.
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Country of Incorporation</label>
+                  <input type="text" id="cpCountry" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-medium" placeholder="e.g. Singapore, UAE, Sri Lanka, India">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Foreign Reg. Number</label>
+                  <input type="text" id="cpForeignReg" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-mono" placeholder="e.g. UEN 201912345Z">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Home Country Tax / VAT ID</label>
+                  <input type="text" id="cpForeignTax" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded font-mono" placeholder="e.g. SG-TAX-987654">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-1">Year of Profile</label>
+                  <input type="text" id="cpYearIntl" oninput="syncYearIntl(this.value)" class="w-full px-3 py-2 border border-hairline rounded" placeholder="e.g. 2026">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate mb-1">Overseas Head Office Address</label>
+                <input type="text" id="cpAddressIntl" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="e.g. 10 Marina Boulevard, #39-01 Marina Bay Financial Centre, Singapore 018983">
+              </div>
+
+              <!-- Maldivian Local Agent / JV Partner -->
+              <div class="p-3 bg-paper-soft border border-hairline rounded space-y-2">
+                <span class="font-bold text-ink block text-[11px] uppercase tracking-wider text-slate">Local Maldivian Representative / JV Partner</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] text-slate mb-0.5">Local Agent / Partner Name</label>
+                    <input type="text" id="cpLocalAgentName" oninput="renderProfilePreview()" class="w-full px-2.5 py-1.5 border border-hairline rounded bg-white" placeholder="e.g. ABC Logistics Maldives Pvt Ltd">
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate mb-0.5">Local Agent MED Reg No.</label>
+                    <input type="text" id="cpLocalAgentReg" oninput="renderProfilePreview()" class="w-full px-2.5 py-1.5 border border-hairline rounded bg-white font-mono" placeholder="e.g. C-1234/2020">
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] text-slate mb-0.5">Local Agent Phone (+960)</label>
+                    <input type="text" id="cpLocalAgentPhone" oninput="renderProfilePreview()" class="w-full px-2.5 py-1.5 border border-hairline rounded bg-white" placeholder="+960 777 1234">
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate mb-0.5">Local Agent Email</label>
+                    <input type="text" id="cpLocalAgentEmail" oninput="renderProfilePreview()" class="w-full px-2.5 py-1.5 border border-hairline rounded bg-white" placeholder="maldives@agent.mv">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block font-semibold text-slate mb-1">Phone</label>
+                <input type="text" id="cpPhone" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="+960 778 1557">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate mb-1">Corporate Email</label>
+                <input type="text" id="cpEmail" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="info@company.mv">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate mb-1">Website</label>
+                <input type="text" id="cpWebsite" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="www.company.mv">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate mb-1">Company Summary / Tagline</label>
+              <textarea id="cpTagline" rows="2" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="We are an established contractor/supplier specializing in engineering, civil works, procurement, and logistics..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 2: Vision, Mission & Philosophy -->
+        <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-hairline bg-paper-soft/40 flex items-center justify-between">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              2. Mission, Philosophy &amp; Leadership
+            </h2>
+          </div>
+          <div class="p-4 space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate mb-1">Our Philosophy &amp; Vision</label>
+              <textarea id="cpPhilosophy" rows="2" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="At MAI &amp; EMI INVESTMENTS we are passionate in seeing the industry prosper..."></textarea>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate mb-1">Our Mission</label>
+              <textarea id="cpMission" rows="2" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="We bring global and local value to our industry partners so we all succeed together."></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate mb-1">Managing Director Name</label>
+                <input type="text" id="cpMdName" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="Mohamed Ashraf">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate mb-1">MD Designation</label>
+                <input type="text" id="cpMdTitle" oninput="renderProfilePreview()" class="w-full px-3 py-2 border border-hairline rounded" placeholder="Managing Director">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate mb-1">MD Statement / Foreword</label>
+              <textarea id="cpMdMsg" rows="3" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="The world is constantly evolving; we live in an increasingly competitive, complex and fast reality..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion 3: Directors & Key Shareholders -->
+        <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-hairline bg-paper-soft/40 flex items-center justify-between">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              3. Directors &amp; Shareholders
+            </h2>
+            <button type="button" onclick="addDirectorField()" class="text-xs text-lagoon hover:underline font-semibold cursor-pointer">
+              + Add Director
+            </button>
+          </div>
+          <div id="directorsContainer" class="p-4 space-y-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Accordion 4: Core Business Lines -->
+        <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-hairline bg-paper-soft/40 flex items-center justify-between">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              4. Core Business &amp; Capabilities
+            </h2>
+            <button type="button" onclick="addCoreBusinessField()" class="text-xs text-lagoon hover:underline font-semibold cursor-pointer">
+              + Add Service
+            </button>
+          </div>
+          <div id="coreBusinessContainer" class="p-4 space-y-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Accordion 5: Corporate Values & Major Clients -->
+        <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+          <div class="p-4 border-b border-hairline bg-paper-soft/40 flex items-center justify-between">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              5. Corporate Values &amp; Major Clients
+            </h2>
+          </div>
+          <div class="p-4 space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate mb-1">Corporate Values (Comma separated)</label>
+              <textarea id="cpValues" rows="2" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="Ambition, Creative energy, Transparency, Pride, Ethics"></textarea>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate mb-1">Major Clients &amp; References (Comma separated)</label>
+              <textarea id="cpClients" rows="2" oninput="renderProfilePreview()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="Soneva, JOALI Maldives, Cora Cora Maldives, Alila Kothaifaru, Park Hyatt Maldives Hadahaa"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Multi-Page Live Corporate Preview -->
+      <div class="lg:col-span-7">
+        <div class="sticky top-6">
+          <div class="flex items-center justify-between mb-2 print:hidden text-xs text-slate">
+            <span class="font-semibold">Interactive Tender Document Preview (A4 Multi-Page)</span>
+            <div class="flex items-center gap-2">
+              <button id="btnDownloadProfileRight" onclick="downloadCompanyProfilePdf()" class="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1" title="Direct download to multi-page A4 PDF without system headers">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                <span>Download PDF</span>
+              </button>
+              <span class="text-slate-300">|</span>
+              <button onclick="printCompanyProfile()" class="text-ink font-semibold hover:underline cursor-pointer" title="Print preview">
+                Print Preview
+              </button>
+            </div>
+          </div>
+
+          <!-- The Live Printable Document -->
+          <div id="corporatePaper" class="space-y-6 print:space-y-0 text-slate-800 bg-transparent font-sans">
+            <!-- Dynamic A4 Pages will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Client PDF Engine & Clean Print Stylesheet -->
+<script src="/static/js/html2pdf.bundle.min.js"></script>
+<style>
+@page {
+  size: A4 portrait;
+  margin: 0; /* Critical: Tells browsers NOT to print default system headers (URL, title) and footers (date, page numbers) */
+}
+
+@media print {
+  *, *:before, *:after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    width: 210mm !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .site-nav, header, nav, footer, button, .print\:hidden, .border-b, .lg\:col-span-5 {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  #corporatePaper, #corporatePaper * {
+    visibility: visible;
+  }
+
+  #corporatePaper {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .page-sheet {
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-after: page;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 20mm 18mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+}
+.page-sheet {
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5E7EB;
+  min-height: 840px;
+  position: relative;
+}
+</style>
+
+<script src="/static/js/company_profile_form.js"></script>
+<script src="/static/js/company_profile_preview.js"></script>
+<script>
+  // Initialize from server state on DOM load
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if profile and profile.profile_data %}
+      try {
+        companyState = {{ profile.profile_data | tojson }};
+      } catch(e) {
+        console.error('Error loading server profile', e);
+      }
+    {% endif %}
+    populateFormFromState();
+    renderProfilePreview();
+  });
+</script>
+{% endblock %}

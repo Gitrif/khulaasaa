@@ -1,0 +1,103 @@
+{# Reusable Story Card Component (Card acts as button, Top-Right Actions, Direct Source Logos) #}
+<article class="story-card"
+         itemprop="itemListElement"
+         itemscope
+         itemtype="https://schema.org/NewsArticle"
+         data-search="{{ evt.search_blob }}"
+         data-outlets="{{ evt.source_objs|length }}"
+         data-timestamp="{{ evt.timestamp or '' }}"
+         data-is-breaking="{{ '1' if evt.section == 'breaking' else '0' }}"
+         style="border-left-color:{{ evt.accent }};"
+         onclick="window.location.href='/story/{{ evt.id }}'">
+  
+  <!-- Card Top: Category Badge + Relative Time on Left, Round Action Buttons on Top Right -->
+  <div class="card-top">
+    <div class="card-top-left">
+      {% if evt.tag_objs and evt.tag_objs|length > 0 %}
+        {% set primary_tag = evt.tag_objs[0] %}
+        <a href="/?tag={{ primary_tag.id }}" class="card-eyebrow" onclick="event.stopPropagation()" style="color:{{ primary_tag.color }}; border-color:{{ primary_tag.color }}44;" title="See all in {{ primary_tag.label }}">{{ primary_tag.label }}</a>
+      {% elif evt.topic_obj %}
+        <a href="/?topic={{ evt.topic_obj.id }}" class="card-eyebrow" onclick="event.stopPropagation()" style="color:{{ evt.topic_obj.color }}; border-color:{{ evt.topic_obj.color }}44;" title="See all in {{ evt.topic_obj.label }}">{{ evt.topic_obj.label }}</a>
+      {% endif %}
+      <span class="card-time">{{ evt.time_ago or evt.published_raw }}</span>
+    </div>
+
+    <!-- Top-Right Round Action Icons: Share & Alert -->
+    <div class="card-top-actions" onclick="event.stopPropagation()">
+      <button type="button" class="card-top-icon-btn"
+              data-headline="{{ evt.headline }}"
+              data-url="{{ evt.url or ('/story/' ~ evt.id) }}"
+              onclick="shareStory(event, this.getAttribute('data-headline'), this.getAttribute('data-url'))"
+              title="Share story"
+              aria-label="Share story">
+        <svg class="w-3.5 h-3.5 text-slate hover:text-ink transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+        </svg>
+      </button>
+      <button type="button" class="follow-icon-btn" onclick="toggleFollow(event, this)" title="Follow story alerts" aria-label="Follow story alerts">
+        <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 text-slate hover:text-lagoon transition" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <h3 class="card-headline {{ 'font-thaana text-right' if evt.is_dhivehi }}" {{ 'dir="rtl"' if evt.is_dhivehi }} itemprop="headline">
+    {{ evt.headline }}
+    {% if evt.is_latin_transliterated %}
+      <span class="inline-flex items-center text-[10px] uppercase font-sans font-medium px-1.5 py-0.5 rounded bg-lagoon/10 text-lagoon ml-1 align-middle" title="Transliterated from Latin Dhivehi to Thaana">ތާނަ ލިޔުން</span>
+    {% endif %}
+  </h3>
+
+  {% if evt.summary %}
+  <div class="card-detail {{ 'font-thaana text-right' if evt.is_dhivehi }}" {{ 'dir="rtl"' if evt.is_dhivehi }} itemprop="description">
+    <p class="text-xs text-slate leading-relaxed mb-2">{{ evt.summary }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Bottom Line: Direct Source Logo Icons & Optional Compare -->
+  <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-1.5 border-t border-hairline/60 flex-wrap">
+    <!-- Clickable Source Outlets with their Logos (Standardized Source Action Button) -->
+    <div class="card-sources flex items-center gap-2 flex-wrap">
+      {% for s in evt.source_objs %}
+        {% set s_link = evt.source_links.get(s.id, evt.url) if evt.source_links else evt.url %}
+        <a href="{{ s_link or '#' }}" target="_blank" rel="noopener noreferrer"
+           class="source-action-btn" onclick="event.stopPropagation()" title="Open article directly on {{ s.name }}">
+          {% if s.logo %}
+            <img src="{{ s.logo }}" alt="{{ s.name }}" class="source-btn-icon" onerror="this.style.display='none'">
+          {% else %}
+            <span class="source-pill-dot"></span>
+          {% endif %}
+          <span class="source-btn-text">{{ s.name }} &rarr;</span>
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- Comparison details trigger for multi-source stories -->
+    {% if evt.source_objs|length > 1 %}
+    <button type="button"
+            class="sources-modal-trigger text-[11px] text-slate hover:text-ink font-semibold flex items-center gap-1"
+            onclick="openSourcesModal(event, '{{ evt.id }}', '{{ evt.headline|replace('\'', '\\\'') }}')"
+            title="Compare all {{ evt.source_objs|length }} reporting sources">
+      <svg class="w-3 h-3 text-slate-500 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+      <span>Compare ({{ evt.source_objs|length }})</span>
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Hidden Sources Data container used by the Sources Modal -->
+  <div id="sources-data-{{ evt.id }}" style="display:none;" aria-hidden="true">
+    {% for s in evt.source_objs %}
+      {% set s_link = evt.source_links.get(s.id, evt.url) if evt.source_links else evt.url %}
+      <a href="{{ s_link }}" target="_blank" rel="noopener noreferrer" class="sources-modal-row" onclick="event.stopPropagation()">
+        <div class="sources-modal-logo-wrap">
+          {% if s.logo %}
+            <img src="{{ s.logo }}" alt="{{ s.name }}" class="source-pill-logo" onerror="this.style.display='none'">
+          {% else %}
+            <span class="source-pill-dot"></span>
+          {% endif %}
+        </div>
+        <span class="sources-modal-name">{{ s.name }}</span>
+        <span class="sources-modal-link-label">Open Article &rarr;</span>
+      </a>
+    {% endfor %}
+  </div>
+</article>

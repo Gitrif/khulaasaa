@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="ncsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#ncsGrad)"/>
+  <rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.3"/>
+  <text x="16" y="17" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="7.5" fill="#ffffff" letter-spacing="0.5">MY</text>
+  <text x="16" y="24" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="6" fill="#ffffff" letter-spacing="0.5">CAREER</text>
+</svg>

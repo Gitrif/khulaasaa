@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ story.headline }} — Story Coverage Comparison{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline bg-paper">
+  <div class="max-w-4xl mx-auto px-5 pt-6 pb-6">
+    <!-- Contextual Navigation Toolbar: Single Line (Image 2 Fix) -->
+    <div class="flex items-center gap-2 mb-4 text-xs overflow-x-auto no-scrollbar whitespace-nowrap">
+      <a href="/" class="px-3 py-1.5 rounded border border-hairline bg-white hover:bg-cream text-ink font-semibold inline-flex items-center gap-1.5 shadow-xs transition shrink-0" title="Return to news feed">
+        &larr; <span>Back to Feed</span>
+      </a>
+      {% for t in story.tag_objs %}
+      <a href="/?tag={{ t.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0" style="border-color: {{ t.color }}; color: {{ t.color }};">
+        {{ t.label }}
+      </a>
+      {% endfor %}
+      {% if story.topic_obj %}
+      <a href="/?topic={{ story.topic_obj.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0" style="border-color: {{ story.topic_obj.color }}; color: {{ story.topic_obj.color }};">
+        {{ story.topic_obj.label }}
+      </a>
+      {% endif %}
+      <span class="ml-auto text-xs text-slate font-medium shrink-0">Updated {{ story.time_ago or story.published_raw }}</span>
+    </div>
+
+    <!-- Cluster Overview Box -->
+    <div class="bg-white rounded-lg border border-hairline p-5 shadow-xs">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide uppercase bg-flag/10 text-flag">
+          Multi-Outlet Coverage &middot; {{ articles|length }} Sources
+        </span>
+        {% if story.story_id %}
+        <a href="/timeline/{{ story.story_id }}" class="text-xs font-semibold text-lagoon hover:underline ml-auto inline-flex items-center gap-1">
+          View Narrative Timeline &rarr;
+        </a>
+        {% endif %}
+      </div>
+
+      <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight leading-snug {{ 'font-thaana text-right' if story.is_dhivehi }}" {{ 'dir="rtl"' if story.is_dhivehi }}>
+        {{ story.headline }}
+      </h1>
+
+      {% if story.summary %}
+      <p class="text-sm text-slate mt-3 leading-relaxed {{ 'font-thaana text-right' if story.is_dhivehi }}" {{ 'dir="rtl"' if story.is_dhivehi }}>
+        {{ story.summary }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-5 py-8">
+  <div class="mb-5">
+    {% include "_ad_leaderboard.html" %}
+  </div>
+  <span class="sr-only" style="display:none;" aria-hidden="true">Coverage Across Outlets</span>
+  <div class="space-y-4">
+    {% for art in articles %}
+    <article class="bg-white rounded-lg border border-hairline p-5 shadow-xs hover:border-slate/40 transition" style="overflow:hidden;word-break:break-word;max-width:100%;">
+      <div class="flex items-center justify-between gap-3 mb-2.5">
+        <div class="flex items-center gap-2">
+          {% if art.source_obj.logo %}
+          <img src="{{ art.source_obj.logo }}" alt="{{ art.source_obj.name }}" class="w-6 h-6 object-contain rounded flex-shrink-0" style="width:24px;height:24px;max-width:24px;max-height:24px;object-fit:contain;" onerror="this.style.display='none'">
+          {% endif %}
+          <span class="font-bold text-xs uppercase tracking-wide text-ink">{{ art.source_obj.name }}</span>
+        </div>
+        <span class="text-xs text-slate">{{ art.time_ago or art.published_raw }}</span>
+      </div>
+
+      <h3 class="font-serif-display text-lg font-semibold text-ink leading-snug mb-2 {{ 'font-thaana text-right' if art.is_dhivehi }}" {{ 'dir="rtl"' if art.is_dhivehi }} style="overflow-wrap:break-word;word-break:break-word;max-width:100%;">
+        {{ art.headline }}
+      </h3>
+
+      {% if art.summary %}
+      <p class="text-xs sm:text-sm text-slate leading-relaxed mb-4 {{ 'font-thaana text-right' if art.is_dhivehi }}" {{ 'dir="rtl"' if art.is_dhivehi }}>
+        {{ art.summary }}
+      </p>
+      {% endif %}
+
+      <div class="flex items-center justify-between pt-3 border-t border-hairline text-xs">
+        <span class="text-slate text-[11px]">Source: {{ art.source_obj.name }}</span>
+        {% if art.url %}
+        <a href="{{ art.url }}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded bg-flag text-white font-semibold hover:bg-flag/90 inline-flex items-center gap-1.5 transition shadow-xs" title="Read on {{ art.source_obj.name }}">
+          <span>Read on {{ art.source_obj.name }}</span>
+          <span class="text-xs">&rarr;</span>
+        </a>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <!-- In-content ad unit -->
+  <div class="my-8">
+    {% include "_ad_incontent.html" %}
+  </div>
+</main>
+
+<footer class="max-w-4xl mx-auto px-5 py-10 text-xs text-slate border-t border-hairline text-center">
+  Khulaasaa &mdash; Verified Multi-Outlet Media Aggregation &amp; Transparent Bias Tracking.
+</footer>
+{% endblock %}

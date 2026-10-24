@@ -1,0 +1,14 @@
+{# Reusable Stories Stream Component (used by both initial page load and partial fetch) #}
+<div id="stories-stream" class="card-stack">
+  {% for evt in events %}
+    {% include "components/story_card.html" %}
+    {% if loop.index % 5 == 0 %}
+      <div class="my-3">{% include "_ad_infeed.html" %}</div>
+    {% endif %}
+  {% else %}
+    <div class="p-12 text-center text-slate bg-white border border-hairline rounded">
+      <p class="text-sm">No stories found matching this filter.</p>
+      <a href="/" class="text-xs text-lagoon font-semibold hover:underline mt-2 inline-block">See All Stories</a>
+    </div>
+  {% endfor %}
+</div>

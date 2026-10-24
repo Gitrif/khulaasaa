@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% block title %}Free Construction &amp; Material Estimator — BOQ Calculator | Khulaasaa{% endblock %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- Breadcrumbs & Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-xs text-slate mb-2">
+      <a href="/bids" class="hover:text-lagoon">Tenders &amp; Bids</a>
+      <span>&rsaquo;</span>
+      <span class="text-ink font-semibold">Free Construction Material &amp; BOQ Estimator</span>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 mb-1 border border-emerald-200">
+          <span>100% Free Contractor Tool</span>
+        </div>
+        <h1 class="font-serif-display text-2xl sm:text-3xl font-bold text-ink">
+          Maldivian Construction &amp; BOQ Material Estimator
+        </h1>
+        <p class="text-xs sm:text-sm text-slate mt-1 max-w-2xl">
+          Quickly calculate cement bags, sand, aggregate, concrete blocks, and paint for island construction projects, site tenders, and home building across the Maldives.
+        </p>
+      </div>
+      
+      <!-- hooks85 ERP Upgrade Banner -->
+      <a href="/subscription?plan=tender_erp&ref=estimator" class="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs whitespace-nowrap inline-flex items-center gap-2 shrink-0">
+        <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Export to hooks85 Tender ERP &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  {% include "_ad_leaderboard.html" %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left 2 Cols: Calculators -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Calculator Navigation Tabs -->
+      <div class="flex items-center gap-2 border-b border-hairline overflow-x-auto text-xs font-semibold pb-px" role="tablist">
+        <button type="button" onclick="switchCalc('concrete')" id="tab-concrete" class="calc-tab-btn py-2.5 px-3.5 border-b-2 border-emerald-600 text-emerald-800 font-bold flex items-center gap-1.5 cursor-pointer">
+          <span>Concrete Mix (Slabs &amp; Columns)</span>
+        </button>
+        <button type="button" onclick="switchCalc('blocks')" id="tab-blocks" class="calc-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer">
+          <span>Masonry (Blocks &amp; Mortar)</span>
+        </button>
+        <button type="button" onclick="switchCalc('plaster')" id="tab-plaster" class="calc-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer">
+          <span>Plastering</span>
+        </button>
+        <button type="button" onclick="switchCalc('paint')" id="tab-paint" class="calc-tab-btn py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink flex items-center gap-1.5 cursor-pointer">
+          <span>Paint &amp; Primer</span>
+        </button>
+      </div>
+
+      <!-- PANE 1: CONCRETE -->
+      <div id="pane-concrete" class="calc-pane bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-ink flex items-center justify-between">
+          <span>Concrete Volume &amp; Mix Breakdown</span>
+          <span class="text-xs text-slate font-normal">Standard 50kg Bags</span>
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate mb-1">Length (Feet)</label>
+            <input type="number" id="concLength" value="20" min="1" step="0.5" oninput="calculateConcrete()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Width (Feet)</label>
+            <input type="number" id="concWidth" value="15" min="1" step="0.5" oninput="calculateConcrete()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Thickness (Inches)</label>
+            <input type="number" id="concThick" value="5" min="1" step="0.5" oninput="calculateConcrete()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate mb-1 text-xs">Structural Mix Ratio</label>
+          <select id="concMix" onchange="calculateConcrete()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 text-xs font-medium">
+            <option value="1:1.5:3" selected>1 : 1.5 : 3 (Grade 20 — Columns, Beams &amp; Suspended Slabs)</option>
+            <option value="1:2:4">1 : 2 : 4 (Grade 15 — Standard Foundations &amp; Ground Floors)</option>
+            <option value="1:3:6">1 : 3 : 6 (Grade 10 — Lean Concrete &amp; Under-bedding)</option>
+          </select>
+        </div>
+
+        <!-- Calculated Results Card -->
+        <div class="p-4 rounded-md bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+          <div class="flex items-center justify-between text-emerald-950 font-bold border-b border-emerald-200 pb-2">
+            <span>Estimated Wet Volume:</span>
+            <span class="font-mono text-sm" id="concVolume">125.00 cu ft (3.54 cu m)</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Cement Required:</span>
+              <span class="text-sm font-bold text-ink" id="concCement">28 Bags</span>
+              <span class="text-[10px] text-slate block">(50kg standard bags)</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">River Sand (Veli):</span>
+              <span class="text-sm font-bold text-ink" id="concSand">56 cu ft</span>
+              <span class="text-[10px] text-slate block">&approx; 2.6 tonnes</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100 col-span-2 sm:col-span-1">
+              <span class="text-slate block text-[11px]">Crushed Stone (Hila):</span>
+              <span class="text-sm font-bold text-ink" id="concAgg">112 cu ft</span>
+              <span class="text-[10px] text-slate block">3/4" aggregate (&approx; 4.8 t)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 2: BLOCKS & MASONRY -->
+      <div id="pane-blocks" class="calc-pane bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4" style="display:none;">
+        <h3 class="font-bold text-sm text-ink flex items-center justify-between">
+          <span>Masonry Walls &amp; Cement Blocks</span>
+          <span class="text-xs text-slate font-normal">Includes 5% Wastage</span>
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate mb-1">Wall Length (Feet)</label>
+            <input type="number" id="blockLength" value="30" min="1" step="0.5" oninput="calculateBlocks()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Wall Height (Feet)</label>
+            <input type="number" id="blockHeight" value="10" min="1" step="0.5" oninput="calculateBlocks()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Block Type</label>
+            <select id="blockSize" onchange="calculateBlocks()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-medium">
+              <option value="4" selected>4-inch Solid Block (Internal partition)</option>
+              <option value="6">6-inch Hollow Block (External walls)</option>
+              <option value="8">8-inch Heavy Duty Block</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-md bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+          <div class="flex items-center justify-between text-emerald-950 font-bold border-b border-emerald-200 pb-2">
+            <span>Wall Surface Area:</span>
+            <span class="font-mono text-sm" id="blockArea">300 sq ft</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Blocks Needed:</span>
+              <span class="text-sm font-bold text-ink" id="blockCount">330 Blocks</span>
+              <span class="text-[10px] text-slate block">(includes 5% breakage)</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Mortar Cement:</span>
+              <span class="text-sm font-bold text-ink" id="blockCement">4.5 Bags</span>
+              <span class="text-[10px] text-slate block">(1:4 mortar mix)</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Mortar Sand:</span>
+              <span class="text-sm font-bold text-ink" id="blockSand">18 cu ft</span>
+              <span class="text-[10px] text-slate block">Washed building sand</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 3: PLASTERING -->
+      <div id="pane-plaster" class="calc-pane bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4" style="display:none;">
+        <h3 class="font-bold text-sm text-ink flex items-center justify-between">
+          <span>Wall &amp; Ceiling Plastering</span>
+          <span class="text-xs text-slate font-normal">Internal &amp; External Rendering</span>
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate mb-1">Total Plaster Area (sq ft)</label>
+            <input type="number" id="plasterArea" value="500" min="10" step="10" oninput="calculatePlaster()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Plaster Thickness &amp; Location</label>
+            <select id="plasterThick" onchange="calculatePlaster()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-medium">
+              <option value="12" selected>12mm (1/2") Internal Smooth Plaster (1:4 Mix)</option>
+              <option value="18">18mm (3/4") External Weather Render (1:3 Mix)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-md bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Plaster Cement:</span>
+              <span class="text-sm font-bold text-ink" id="plasterCement">6 Bags</span>
+              <span class="text-[10px] text-slate block">50kg Portland cement</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Fine Sieved Sand:</span>
+              <span class="text-sm font-bold text-ink" id="plasterSand">24 cu ft</span>
+              <span class="text-[10px] text-slate block">Fine plastering sand</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 4: PAINT & PRIMER -->
+      <div id="pane-paint" class="calc-pane bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4" style="display:none;">
+        <h3 class="font-bold text-sm text-ink flex items-center justify-between">
+          <span>Paint, Primer &amp; Sealer Coverage</span>
+          <span class="text-xs text-slate font-normal">1 Primer + 2 Finish Coats</span>
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate mb-1">Surface Area (sq ft)</label>
+            <input type="number" id="paintArea" value="800" min="10" step="50" oninput="calculatePaint()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate mb-1">Application Type</label>
+            <select id="paintType" onchange="calculatePaint()" class="w-full px-3 py-2 border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 font-medium">
+              <option value="interior" selected>Interior Walls (Acrylic Emulsion)</option>
+              <option value="exterior">Exterior Marine Weather-Shield</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-md bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Primer / Sealer (1 Coat):</span>
+              <span class="text-sm font-bold text-ink" id="paintPrimer">8 Litres (&approx; 2 Gallons)</span>
+              <span class="text-[10px] text-slate block">Alkali-resistant wall sealer</span>
+            </div>
+            <div class="p-2.5 bg-white rounded border border-emerald-100">
+              <span class="text-slate block text-[11px]">Finish Topcoat (2 Coats):</span>
+              <span class="text-sm font-bold text-ink" id="paintTop">16 Litres (&approx; 4 Gallons)</span>
+              <span class="text-[10px] text-slate block">Matte or silk emulsion</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hardware Material Sourcing Partner Card (Sonee Hardware & STO) -->
+      <div class="p-5 rounded-lg bg-gradient-to-r from-ink via-slate-900 to-ink text-white border border-hairline shadow-sm space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gold text-ink">
+              Official Material Partners
+            </span>
+            <span class="text-xs text-paper-soft font-semibold">Sonee Hardware &amp; STO People's Choice</span>
+          </div>
+          <span class="text-[11px] text-slate-300">Daily Island Cargo Shipping</span>
+        </div>
+
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Need these materials delivered to Malé, Hulhumalé, or your home island? Sonee Hardware and STO supply certified BS-standard cement, deformed structural steel, aggregate, and power tools with direct boat loading at Malé North Harbor.
+        </p>
+
+        <div class="flex items-center gap-2 pt-1 flex-wrap">
+          <a href="https://sonee.com.mv" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded bg-lagoon hover:bg-emerald-600 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-2xs">
+            <span>Inquire Sonee Hardware Catalog &rarr;</span>
+          </a>
+          <a href="https://sto.mv" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition inline-flex items-center gap-1.5">
+            <span>STO Cement &amp; Steel &rarr;</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Col: Aggregated Bill of Materials (BOM) & hooks85 Export -->
+    <div class="space-y-6">
+
+      <!-- Aggregated BOQ Card -->
+      <div class="bg-white border border-hairline rounded-lg p-5 shadow-xs space-y-4">
+        <div class="border-b border-hairline pb-3">
+          <h2 class="font-bold text-sm text-ink flex items-center justify-between">
+            <span>Bill of Quantities (BOQ)</span>
+            <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold">Live Summary</span>
+          </h2>
+          <p class="text-[11px] text-slate mt-0.5">Aggregated materials for your calculated dimensions</p>
+        </div>
+
+        <div class="space-y-2.5 text-xs" id="boqSummaryList">
+          <div class="flex items-center justify-between py-1 border-b border-hairline/60">
+            <span class="text-slate">50kg Portland Cement:</span>
+            <span class="font-bold text-ink" id="sumCement">38.5 Bags</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-hairline/60">
+            <span class="text-slate">River Building Sand:</span>
+            <span class="font-bold text-ink" id="sumSand">98 cu ft</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-hairline/60">
+            <span class="text-slate">Crushed 3/4" Aggregate:</span>
+            <span class="font-bold text-ink" id="sumAgg">112 cu ft</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-hairline/60">
+            <span class="text-slate">Masonry Concrete Blocks:</span>
+            <span class="font-bold text-ink" id="sumBlocks">330 Blocks</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-hairline/60">
+            <span class="text-slate">Primer &amp; Finish Paint:</span>
+            <span class="font-bold text-ink" id="sumPaint">24 Litres</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-paper-soft rounded border border-hairline text-xs space-y-1">
+          <span class="text-slate block text-[11px] font-semibold">Estimated Materials Market Value:</span>
+          <div class="text-lg font-bold text-emerald-800 font-mono" id="sumCost">MVR 14,250 &ndash; 18,500</div>
+          <span class="text-[10px] text-slate block">Based on prevailing Malé retail material prices</span>
+        </div>
+
+        <!-- Call to Action: Export to hooks85 -->
+        <div class="pt-2">
+          <a href="/subscription?plan=tender_erp&ref=boq_export" class="w-full py-2.5 px-4 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs text-center transition shadow-xs flex items-center justify-center gap-2">
+            <span>Export to hooks85 Tender ERP</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <p class="text-[10px] text-center text-slate mt-1.5 leading-normal">
+            Generate formal PDF tender submissions, contractor margin analyses &amp; MIRA GST progress claims with hooks85.
+          </p>
+        </div>
+      </div>
+
+      <!-- International Contractor & Business Registry Advisory -->
+      <div class="bg-paper border border-hairline rounded-lg p-4 text-xs space-y-2">
+        <div class="flex items-center gap-1.5 font-bold text-ink">
+          <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+          <span>Bidding on Maldives Government Tenders?</span>
+        </div>
+        <p class="text-slate leading-relaxed text-[11px]">
+          <strong>Local Companies:</strong> Must have active Ministry of Economic Development (MED) registration and MIRA TIN.<br>
+          <strong>International Bidders:</strong> Can manually register foreign incorporation details or local joint-venture partnerships in the hooks85 bidder suite.
+        </p>
+        <a href="/company-profile" class="text-xs text-lagoon hover:underline font-semibold block pt-1">
+          Create Tender Company Profile &rarr;
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+function switchCalc(tabKey) {
+  document.querySelectorAll('.calc-pane').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.calc-tab-btn').forEach(btn => {
+    btn.classList.remove('border-emerald-600', 'text-emerald-800', 'font-bold');
+    btn.classList.add('border-transparent', 'text-slate');
+  });
+
+  const pane = document.getElementById('pane-' + tabKey);
+  const tab = document.getElementById('tab-' + tabKey);
+  if (pane) pane.style.display = 'block';
+  if (tab) {
+    tab.classList.remove('border-transparent', 'text-slate');
+    tab.classList.add('border-emerald-600', 'text-emerald-800', 'font-bold');
+  }
+}
+
+function calculateConcrete() {
+  const l = parseFloat(document.getElementById('concLength').value) || 0;
+  const w = parseFloat(document.getElementById('concWidth').value) || 0;
+  const tIn = parseFloat(document.getElementById('concThick').value) || 0;
+  const mix = document.getElementById('concMix').value;
+
+  const wetVolCuFt = l * w * (tIn / 12);
+  const dryVolCuFt = wetVolCuFt * 1.54; // standard dry factor
+
+  let cRatio = 1, sRatio = 2, aRatio = 4;
+  if (mix === '1:1.5:3') { cRatio = 1; sRatio = 1.5; aRatio = 3; }
+  else if (mix === '1:3:6') { cRatio = 1; sRatio = 3; aRatio = 6; }
+
+  const sumRatio = cRatio + sRatio + aRatio;
+  const cementCuFt = (cRatio / sumRatio) * dryVolCuFt;
+  const cementBags = Math.ceil(cementCuFt / 1.25); // 1 bag 50kg ~ 1.25 cu ft
+  const sandCuFt = Math.round((sRatio / sumRatio) * dryVolCuFt);
+  const aggCuFt = Math.round((aRatio / sumRatio) * dryVolCuFt);
+
+  document.getElementById('concVolume').innerText = `${wetVolCuFt.toFixed(1)} cu ft (${(wetVolCuFt * 0.0283168).toFixed(2)} cu m)`;
+  document.getElementById('concCement').innerText = `${cementBags} Bags`;
+  document.getElementById('concSand').innerText = `${sandCuFt} cu ft`;
+  document.getElementById('concAgg').innerText = `${aggCuFt} cu ft`;
+
+  updateOverallBOQ();
+}
+
+function calculateBlocks() {
+  const l = parseFloat(document.getElementById('blockLength').value) || 0;
+  const h = parseFloat(document.getElementById('blockHeight').value) || 0;
+  const size = document.getElementById('blockSize').value;
+
+  const areaSqFt = l * h;
+  // Standard block (16" x 8" nominal face area = 0.888 sq ft per block ~ 1.1 blocks per sq ft)
+  const baseBlocks = areaSqFt * 1.125;
+  const totalBlocks = Math.ceil(baseBlocks * 1.05); // 5% breakage
+  const mortarCement = (totalBlocks * 0.014).toFixed(1);
+  const mortarSand = Math.round(totalBlocks * 0.055);
+
+  document.getElementById('blockArea').innerText = `${areaSqFt} sq ft`;
+  document.getElementById('blockCount').innerText = `${totalBlocks} Blocks`;
+  document.getElementById('blockCement').innerText = `${mortarCement} Bags`;
+  document.getElementById('blockSand').innerText = `${mortarSand} cu ft`;
+
+  updateOverallBOQ();
+}
+
+function calculatePlaster() {
+  const area = parseFloat(document.getElementById('plasterArea').value) || 0;
+  const thickMm = parseFloat(document.getElementById('plasterThick').value) || 12;
+
+  // Approximate volume in cu ft
+  const thickFt = (thickMm / 25.4) / 12;
+  const volCuFt = area * thickFt * 1.3; // 30% wastage and voids
+  const cBags = Math.max(1, Math.ceil(volCuFt * 0.22));
+  const sCuFt = Math.round(volCuFt * 0.9);
+
+  document.getElementById('plasterCement').innerText = `${cBags} Bags`;
+  document.getElementById('plasterSand').innerText = `${sCuFt} cu ft`;
+
+  updateOverallBOQ();
+}
+
+function calculatePaint() {
+  const area = parseFloat(document.getElementById('paintArea').value) || 0;
+  // Coverage: ~100 sq ft per litre for primer, ~80 sq ft per litre for 2 coats finish
+  const primerLitres = Math.ceil(area / 100);
+  const topLitres = Math.ceil((area * 2) / 100);
+
+  document.getElementById('paintPrimer').innerText = `${primerLitres} Litres (≈ ${(primerLitres/4).toFixed(1)} Gallons)`;
+  document.getElementById('paintTop').innerText = `${topLitres} Litres (≈ ${(topLitres/4).toFixed(1)} Gallons)`;
+
+  updateOverallBOQ();
+}
+
+function updateOverallBOQ() {
+  const concCem = parseInt(document.getElementById('concCement').innerText) || 28;
+  const blockCem = parseFloat(document.getElementById('blockCement').innerText) || 4.5;
+  const plasterCem = parseInt(document.getElementById('plasterCement').innerText) || 6;
+  const totalCem = Math.ceil(concCem + blockCem + plasterCem);
+
+  const concSand = parseInt(document.getElementById('concSand').innerText) || 56;
+  const blockSand = parseInt(document.getElementById('blockSand').innerText) || 18;
+  const plasterSand = parseInt(document.getElementById('plasterSand').innerText) || 24;
+  const totalSand = concSand + blockSand + plasterSand;
+
+  const totalAgg = parseInt(document.getElementById('concAgg').innerText) || 112;
+  const totalBlocks = parseInt(document.getElementById('blockCount').innerText) || 330;
+  const totalPaint = 24;
+
+  const sumCemEl = document.getElementById('sumCement');
+  const sumSandEl = document.getElementById('sumSand');
+  const sumAggEl = document.getElementById('sumAgg');
+  const sumBlocksEl = document.getElementById('sumBlocks');
+
+  if (sumCemEl) sumCemEl.innerText = `${totalCem} Bags`;
+  if (sumSandEl) sumSandEl.innerText = `${totalSand} cu ft`;
+  if (sumAggEl) sumAggEl.innerText = `${totalAgg} cu ft`;
+  if (sumBlocksEl) sumBlocksEl.innerText = `${totalBlocks} Blocks`;
+
+  // Estimate total MVR: Cement ~120/bag, Sand ~30/cuft, Agg ~45/cuft, Blocks ~15/block
+  const estMin = Math.round(totalCem * 115 + totalSand * 28 + totalAgg * 42 + totalBlocks * 14);
+  const estMax = Math.round(totalCem * 135 + totalSand * 35 + totalAgg * 52 + totalBlocks * 17);
+  const sumCostEl = document.getElementById('sumCost');
+  if (sumCostEl) sumCostEl.innerText = `MVR ${estMin.toLocaleString()} – ${estMax.toLocaleString()}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  calculateConcrete();
+  calculateBlocks();
+  calculatePlaster();
+  calculatePaint();
+});
+</script>
+{% endblock %}

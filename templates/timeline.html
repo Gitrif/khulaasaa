@@ -3,15 +3,38 @@
 
 {% block content %}
 <header class="border-b border-hairline bg-paper">
-  <div class="max-w-2xl mx-auto px-5 pt-8 pb-5">
-    <a href="/" class="text-sm text-slate hover:text-ink">&larr; All stories</a>
-    <p class="text-sm uppercase tracking-wide mt-3" style="color: {{ tag.color }}">{{ tag.label }}</p>
+  <div class="max-w-3xl mx-auto px-5 pt-6 pb-5">
+    <!-- Contextual Filtered Sections Toolbar -->
+    <div class="flex flex-wrap items-center gap-1.5 mb-3 text-xs">
+      <a href="/" class="px-2.5 py-1 rounded border border-hairline bg-white hover:bg-cream text-ink font-semibold flex items-center gap-1 shadow-xs" title="Return to news feed">
+        &larr; See All News
+      </a>
+      {% if tag %}
+      <a href="/?tag={{ tag.id }}" class="px-2.5 py-1 rounded border font-semibold hover:bg-cream" style="border-color: {{ tag.color }}; color: {{ tag.color }};" title="See all stories in {{ tag.label }}">
+        All in {{ tag.label }}
+      </a>
+      {% endif %}
+      <a href="/obituaries" class="px-2.5 py-1 rounded border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-medium flex items-center gap-1">
+        <span>See Obituaries</span>
+        <span class="font-thaana text-[10px]" dir="rtl">(ކަށުނަމާދު)</span>
+      </a>
+      <a href="/bids" class="px-2.5 py-1 rounded border border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100 font-medium">
+        See All Bids
+      </a>
+      <a href="/jobs" class="px-2.5 py-1 rounded border border-purple-300 bg-purple-50 text-purple-800 hover:bg-purple-100 font-medium">
+        See All Jobs
+      </a>
+    </div>
+    <p class="text-sm uppercase tracking-wide mt-2" style="color: {{ tag.color }}">{{ tag.label }}</p>
     <h1 class="font-serif-display text-3xl font-semibold tracking-tight mt-1">{{ story.title }}</h1>
     <p class="text-sm text-slate mt-2">{{ milestones|length }} tracked milestones, newest first</p>
   </div>
 </header>
 
-<main class="max-w-2xl mx-auto px-5 py-8">
+<main class="max-w-3xl mx-auto px-5 py-8">
+  <div class="mb-6">
+    {% include "_ad_leaderboard.html" %}
+  </div>
   <ol class="timeline-rail space-y-8">
     {% for m in milestones %}
     <li class="timeline-node" x-data>
@@ -28,10 +51,20 @@
         </summary>
         <div class="mt-2 pl-0 border-l-2 border-hairline pl-3">
           <p class="text-sm text-ink/80 leading-relaxed mb-3">{{ m.detail }}</p>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             {% for s in m.source_objs %}
-            <span class="source-badge"><span class="dot"></span>{{ s.name }}</span>
+            <span class="source-badge">
+              {% if s.logo %}
+              <img src="{{ s.logo }}" alt="" class="w-3.5 h-3.5 object-contain rounded-xs flex-shrink-0" style="width:16px;height:16px;max-width:16px;max-height:16px;object-fit:contain;" onerror="this.style.display='none'">
+              {% else %}
+              <span class="dot"></span>
+              {% endif %}
+              {{ s.name }}
+            </span>
             {% endfor %}
+            {% if m.url %}
+            <a href="{{ m.url }}" target="_blank" rel="noopener noreferrer" class="text-xs font-medium text-flag hover:underline ml-auto" onclick="event.stopPropagation()">Read source article &rarr;</a>
+            {% endif %}
           </div>
         </div>
       </details>
@@ -41,6 +74,6 @@
 </main>
 
 <footer class="max-w-2xl mx-auto px-5 py-10 text-sm text-slate border-t border-hairline">
-  Mock UI — Phase 1. Milestone expand uses native &lt;details&gt;, no JS framework required.
+  Khulaasaa — Verified Chronological Narrative Intelligence. Milestone expand uses native &lt;details&gt;.
 </footer>
 {% endblock %}

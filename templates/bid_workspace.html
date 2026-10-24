@@ -1,0 +1,699 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | Khulaasaa Bids{% endblock %}
+
+{% block content %}
+<div class="bg-paper-soft min-h-screen py-6 print:py-0 print:bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+
+    <!-- Top Action Breadcrumb & Selected Bid Banner (Hidden on Print) -->
+    <div class="mb-6 print:hidden">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+        <a href="/bids" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate hover:text-lagoon transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span>&larr; Back to Bids &amp; Tenders Directory</span>
+        </a>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200 uppercase tracking-wider">
+            Bid Preparation Suite
+          </span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+            Selected Notice #{{ bid.notice_id or bid.id }}
+          </span>
+        </div>
+      </div>
+
+      <!-- hooks85 Tender ERP Top Banner -->
+      <div class="p-3.5 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between gap-3 flex-wrap shadow-2xs">
+        <div class="flex items-center gap-2.5">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">hooks85 Tender ERP</span>
+          <span class="text-ink font-medium">Draft letters are free. For automated BOQ margin analysis, MIRA progress invoices & full tender submission packs:</span>
+        </div>
+        <a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1 shadow-2xs">
+          <span>Subscribe to hooks85 &rarr;</span>
+        </a>
+      </div>
+
+      <!-- Selected Bid Overview Card -->
+      <div class="bg-white border border-hairline rounded-lg p-5 shadow-xs">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold uppercase {{ 'bg-emerald-100 text-emerald-800' if bid.procurement_nature == 'Supply' else ('bg-amber-100 text-amber-800' if bid.procurement_nature == 'Lease' else 'bg-purple-100 text-purple-800') }}">
+                {{ bid.procurement_nature or 'Supply' }}
+              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-100">
+                {{ bid.discipline or 'Other' }}
+              </span>
+              {% if bid.reference_number %}
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-100 text-slate-700">
+                Ref: {{ bid.reference_number }}
+              </span>
+              {% endif %}
+            </div>
+
+            <h1 class="text-xl sm:text-2xl font-serif-display font-bold text-ink leading-snug">
+              {{ bid.title_en or bid.title }}
+            </h1>
+            {% if bid.title_dv %}
+            <p class="font-thaana text-right text-sm text-slate mt-1" dir="rtl">
+              {{ bid.title_dv }}
+            </p>
+            {% endif %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 pt-3 border-t border-hairline/60 text-xs">
+              <div>
+                <span class="block text-slate font-medium">Publishing Agency:</span>
+                <span class="font-semibold text-ink">{{ bid.agency_name_en or bid.agency or 'Public Authority' }}</span>
+              </div>
+              <div>
+                <span class="block text-slate font-medium">Submission Deadline:</span>
+                <span class="font-semibold text-ink text-rose-700">{{ bid.submission_date or 'Refer to documents' }}</span>
+              </div>
+              <div>
+                <span class="block text-slate font-medium">Submission Venue:</span>
+                <span class="font-semibold text-ink">{{ bid.submission_location or 'Agency Secretariat' }}</span>
+              </div>
+              <div>
+                <span class="block text-slate font-medium">Inquiry / Info Session:</span>
+                <span class="font-semibold text-ink">{{ bid.info_date or 'Not announced' }}{% if bid.info_location %} @ {{ bid.info_location }}{% endif %}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex md:flex-col items-center gap-2 shrink-0">
+            <a href="{{ bid.source_url or '#' }}" target="_blank" rel="noopener noreferrer" class="source-action-btn">
+              <img src="/static/logos/gazette.svg" alt="Gazette" class="source-btn-icon" onerror="this.style.display='none'">
+              <span class="source-btn-text">Official Gazette Notice &rarr;</span>
+            </a>
+            <a href="/bids" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-hairline rounded text-xs font-semibold text-slate transition inline-flex items-center gap-1">
+              Switch Bid
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suite Tabs Navigation (Hidden on Print) -->
+    <div class="border-b border-hairline mb-6 print:hidden">
+      <nav class="flex items-center gap-2 overflow-x-auto pb-px text-xs font-semibold" aria-label="Bidder Suite Tabs">
+        <button type="button" onclick="switchSuiteTab('letters')" id="tabBtn-letters" class="suite-tab-btn active-tab flex items-center gap-1.5 py-3 px-4 border-b-2 border-lagoon text-lagoon transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>1. Letters &amp; Correspondence</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">Ready</span>
+        </button>
+
+        <button type="button" onclick="switchSuiteTab('profile')" id="tabBtn-profile" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <span>2. Company Profile</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">Ready</span>
+        </button>
+
+        <button type="button" onclick="switchSuiteTab('proposal')" id="tabBtn-proposal" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>3. Proposal &amp; Methodology</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">Coming Soon</span>
+        </button>
+
+        <button type="button" onclick="switchSuiteTab('quote')" id="tabBtn-quote" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>4. Quotation &amp; Pricing</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">Coming Soon</span>
+        </button>
+
+        <button type="button" onclick="switchSuiteTab('boq')" id="tabBtn-boq" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>5. BOQ Spreadsheet</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">Coming Soon</span>
+        </button>
+
+        <button type="button" onclick="switchSuiteTab('invoice')" id="tabBtn-invoice" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>6. Billing &amp; Invoices</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-100 text-amber-800 font-semibold">Coming Soon</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 1: FORMAL LETTERS & CORRESPONDENCE GENERATOR -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-letters" class="suite-content-pane">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 print:block">
+
+        <!-- Left Controls: Template selection & bidder inputs (Hidden on Print) -->
+        <div class="lg:col-span-5 space-y-4 print:hidden">
+
+          <!-- Card 1: Letter Type & Language -->
+          <div class="bg-white border border-hairline rounded-lg p-4 shadow-xs">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lagoon"></span>
+              Select Letter Purpose &amp; Language
+            </h2>
+
+            <div class="space-y-2 mb-3">
+              <label class="flex items-center gap-2.5 p-2.5 rounded border border-hairline hover:bg-slate-50 cursor-pointer transition">
+                <input type="radio" name="letterType" value="registration" checked onchange="updateLetterContent()" class="text-lagoon focus:ring-lagoon">
+                <div>
+                  <span class="block text-xs font-bold text-ink">Bidder Registration &amp; Document Request</span>
+                  <span class="block text-[11px] text-slate font-thaana" dir="rtl">ބީލަމުގައި ރަޖިސްޓްރީވުމަށް އެދޭ ސިޓީ</span>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2.5 p-2.5 rounded border border-hairline hover:bg-slate-50 cursor-pointer transition">
+                <input type="radio" name="letterType" value="inquiry" onchange="updateLetterContent()" class="text-lagoon focus:ring-lagoon">
+                <div>
+                  <span class="block text-xs font-bold text-ink">Pre-Bid Inquiry &amp; Clarification</span>
+                  <span class="block text-[11px] text-slate font-thaana" dir="rtl">މަޢުލޫމާތު ސާފުކުރުމަށް އެދޭ ސިޓީ</span>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2.5 p-2.5 rounded border border-hairline hover:bg-slate-50 cursor-pointer transition">
+                <input type="radio" name="letterType" value="submission" onchange="updateLetterContent()" class="text-lagoon focus:ring-lagoon">
+                <div>
+                  <span class="block text-xs font-bold text-ink">Bid Submission Cover Letter</span>
+                  <span class="block text-[11px] text-slate font-thaana" dir="rtl">ބީލަން ހުށަހަޅާ ސިޓީ</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Language Toggle -->
+            <div>
+              <label class="block text-[11px] font-semibold text-slate mb-1">Correspondence Language:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button type="button" id="btnLangEn" onclick="setLetterLanguage('en')" class="py-1.5 px-3 rounded font-semibold border border-hairline bg-slate-200 text-ink transition">
+                  English
+                </button>
+                <button type="button" id="btnLangDv" onclick="setLetterLanguage('dv')" class="py-1.5 px-3 rounded font-semibold font-thaana border border-hairline text-slate hover:bg-slate-50 transition">
+                  ދިވެހި (Thaana)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Bidder & Company Details (Editable & Persisted) -->
+          <div class="bg-white border border-hairline rounded-lg p-4 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                Bidder / Company Details
+              </h2>
+              <span class="text-[11px] text-slate">Auto-saved</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+              <div>
+                <label class="block font-semibold text-slate mb-0.5">Company / Bidder Legal Name</label>
+                <input type="text" id="letCompName" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="e.g. Island Engineering Pvt Ltd">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate mb-0.5">Company Reg No.</label>
+                  <input type="text" id="letCompReg" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded font-mono" placeholder="e.g. C01232020">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-0.5">MIRA TIN No.</label>
+                  <input type="text" id="letCompTin" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded font-mono" placeholder="e.g. 1004567">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate mb-0.5">Authorized Signatory Name &amp; Title</label>
+                <input type="text" id="letSignatory" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="e.g. Mohamed Ali (Managing Director)">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate mb-0.5">Phone (+960)</label>
+                  <input type="text" id="letPhone" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="7771234">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate mb-0.5">Corporate Email</label>
+                  <input type="email" id="letEmail" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded" placeholder="procurement@company.mv">
+                </div>
+              </div>
+
+              <!-- Agency Recipient Override -->
+              <div>
+                <label class="block font-semibold text-slate mb-0.5">Procurement / Agency Recipient Email</label>
+                <input type="email" id="letAgencyEmail" oninput="updateLetterContent()" class="w-full px-3 py-1.5 border border-hairline rounded font-mono" placeholder="e.g. procurement@finance.gov.mv" value="{{ agency_email or '' }}">
+              </div>
+
+              <!-- Custom Inquiry Queries (Shown for inquiry letter) -->
+              <div id="inquirySpecificBlock" style="display:none;">
+                <label class="block font-semibold text-slate mb-0.5">Specific Inquiries / Clarifications requested</label>
+                <textarea id="letCustomQueries" oninput="updateLetterContent()" rows="3" class="w-full px-3 py-1.5 border border-hairline rounded text-xs" placeholder="1. Request for architectural drawing DWG files&#10;2. Clarification on BOQ item 4.2 concrete specifications"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Action Buttons -->
+          <div class="bg-white border border-hairline rounded-lg p-4 shadow-xs space-y-2">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-ink mb-2">Delivery &amp; Export</h2>
+
+            <a id="btnSendEmailMailto" href="#" class="w-full py-2.5 px-3 rounded bg-lagoon hover:bg-emerald-800 text-white font-semibold text-xs transition flex items-center justify-center gap-2 shadow-xs text-center cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span>1. Open in Email Client (Pre-filled)</span>
+            </a>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="copyLetterTextToClipboard()" class="py-2 px-3 rounded bg-white hover:bg-slate-50 border border-hairline text-slate hover:text-ink font-semibold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span id="copyBtnLabel">Copy Text</span>
+              </button>
+
+              <button type="button" onclick="window.print()" class="py-2 px-3 rounded bg-ink hover:bg-ink-soft text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>Print Official PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Live Official Letterhead Preview (Print Ready) -->
+        <div class="lg:col-span-7">
+          <div class="bg-white border border-hairline rounded-lg p-6 sm:p-10 shadow-sm print:border-none print:shadow-none print:p-0 min-h-[600px] flex flex-col justify-between" id="printableLetterContainer">
+            <div>
+              <!-- Letterhead Header -->
+              <div class="border-b-2 border-ink pb-4 mb-6 flex items-start justify-between">
+                <div>
+                  <h3 id="prevLetterCompName" class="text-lg font-bold text-ink tracking-tight">Your Company Name</h3>
+                  <div class="text-[11px] text-slate mt-0.5 space-x-2">
+                    <span id="prevLetterCompReg">Reg: C00002026</span>
+                    <span>&middot;</span>
+                    <span id="prevLetterCompTin">TIN: 1000000</span>
+                  </div>
+                </div>
+                <div class="text-right text-[11px] text-slate space-y-0.5">
+                  <div id="prevLetterCompPhone">+960 777 0000</div>
+                  <div id="prevLetterCompEmail">procurement@company.mv</div>
+                </div>
+              </div>
+
+              <!-- Date & Recipient Details -->
+              <div class="mb-5 text-xs text-ink space-y-1" id="letterRecipientBlock">
+                <div class="font-medium text-slate" id="prevLetterDate">Date: 24 October 2026</div>
+                <div class="pt-2">
+                  <div class="font-bold" id="prevLetterAgencyTitle">Procurement Section / Tender Committee</div>
+                  <div class="text-slate font-medium" id="prevLetterAgencyName">{{ bid.agency_name_en or bid.agency or 'Public Authority' }}</div>
+                  <div class="text-slate text-[11px]" id="prevLetterAgencyLocation">{{ bid.submission_location or "Male', Republic of Maldives" }}</div>
+                </div>
+              </div>
+
+              <!-- Subject Line -->
+              <div class="mb-5 pb-2 border-b border-hairline/80">
+                <div class="text-xs font-bold text-ink" id="prevLetterSubject">
+                  Subject: Expression of Interest &amp; Document Request &mdash; Ref: {{ bid.reference_number or bid.notice_id }}
+                </div>
+              </div>
+
+              <!-- Body Paragraphs -->
+              <div class="text-xs text-ink leading-relaxed space-y-3 font-serif" id="prevLetterBody">
+                <!-- Injected via JavaScript based on letterType and language -->
+              </div>
+            </div>
+
+            <!-- Signatory Footer Block -->
+            <div class="mt-12 pt-4 border-t border-hairline/40 text-xs">
+              <div class="space-y-1">
+                <div class="font-medium text-slate" id="prevLetterSignoff">Yours sincerely,</div>
+                <div class="h-10"></div> <!-- space for signature/stamp -->
+                <div class="font-bold text-ink" id="prevLetterSignatoryName">Mohamed Ali</div>
+                <div class="text-[11px] text-slate" id="prevLetterSignatoryTitle">Managing Director</div>
+                <div class="text-[11px] font-semibold text-ink" id="prevLetterCompSign">Your Company Name</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 2: COMPANY PROFILE & CREDENTIALS -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-profile" class="suite-content-pane" style="display:none;">
+      <div class="bg-white border border-hairline rounded-lg p-6 shadow-xs">
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-4 pb-4 border-b border-hairline">
+          <div>
+            <h2 class="text-lg font-bold text-ink">Company Profile &amp; Tender Credentials</h2>
+            <p class="text-xs text-slate mt-0.5">
+              Submit your verified Maldivian corporate portfolio alongside this bid submission.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/company-profile" class="px-3.5 py-1.5 rounded bg-lagoon hover:bg-emerald-800 text-white font-semibold text-xs transition inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              <span>Edit Full Corporate Profile</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div class="p-3.5 rounded bg-paper border border-hairline space-y-1">
+            <span class="text-slate font-medium">Registered Name:</span>
+            <span class="block font-bold text-ink" id="cpCardName">{{ profile.company_name if profile else 'Mai & Emi Investments Pvt Ltd' }}</span>
+          </div>
+          <div class="p-3.5 rounded bg-paper border border-hairline space-y-1">
+            <span class="text-slate font-medium">Jurisdiction / Type:</span>
+            <span class="block font-bold text-ink" id="cpCardType">
+              {% if profile and profile.entity_type == 'international' %}
+                <span class="inline-flex items-center gap-1 text-amber-800"><span class="w-2 h-2 rounded-full bg-amber-500"></span>International ({{ profile.country_of_origin or 'Overseas' }})</span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 text-emerald-800"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Maldivian Entity (MED)</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="p-3.5 rounded bg-paper border border-hairline space-y-1">
+            <span class="text-slate font-medium">Company Reg / TIN:</span>
+            <span class="block font-mono font-bold text-ink" id="cpCardReg">{{ profile.registration_number if profile else 'C04812021' }} / TIN: {{ profile.tin_number if profile else '1130267' }}</span>
+          </div>
+          <div class="p-3.5 rounded bg-paper border border-hairline space-y-1">
+            <span class="text-slate font-medium">Managing Director:</span>
+            <span class="block font-bold text-ink" id="cpCardMd">{{ profile.managing_director_name if profile else 'Managing Director' }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+              &check;
+            </div>
+            <div>
+              <span class="font-bold text-emerald-950 text-xs">Tender-ready A4 Profile available</span>
+              <span class="block text-[11px] text-emerald-800">Your profile is formatted to government evaluation committee requirements.</span>
+            </div>
+          </div>
+          <a href="/company-profile" class="px-3 py-1.5 rounded bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-semibold text-xs transition">
+            Preview &amp; Download PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 3: PROPOSAL & METHODOLOGY (Coming Soon) -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-proposal" class="suite-content-pane" style="display:none;">
+      <div class="bg-white border border-hairline rounded-lg p-8 shadow-xs text-center max-w-2xl mx-auto my-8">
+        <div class="inline-flex p-3 rounded-full bg-amber-100 text-amber-800 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h2 class="text-xl font-bold font-serif-display text-ink mt-2">Technical Proposal &amp; Method Statement</h2>
+        <p class="text-xs text-slate mt-2 max-w-md mx-auto leading-relaxed">
+          Automated executive summary generation, project execution methodology, team CV binder, and milestone work schedule customized for {{ bid.agency_name_en or 'the contracting authority' }}.
+        </p>
+        <div class="mt-5"><a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs"><span>Unlock Technical Proposal with hooks85 ERP &rarr;</span></a></div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 4: QUOTATION & PRICING (Coming Soon) -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-quote" class="suite-content-pane" style="display:none;">
+      <div class="bg-white border border-hairline rounded-lg p-8 shadow-xs text-center max-w-2xl mx-auto my-8">
+        <div class="inline-flex p-3 rounded-full bg-amber-100 text-amber-800 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h2 class="text-xl font-bold font-serif-display text-ink mt-2">Official Price Quotation &amp; Schedule</h2>
+        <p class="text-xs text-slate mt-2 max-w-md mx-auto leading-relaxed">
+          Standardized tender bid quotation with custom validity period (90/120 days), MVR/USD price schedule breakdown, and payment terms complying with national procurement regulations.
+        </p>
+        <div class="mt-5"><a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs"><span>Unlock Tender Quotations with hooks85 ERP &rarr;</span></a></div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 5: BILL OF QUANTITIES (BOQ) (Coming Soon) -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-boq" class="suite-content-pane" style="display:none;">
+      <div class="bg-white border border-hairline rounded-lg p-8 shadow-xs text-center max-w-2xl mx-auto my-8">
+        <div class="inline-flex p-3 rounded-full bg-amber-100 text-amber-800 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h2 class="text-xl font-bold font-serif-display text-ink mt-2">BOQ Spreadsheet &amp; Rate Analysis</h2>
+        <p class="text-xs text-slate mt-2 max-w-md mx-auto leading-relaxed">
+          Import and price Excel/CSV Bill of Quantities directly. Auto-calculate material take-offs, labor, markup, and generate formatted submission spreadsheets.
+        </p>
+        <div class="mt-5"><a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs"><span>Unlock BOQ Rate Calculator with hooks85 ERP &rarr;</span></a></div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- TAB 6: BILLING & INVOICES (Coming Soon) -->
+    <!-- ==================================================================== -->
+    <div id="suiteTab-invoice" class="suite-content-pane" style="display:none;">
+      <div class="bg-white border border-hairline rounded-lg p-8 shadow-xs text-center max-w-2xl mx-auto my-8">
+        <div class="inline-flex p-3 rounded-full bg-amber-100 text-amber-800 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h2 class="text-xl font-bold font-serif-display text-ink mt-2">MIRA-Compliant Tax Invoices &amp; Progress Claims</h2>
+        <p class="text-xs text-slate mt-2 max-w-md mx-auto leading-relaxed">
+          Generate milestone progress claim certificates, advance payment requests, and GST/TGST tax invoices upon tender contract award.
+        </p>
+        <div class="mt-5"><a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" class="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs"><span>Unlock MIRA Progress Invoicing with hooks85 ERP &rarr;</span></a></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Bid Context Data from Server
+const BID_CONTEXT = {
+  noticeId: {{ (bid.notice_id or bid.id)|tojson }},
+  referenceNumber: {{ (bid.reference_number or '')|tojson }},
+  title: {{ (bid.title or '')|tojson }},
+  titleEn: {{ (bid.title_en or bid.title or '')|tojson }},
+  titleDv: {{ (bid.title_dv or '')|tojson }},
+  agency: {{ (bid.agency_name_en or bid.agency or 'Public Authority')|tojson }},
+  agencyDv: {{ (bid.agency_name_dv or '')|tojson }},
+  deadline: {{ (bid.submission_date or 'Specified in Gazette notice')|tojson }},
+  submissionLocation: {{ (bid.submission_location or 'Agency Secretariat')|tojson }},
+  infoDate: {{ (bid.info_date or '')|tojson }},
+  infoLocation: {{ (bid.info_location or '')|tojson }},
+  agencyEmail: {{ (agency_email or '')|tojson }}
+};
+
+let currentLang = 'en';
+
+// Switch Suite Tabs
+function switchSuiteTab(tabId) {
+  document.querySelectorAll('.suite-content-pane').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.suite-tab-btn').forEach(el => {
+    el.classList.remove('active-tab', 'border-lagoon', 'text-lagoon');
+    el.classList.add('border-transparent', 'text-slate');
+  });
+
+  const pane = document.getElementById('suiteTab-' + tabId);
+  const btn = document.getElementById('tabBtn-' + tabId);
+  if (pane) pane.style.display = 'block';
+  if (btn) {
+    btn.classList.add('active-tab', 'border-lagoon', 'text-lagoon');
+    btn.classList.remove('border-transparent', 'text-slate');
+  }
+}
+
+// Language toggle for letter
+function setLetterLanguage(lang) {
+  currentLang = lang;
+  const btnEn = document.getElementById('btnLangEn');
+  const btnDv = document.getElementById('btnLangDv');
+  if (lang === 'en') {
+    btnEn.className = 'py-1.5 px-3 rounded font-semibold border border-hairline bg-slate-200 text-ink transition';
+    btnDv.className = 'py-1.5 px-3 rounded font-semibold font-thaana border border-hairline text-slate hover:bg-slate-50 transition';
+  } else {
+    btnEn.className = 'py-1.5 px-3 rounded font-semibold border border-hairline text-slate hover:bg-slate-50 transition';
+    btnDv.className = 'py-1.5 px-3 rounded font-semibold font-thaana border border-hairline bg-slate-200 text-ink transition';
+  }
+  updateLetterContent();
+}
+
+// Load company details from localStorage or server defaults
+document.addEventListener('DOMContentLoaded', function() {
+  const savedComp = localStorage.getItem('khulaasaa_bidder_company');
+  let data = null;
+  if (savedComp) {
+    try { data = JSON.parse(savedComp); } catch(e) {}
+  }
+
+  // Prepopulate form fields
+  document.getElementById('letCompName').value = data?.name || {{ (profile.company_name if profile else '')|tojson }} || 'Mai & Emi Investments Pvt Ltd';
+  document.getElementById('letCompReg').value = data?.reg || {{ (profile.registration_number if profile else '')|tojson }} || 'C04812021';
+  document.getElementById('letCompTin').value = data?.tin || {{ (profile.tin_number if profile else '')|tojson }} || '1130267';
+  document.getElementById('letSignatory').value = data?.signatory || {{ (profile.managing_director_name if profile else '')|tojson }} || 'Mohamed Ali (Managing Director)';
+  document.getElementById('letPhone').value = data?.phone || {{ (profile.phone if profile else '')|tojson }} || '+960 778 1557';
+  document.getElementById('letEmail').value = data?.email || {{ (profile.email if profile else '')|tojson }} || 'procurement@company.mv';
+
+  updateLetterContent();
+});
+
+function getFormData() {
+  const compName = document.getElementById('letCompName').value.trim() || 'Your Company Name';
+  const compReg = document.getElementById('letCompReg').value.trim() || 'C0000000';
+  const compTin = document.getElementById('letCompTin').value.trim() || '1000000';
+  const signatory = document.getElementById('letSignatory').value.trim() || 'Authorized Signatory';
+  const phone = document.getElementById('letPhone').value.trim() || '+960 777 0000';
+  const email = document.getElementById('letEmail').value.trim() || 'info@company.mv';
+  const agencyEmail = document.getElementById('letAgencyEmail').value.trim();
+  const customQueries = document.getElementById('letCustomQueries').value.trim();
+
+  // Save to localStorage for convenience
+  localStorage.setItem('khulaasaa_bidder_company', JSON.stringify({
+    name: compName, reg: compReg, tin: compTin, signatory: signatory, phone: phone, email: email
+  }));
+
+  return { compName, compReg, compTin, signatory, phone, email, agencyEmail, customQueries };
+}
+
+function updateLetterContent() {
+  const form = getFormData();
+  const letterTypeEl = document.querySelector('input[name="letterType"]:checked');
+  const letterType = letterTypeEl ? letterTypeEl.value : 'registration';
+
+  // Toggle inquiry block visibility
+  document.getElementById('inquirySpecificBlock').style.display = (letterType === 'inquiry') ? 'block' : 'none';
+
+  // Format date
+  const now = new Date();
+  const dateStrEn = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Update Letterhead Header
+  document.getElementById('prevLetterCompName').innerText = form.compName;
+  document.getElementById('prevLetterCompReg').innerText = 'Reg No: ' + form.compReg;
+  document.getElementById('prevLetterCompTin').innerText = 'MIRA TIN: ' + form.compTin;
+  document.getElementById('prevLetterCompPhone').innerText = form.phone;
+  document.getElementById('prevLetterCompEmail').innerText = form.email;
+  document.getElementById('prevLetterCompSign').innerText = form.compName;
+
+  // Split signatory
+  let sigName = form.signatory;
+  let sigTitle = 'Authorized Signatory';
+  if (form.signatory.includes('(')) {
+    const parts = form.signatory.split('(');
+    sigName = parts[0].trim();
+    sigTitle = parts[1].replace(')', '').trim();
+  }
+  document.getElementById('prevLetterSignatoryName').innerText = sigName;
+  document.getElementById('prevLetterSignatoryTitle').innerText = sigTitle;
+
+  const letterContainer = document.getElementById('printableLetterContainer');
+
+  if (currentLang === 'en') {
+    letterContainer.setAttribute('dir', 'ltr');
+    letterContainer.classList.remove('font-thaana', 'text-right');
+    document.getElementById('prevLetterDate').innerText = 'Date: ' + dateStrEn;
+    document.getElementById('prevLetterAgencyTitle').innerText = 'The Procurement Section / Tender Committee';
+    document.getElementById('prevLetterAgencyName').innerText = BID_CONTEXT.agency;
+    document.getElementById('prevLetterAgencyLocation').innerText = BID_CONTEXT.submissionLocation;
+    document.getElementById('prevLetterSignoff').innerText = 'Yours sincerely,';
+
+    const isIntl = ({{ ('true' if profile and profile.entity_type == 'international' else 'false') }});
+    const regInfoEn = isIntl ? `International Bidder Reg: <code>${form.compReg}</code>, Tax ID: <code>${form.compTin}</code>` : `Registration No: <code>${form.compReg}</code>, TIN: <code>${form.compTin}</code>`;
+
+    if (letterType === 'registration') {
+      document.getElementById('prevLetterSubject').innerText = `Subject: Bidder Registration & Document Request — Ref: ${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>Dear Sir / Madam,</p>
+        <p>We, <strong>${form.compName}</strong> (${regInfoEn}), hereby formally express our keen interest in participating in the public procurement tender for <strong>"${BID_CONTEXT.titleEn}"</strong> (Reference Number: <code>${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}</code>).</p>
+        <p>In accordance with the gazette announcement, we kindly request your office to complete our registration as an official bidder and facilitate access to the full tender dossier, project specifications, and Bill of Quantities (BOQ).</p>
+        <p>Please transmit all relevant bidding documents, addenda, and instructions to our official corporate contact at <strong>${form.email}</strong> or telephone <strong>${form.phone}</strong>.</p>
+        <p>We confirm our commitment to comply with the public procurement procedures and regulations of the Government of Maldives.</p>
+      `;
+    } else if (letterType === 'inquiry') {
+      document.getElementById('prevLetterSubject').innerText = `Subject: Pre-Bid Clarifications & Inquiries — Ref: ${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}`;
+      const queryList = form.customQueries ? `<div class="p-3 bg-slate-50 border border-slate-200 rounded font-mono text-[11px] whitespace-pre-wrap">${form.customQueries}</div>` : `<p><em>[Please specify technical drawings, item specifications, or timeline questions using the inquiries field]</em></p>`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>Dear Sir / Madam,</p>
+        <p>With reference to the tender notice for <strong>"${BID_CONTEXT.titleEn}"</strong> (Ref: <code>${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}</code>), we would like to request official clarifications regarding the technical and logistical specifications of the project:</p>
+        ${queryList}
+        <p>We kindly request written responses or issuance of an official addendum before the pre-bid deadline so our team may formulate a fully compliant and competitive tender submission.</p>
+      `;
+    } else {
+      document.getElementById('prevLetterSubject').innerText = `Subject: Formal Bid Submission — Ref: ${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>Dear Sir / Madam,</p>
+        <p>We, the undersigned, having examined the bidding documents for <strong>"${BID_CONTEXT.titleEn}"</strong> (Reference No: <code>${BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId}</code>), hereby offer to execute and complete the required works/services in strict conformity with the conditions of the contract.</p>
+        <p>We confirm that our bid proposal remains valid and binding upon us for the required validity period specified in the tender notice, and may be accepted at any time before the expiration of that period.</p>
+        <p>Accompanying this letter, we submit our full technical proposal, corporate profile, financial schedule, and required bid security documentation.</p>
+      `;
+    }
+  } else {
+    // Dhivehi / Thaana Mode
+    letterContainer.setAttribute('dir', 'rtl');
+    letterContainer.classList.add('font-thaana', 'text-right');
+    document.getElementById('prevLetterDate').innerText = 'ތާރީޚް: ' + dateStrEn;
+    document.getElementById('prevLetterAgencyTitle').innerText = 'ޕްރޮކިއުމަންޓް ސެކްޝަން / ޓެންޑަރ ކޮމިޓީ';
+    document.getElementById('prevLetterAgencyName').innerText = BID_CONTEXT.agencyDv || BID_CONTEXT.agency;
+    document.getElementById('prevLetterAgencyLocation').innerText = BID_CONTEXT.submissionLocation;
+    document.getElementById('prevLetterSignoff').innerText = 'އިޙްތިރާމް ޤަބޫލުކުރެއްވުން އެދެމެވެ.';
+
+    const refStr = BID_CONTEXT.referenceNumber || BID_CONTEXT.noticeId;
+    const titleDvStr = BID_CONTEXT.titleDv || BID_CONTEXT.title;
+
+    const regInfoDv = isIntl ? `ބައިނަލްއަޤްވާމީ ރަޖިސްޓްރީ: <code>${form.compReg}</code>، ޓެކްސް: <code>${form.compTin}</code>` : `ރަޖިސްޓްރީ ނަންބަރު: <code>${form.compReg}</code>، ޓިން: <code>${form.compTin}</code>`;
+
+    if (letterType === 'registration') {
+      document.getElementById('prevLetterSubject').innerText = `މައުޟޫޢު: ބީލަމުގައި ރަޖިސްޓްރީވުމަށް އެދުން &mdash; ނަންބަރު: ${refStr}`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>އައްސަލާމް ޢަލައިކުމް،</p>
+        <p>މި ކުންފުނި <strong>${form.compName}</strong> (${regInfoDv}) އިން ތިޔަ އިދާރާއިން އިޢުލާންކުރައްވާފައިވާ <strong>"${titleDvStr}"</strong> (އިޢުލާން ނަންބަރު: <code>${refStr}</code>) ބީލަމުގައި ބައިވެރިވުމަށް އެދި ދަންނަވަމެވެ.</p>
+        <p>ވީމާ، މި ބީލަމުގެ ރަޖިސްޓްރީ ފުރިހަމަކޮށްދެއްވައި، ބީލަމާ ގުޅޭ ލިޔެކިޔުންތަކާއި މަޢުލޫމާތު ކަރުދާސް މި ކުންފުނީގެ ރަސްމީ އީމެއިލް <strong>${form.email}</strong> ނުވަތަ ފޯނު <strong>${form.phone}</strong> އަށް ފޮނުއްވައިދެއްވުން އެދެމެވެ.</p>
+        <p>ދިވެހިރާއްޖޭގެ މާލިއްޔަތު ޤަވާޢިދާ އެއްގޮތްވާ ގޮތުގެ މަތިން މި ބީލަމުގެ އެންމެހައި މަރުޙަލާތަކުގައި ބައިވެރިވާނެކަމުގެ ޔަޤީންކަން އަރުވަމެވެ.</p>
+      `;
+    } else if (letterType === 'inquiry') {
+      document.getElementById('prevLetterSubject').innerText = `މައުޟޫޢު: ބީލަމާ ގުޅޭ މަޢުލޫމާތު ސާފުކުރުން &mdash; ނަންބަރު: ${refStr}`;
+      const queryListDv = form.customQueries ? `<div class="p-3 bg-slate-50 border border-slate-200 rounded font-mono text-[11px] whitespace-pre-wrap" dir="ltr">${form.customQueries}</div>` : `<p><em>[ސާފުކުރަން ބޭނުންވާ ސުވާލުތައް ފޯމުގެ އިންކުއަރީ ގޮޅީގައި ލިޔުއްވާ]</em></p>`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>އައްސަލާމް ޢަލައިކުމް،</p>
+        <p>ތިޔަ އިދާރާގެ ނަންބަރު <code>${refStr}</code> އިޢުލާނާ ގުޅިގެން <strong>"${titleDvStr}"</strong> ބީލަމަށް އަންދާސީ ހިސާބު ތައްޔާރުކުރުމަށްޓަކައި ތިރީގައިވާ ކަންކަމާ ގުޅޭގޮތުން އިތުރު މަޢުލޫމާތު ސާފުކޮށްދެއްވުން އެދެމެވެ:</p>
+        ${queryListDv}
+        <p>ވީމާ، މި ކަންކަމާ ގުޅޭ ޖަވާބު ލިޔުމުން ނުވަތަ އެޑެންޑަމް މެދުވެރިކޮށް ދެއްވުން އެދެމެވެ.</p>
+      `;
+    } else {
+      document.getElementById('prevLetterSubject').innerText = `މައުޟޫޢު: ބީލަން ހުށަހެޅުން &mdash; ނަންބަރު: ${refStr}`;
+      document.getElementById('prevLetterBody').innerHTML = `
+        <p>އައްސަލާމް ޢަލައިކުމް،</p>
+        <p>ތިޔަ އިދާރާއިން އިޢުލާންކުރައްވާފައިވާ <strong>"${titleDvStr}"</strong> (ނަންބަރު: <code>${refStr}</code>) ބީލަމުގެ އެންމެހައި ޝަރުތުތަކާއި ލިޔެކިޔުންތައް ބަލައި ދިރާސާކުރުމަށްފަހު، މި ބީލަމުގައި އެދިފައިވާ މަސައްކަތް/ޚިދުމަތް ކޮށްދިނުމަށް އެދި މި ކުންފުނީގެ ފަރާތުން ބީލަން ހުށަހަޅަމެވެ.</p>
+        <p>މި ބީލަމާ އެކު މި ކުންފުނީގެ ޕްރޮފައިލް، ޓެކްނިކަލް ޕްރޮޕޯސަލް، އަދި އަގު ހުށަހަޅާ ފޯމު ފުރިހަމަކޮށް އެޓޭޗްކުރެވިފައިވާނެއެވެ.</p>
+      `;
+    }
+  }
+
+  // Update Mailto Link
+  updateMailtoLink(form);
+}
+
+function updateMailtoLink(form) {
+  const recipient = form.agencyEmail || BID_CONTEXT.agencyEmail || '';
+  const subject = document.getElementById('prevLetterSubject').innerText.replace('Subject: ', '').replace('މައުޟޫޢު: ', '');
+  const bodyText = document.getElementById('prevLetterBody').innerText.replace(/\n\s*\n/g, '\n\n');
+  const fullBody = bodyText + `\n\nKind regards,\n${form.signatory}\n${form.compName}\nPhone: ${form.phone}\nEmail: ${form.email}`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fullBody)}`;
+  const mailtoBtn = document.getElementById('btnSendEmailMailto');
+  mailtoBtn.href = mailtoUrl;
+  mailtoBtn.title = recipient ? `Send email to ${recipient}` : 'Open pre-filled email in your default email client';
+}
+
+function copyLetterTextToClipboard() {
+  const subject = document.getElementById('prevLetterSubject').innerText;
+  const body = document.getElementById('prevLetterBody').innerText;
+  const signatory = document.getElementById('prevLetterSignatoryName').innerText;
+  const sigTitle = document.getElementById('prevLetterSignatoryTitle').innerText;
+  const comp = document.getElementById('prevLetterCompSign').innerText;
+
+  const fullText = `${subject}\n\n${body}\n\nYours sincerely,\n${signatory}\n${sigTitle}\n${comp}`;
+  navigator.clipboard.writeText(fullText).then(() => {
+    const label = document.getElementById('copyBtnLabel');
+    label.innerText = 'Copied to Clipboard!';
+    setTimeout(() => { label.innerText = 'Copy Text'; }, 2500);
+  });
+}
+</script>
+{% endblock %}

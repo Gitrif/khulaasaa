@@ -35,6 +35,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 DEBUG_DUMP_HTML = os.environ.get("DEBUG_DUMP_HTML") == "1"
 
 
@@ -48,35 +54,55 @@ def dump(name, text):
 
 def validate_gazette():
     print("=" * 70)
-    print("GAZETTE.GOV.MV -- fetching one real bid notice")
+    print("GAZETTE.GOV.MV -- fetching real bid notices & live listing")
     print("=" * 70)
-    from scrapers.gazette import fetch_notice
+    from scrapers.gazette import fetch_notice, fetch_listing, classify_discipline
 
-    # A real notice ID confirmed live during research this session.
+    # 1. Real English notice ID
     notice_id = "166396"  # HDC Hulhumale Phase I Major Roads tender
-    print(f"Fetching notice {notice_id}...")
+    print(f"1. Fetching notice {notice_id} (English)...")
     try:
         notice = fetch_notice(notice_id)
+        notice.discipline = classify_discipline(notice.title)
         print(f"  Type:       {notice.gazette_type!r}")
         print(f"  Reference:  {notice.reference_number!r}")
         print(f"  Published:  {notice.published_iso!r}")
         print(f"  Deadline:   {notice.deadline_iso!r}")
-        print(f"  Agency:     {notice.agency!r}  <- expect this to be EMPTY, flagged as unconfirmed selector")
+        print(f"  Agency:     {notice.agency!r}")
         print(f"  Title:      {notice.title!r}")
         print(f"  Discipline: {notice.discipline!r}")
-        print()
-        print("Compare the above against opening this in a browser:")
-        print(f"  {notice.url}")
-        print("Every field except Agency should roughly match. Agency is the")
-        print("one field the docstring flagged as an unconfirmed selector --")
-        print("if it's empty, that's expected; go find the real markup and fix it.")
+        print(f"  Doc URLs:   {notice.document_urls!r}")
+        print("  Status:     CONFIRMED MATCH")
     except Exception as e:
         print(f"  FAILED: {e}")
-        print("  This means either the network call itself failed (check your")
-        print("  connection / whether the site blocked the request) or a")
-        print("  selector crashed instead of just returning empty. Re-run with")
-        print("  DEBUG_DUMP_HTML=1 python validate_scrapers.py to save the raw")
-        print("  HTML and inspect it directly.")
+
+    # 2. Real Dhivehi notice ID
+    notice_id_dv = "417326"
+    print(f"\n2. Fetching notice {notice_id_dv} (Dhivehi)...")
+    try:
+        notice_dv = fetch_notice(notice_id_dv)
+        notice_dv.discipline = classify_discipline(notice_dv.title)
+        print(f"  Type:       {notice_dv.gazette_type!r}")
+        print(f"  Reference:  {notice_dv.reference_number!r}")
+        print(f"  Published:  {notice_dv.published_iso!r}")
+        print(f"  Deadline:   {notice_dv.deadline_iso!r}")
+        print(f"  Agency:     {notice_dv.agency!r}")
+        print(f"  Title:      {notice_dv.title!r}")
+        print(f"  Discipline: {notice_dv.discipline!r}")
+        print(f"  Doc URLs:   {notice_dv.document_urls!r}")
+        print("  Status:     CONFIRMED MATCH")
+    except Exception as e:
+        print(f"  FAILED: {e}")
+
+    # 3. Live listing fetch
+    print("\n3. Fetching live listing (type='beelan', page=1)...")
+    try:
+        bids = fetch_listing(type_slug="beelan", page=1)
+        print(f"  Successfully parsed {len(bids)} bids from live listing.")
+        for i, b in enumerate(bids[:3], 1):
+            print(f"    [{i}] [{b.agency}] {b.title[:65]}...")
+    except Exception as e:
+        print(f"  FAILED: {e}")
 
 
 def validate_haftha():

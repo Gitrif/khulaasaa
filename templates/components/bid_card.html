@@ -1,0 +1,131 @@
+{# Reusable Bid/Tender Card Component #}
+<article class="bid-row story-card discipline-{{ b.discipline|lower|replace(' ', '-')|replace('&', '') }}">
+
+  <!-- Card Top: Tags on Left, Round Actions on Top Right -->
+  <div class="card-top">
+    <div class="card-top-left">
+      <span class="nature-tag" style="font-weight:700;padding:2px 8px;border-radius:4px;font-size:11px;text-transform:uppercase;{{ 'background:#DCFCE7;color:#166534;' if b.procurement_nature == 'Supply' else ('background:#FEF3C7;color:#92400E;' if b.procurement_nature == 'Lease' else 'background:#F3E8FF;color:#6B21A8;') }}">
+        {{ b.procurement_nature or 'Supply' }}
+      </span>
+      <span class="disc-tag" style="font-weight:600;padding:2px 8px;border-radius:4px;background:#E0F2FE;color:#0369A1;font-size:11px;">
+        {{ b.discipline }}
+      </span>
+
+      <!-- Cross-published repetition badge -->
+      {% if b.is_cross_listed %}
+      <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;" title="Published across {{ b.sources|join(', ') }}">
+        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        Cross-published ({{ b.sources|length }} sources)
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Top-Right Round Action Icons: Share & Alert -->
+    <div class="card-top-actions" onclick="event.stopPropagation()">
+      <button type="button" class="card-top-icon-btn"
+              data-headline="{{ b.title_en or b.title }}"
+              data-url="{{ b.source_url or '/bids' }}"
+              onclick="shareStory(event, this.getAttribute('data-headline'), this.getAttribute('data-url'))"
+              title="Share tender notice"
+              aria-label="Share tender notice">
+        <svg class="w-3.5 h-3.5 text-slate hover:text-ink transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+        </svg>
+      </button>
+      <button type="button" class="follow-icon-btn" onclick="sendSpecificTenderAlert('{{ b.notice_id or b.ref or b.id }}')" title="Tender alert" aria-label="Tender alert">
+        <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 text-slate hover:text-lagoon transition" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Title Display: English First Policy -->
+  {% if lang_mode == 'dv' %}
+    <h3 class="card-headline font-thaana text-right text-ink font-semibold" dir="rtl" style="font-size:1.05rem;line-height:1.6;margin:4px 0 6px;">
+      {{ b.title_dv or b.title }}
+    </h3>
+  {% else %}
+    {# English prioritized; fallback to Thaana only when English unavailable #}
+    <h3 class="card-headline font-semibold text-ink" style="font-size:1.05rem;line-height:1.4;margin:4px 0 6px;">
+      {{ b.title_en or b.title }}
+    </h3>
+  {% endif %}
+
+  <!-- Tender Information & Submission Venue Box -->
+  <div class="bid-meta-box">
+    <div class="bid-meta-line">
+      <span class="bid-meta-label">Information:</span>
+      <span class="bid-meta-val">
+        {% if b.info_date %}{{ b.info_date | normalize_tender_info }}{% if b.info_time %} / {{ b.info_time }}{% endif %}{% if b.info_location %} @ {{ b.info_location | normalize_tender_info }}{% endif %}{% else %}Not announced / Refer to docs{% endif %}
+      </span>
+      <span style="display:none;">Info Session:</span>
+    </div>
+    <div class="bid-meta-line">
+      <span class="bid-meta-label">Submission Date &amp; Venue:</span>
+      <span class="bid-meta-val">
+        {% if b.deadline_iso %}{{ b.deadline_iso | format_tender_date }}{% if b.submission_location %} @ {{ b.submission_location | normalize_tender_info }}{% endif %}{% else %}Not announced{% if b.submission_location %} @ {{ b.submission_location | normalize_tender_info }}{% endif %}{% endif %}
+      </span>
+      <span style="display:none;">Submission Venue:</span>
+    </div>
+    <div class="bid-meta-line bid-agency-line">
+      <span class="font-semibold text-ink">{{ b.agency }}</span>
+      {% if b.ref %}
+      <span class="text-slate">|</span>
+      <span class="font-mono text-slate">{{ b.ref }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Bottom Line: Source Outlets as Direct Buttons with Logos + Prepare Bid Package Link -->
+  <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-1.5 border-t border-hairline/60 flex-wrap">
+    {# Clickable Source Buttons with Logos linking directly to official tender notice #}
+    <div class="card-sources flex items-center gap-2 flex-wrap">
+      {% set bid_sources = b.sources if (b.sources and b.sources|length > 0) else ['gazette.gov.mv'] %}
+      {% for s in bid_sources %}
+        {% set s_str = s|string|lower %}
+        {% set s_name = 'Gazette.mv' if 'gazette' in s_str else s %}
+        {% set s_logo = '/static/logos/hdc.svg' if 'hdc' in s_str else ('/static/logos/sto.svg' if 'sto' in s_str else ('/static/logos/stelco.svg' if 'stelco' in s_str else ('/static/logos/mwsc.svg' if 'mwsc' in s_str else ('/static/logos/macl.svg' if 'macl' in s_str else '/static/logos/gazette.svg')))) %}
+        {% set s_label = 'View on Gazette.mv →' if 'gazette' in s_str else ('View on HDC Portal →' if 'hdc' in s_str else ('View on STO Tenders →' if 'sto' in s_str else ('View on STELCO Portal →' if 'stelco' in s_str else ('View on MWSC Portal →' if 'mwsc' in s_str else ('View on MACL Portal →' if 'macl' in s_str else 'View on ' ~ s_name ~ ' →'))))) %}
+        <a href="{{ b.source_url or '#' }}" target="_blank" rel="noopener noreferrer"
+           class="source-action-btn" onclick="event.stopPropagation()" title="Open official tender notice on {{ s_name }}">
+          <img src="{{ s_logo }}" alt="{{ s_name }}" class="source-btn-icon" onerror="this.style.display='none'">
+          <span class="source-btn-text">{{ s_label }}</span>
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="/bids/prepare?notice_id={{ b.notice_id or b.id }}"
+         class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 transition shadow-2xs"
+         onclick="event.stopPropagation()"
+         title="Prepare Tender with hooks85 ERP: Auto BOQ, Proposal & Submission Letters">
+        <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Prepare Bid Package &rarr;</span>
+      </a>
+      <a href="/subscription?plan=tender_erp&notice_id={{ b.notice_id or b.id }}&ref=tender_card"
+         class="text-[11px] font-medium text-emerald-700 hover:text-emerald-900 underline"
+         onclick="event.stopPropagation()"
+         title="hooks85 ERP Tender Automation Subscription">
+        hooks85 ERP
+      </a>
+    </div>
+  </div>
+
+  <!-- Hidden Sources Data container used by the Sources Modal -->
+  <div id="sources-data-bid-{{ b.notice_id or b.ref or b.id }}" style="display:none;" aria-hidden="true">
+    {% if b.sources and b.sources|length > 0 %}
+      {% for s in b.sources %}
+        <a href="{{ b.source_url or '#' }}" target="_blank" rel="noopener noreferrer" class="sources-modal-row" onclick="event.stopPropagation()">
+          <span class="source-pill-dot"></span>
+          <span class="sources-modal-name">{{ s }}</span>
+          <span class="sources-modal-link-label">Official Notice &rarr;</span>
+        </a>
+      {% endfor %}
+    {% else %}
+      <a href="{{ b.source_url or '#' }}" target="_blank" rel="noopener noreferrer" class="sources-modal-row" onclick="event.stopPropagation()">
+        <span class="source-pill-dot"></span>
+        <span class="sources-modal-name">gazette.gov.mv</span>
+        <span class="sources-modal-link-label">Official Notice &rarr;</span>
+      </a>
+    {% endif %}
+  </div>
+</article>

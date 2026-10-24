@@ -1,57 +1,308 @@
 {% extends "base.html" %}
-{% block title %}Bids — Dispatch{% endblock %}
+{% block title %}Bids &amp; Tenders — Dispatch{% endblock %}
 
 {% block content %}
-<header class="border-b border-hairline bg-paper px-4 pt-5 pb-4">
-  <h1 class="font-serif-display text-3xl font-semibold tracking-tight">Bids &amp; Tenders</h1>
-  <p class="text-sm text-slate mt-1">Sourced from gazette.gov.mv · {{ bids|length }} matching{% if active_agency or active_discipline or active_type %} (filtered){% endif %}</p>
-  {% if not is_unlocked %}
-  <div class="paywall-box" style="margin-top:1rem;">
-    <div class="paywall-icon">🔒</div>
-    <h3>Bids &amp; Gazette Alerts — Premium</h3>
-    <p>Sort every open tender by agency, discipline, and type — with instant alerts the moment a new bid matching your field is published.</p>
-    <a href="?unlocked=1" class="paywall-cta" style="text-decoration:none;display:inline-block;">Unlock Premium — Rf 149/month (demo)</a>
-  </div>
-  {% endif %}
-</header>
+<header class="border-b border-hairline bg-paper">
+  <div class="max-w-6xl mx-auto px-4 pt-5 pb-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-sky-100 text-sky-800 text-xs font-semibold mb-1.5">
+          <span>Maldives Government Procurement</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-600"></span>
+          <span>Gazette &amp; SOE Portals</span>
+        </div>
+        <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
+          Bids &amp; Tenders
+        </h1>
+        <p class="text-xs sm:text-sm text-slate mt-1 flex items-center gap-2 flex-wrap">
+          <span>Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or search_q %} (filtered){% endif %}</span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-600 mr-1 animate-pulse"></span>
+            LIVE FEED
+          </span>
+          <a href="?refresh=1&source=live&lang={{ lang_mode }}" class="text-xs text-lagoon hover:underline inline-flex items-center" title="Fetch latest from gazette and agency portals">
+            Refresh
+          </a>
+        </p>
+      </div>
 
-<form class="filter-row" method="get">
-  {% if is_unlocked %}<input type="hidden" name="unlocked" value="1">{% endif %}
-  <select name="agency" onchange="this.form.submit()">
-    <option value="">All agencies</option>
-    {% for a in agencies %}<option value="{{ a }}" {{ 'selected' if active_agency == a }}>{{ a }}</option>{% endfor %}
-  </select>
-  <select name="discipline" onchange="this.form.submit()">
-    <option value="">All disciplines</option>
-    {% for d in disciplines %}<option value="{{ d }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>{% endfor %}
-  </select>
-  <select name="type" onchange="this.form.submit()">
-    <option value="">All types</option>
-    {% for t in types %}<option value="{{ t }}" {{ 'selected' if active_type == t }}>{{ t }}</option>{% endfor %}
-  </select>
-</form>
+      <!-- Actions: Language & Company Profile -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <!-- Language Switcher -->
+        <div class="inline-flex border border-hairline rounded overflow-hidden bg-white text-xs">
+          <a href="?lang=en{% if active_agency %}&agency={{ active_agency }}{% endif %}{% if active_discipline %}&discipline={{ active_discipline }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_entity_type %}&entity_type={{ active_entity_type }}{% endif %}{% if active_portal %}&portal={{ active_portal }}{% endif %}{% if cross_listed %}&cross_listed=1{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}&source={{ source }}"
+             class="px-2.5 py-1 font-semibold transition {{ 'bg-slate-200 text-ink' if lang_mode == 'en' else 'text-slate hover:text-ink' }}">
+            English
+          </a>
+          <a href="?lang=both{% if active_agency %}&agency={{ active_agency }}{% endif %}{% if active_discipline %}&discipline={{ active_discipline }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_entity_type %}&entity_type={{ active_entity_type }}{% endif %}{% if active_portal %}&portal={{ active_portal }}{% endif %}{% if cross_listed %}&cross_listed=1{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}&source={{ source }}"
+             class="px-2.5 py-1 font-semibold transition {{ 'bg-slate-200 text-ink' if lang_mode == 'both' else 'text-slate hover:text-ink' }}">
+            Bilingual
+          </a>
+          <a href="?lang=dv{% if active_agency %}&agency={{ active_agency }}{% endif %}{% if active_discipline %}&discipline={{ active_discipline }}{% endif %}{% if active_type %}&type={{ active_type }}{% endif %}{% if active_entity_type %}&entity_type={{ active_entity_type }}{% endif %}{% if active_portal %}&portal={{ active_portal }}{% endif %}{% if cross_listed %}&cross_listed=1{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}&source={{ source }}"
+             class="px-2.5 py-1 font-semibold font-thaana transition {{ 'bg-slate-200 text-ink' if lang_mode == 'dv' else 'text-slate hover:text-ink' }}">
+            ދިވެހި
+          </a>
+        </div>
 
-<main class="px-4 py-4 max-w-3xl mx-auto">
-  {% for b in bids %}
-  <div class="bid-row discipline-{{ b.discipline|lower|replace(' ', '-')|replace('&', '') }} {{ 'locked-row' if not is_unlocked and loop.index > 2 }}">
-    <div class="meta">
-      <span class="disc-tag" style="color:var(--lagoon);">{{ b.discipline }}</span>
-      <span>{{ b.gazette_type }}</span>
-      <span class="ml-auto" style="margin-left:auto;">{% if b.deadline_iso %}Deadline: {{ b.deadline_iso[:10] }}{% else %}No deadline listed{% endif %}</span>
+        <!-- Company Profile Builder Link -->
+        <a href="/bids/company-profile"
+           class="px-3 py-1.5 rounded bg-lagoon text-white text-xs font-semibold hover:bg-emerald-800 transition inline-flex items-center gap-1.5 shadow-xs"
+           title="Generate Tender-compliant Company Profile & Bid Proposal">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <span>Company Profile</span>
+        </a>
+      </div>
     </div>
-    <h3>{{ b.title }}</h3>
-    <div class="meta">
-      <span>{{ b.agency }}</span>
-      {% if b.ref %}<span class="ref">{{ b.ref }}</span>{% endif %}
-      <a href="{{ b.source_url }}" target="_blank" rel="noopener" style="margin-left:auto;color:var(--lagoon);text-decoration:none;">View on gazette.gov.mv &rarr;</a>
+
+  <!-- Multi-source & Agency Repetition Bar -->
+  <div style="margin-top:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;padding:8px 12px;background:#F1F5F9;border-radius:6px;border:1px solid #E2E8F0;">
+    <span style="font-weight:600;color:#334155;display:inline-flex;align-items:center;">
+      <svg class="w-3.5 h-3.5 inline mr-1 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      Agencies Tracked: {{ agencies|length }}
+    </span>
+    <span style="color:#64748B;">·</span>
+    <span style="color:#334155;display:inline-flex;align-items:center;">
+      <svg class="w-3.5 h-3.5 inline mr-1 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      Cross-Published / Repeated: <strong>{{ agency_stats.cross_listed_bids }}</strong>
+    </span>
+    <a href="?cross_listed={{ '0' if cross_listed else '1' }}{% if active_agency %}&agency={{ active_agency }}{% endif %}&source={{ source }}&lang={{ lang_mode }}"
+       style="margin-left:auto;text-decoration:none;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:4px;background:{{ '#0284C7;color:#fff' if cross_listed else '#fff;color:#0369A1;border:1px solid #CBD5E1' }};">
+      {% if cross_listed %}
+      <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Showing Cross-Published Only
+      {% else %}
+      Filter Cross-Published
+      {% endif %}
+    </a>
+  </div>
+
+  <!-- Telegram Alerts Configuration Card (Interactive) -->
+  <div id="telegram-panel" style="display:none;margin-top:1.25rem;padding:1.25rem;border:1px solid #BAE6FD;background:#F0F9FF;border-radius:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <h3 style="margin:0;font-size:1.05rem;font-weight:600;color:#0369A1;display:flex;align-items:center;gap:6px;">
+        <svg class="w-4 h-4 inline text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        Instant Telegram Tender Alerts
+      </h3>
+      <button type="button" onclick="toggleTelegramPanel()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:2px;">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:#334155;margin:0 0 1rem 0;">
+      Select the tender categories you want to track below, then tap <b>Connect Telegram</b>. No Chat ID or username needed!
+    </p>
+
+    <!-- Interest Disciplines -->
+    <div style="margin-bottom:1rem;background:#fff;padding:10px;border-radius:6px;border:1px solid #E2E8F0;">
+      <label style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;">1. Disciplines to track:</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="tg-disciplines">
+        {% for d in ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"] %}
+        <label style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:#F8FAFC;border:1px solid #CBD5E1;border-radius:4px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" value="{{ d }}" checked onchange="updateBidsTelegramLink()"> {{ d }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 1-Click Connect Button -->
+    <div style="margin-bottom:1rem;text-align:center;">
+      <a id="bidsTgConnectBtn" href="https://t.me/khulaasaa_bot?start=tenders" target="_blank" rel="noopener noreferrer"
+         style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:6px;background:#229ED9;color:#fff;text-decoration:none;font-weight:600;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <svg style="width:18px;height:18px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+        <span>Connect Tender Alerts on Telegram &rarr;</span>
+      </a>
+      <div style="font-size:11px;color:#64748B;margin-top:6px;">
+        Note: Tapping opens <b>@khulaasaa_bot</b>. Simply hit <b>START</b> and you are added automatically!
+      </div>
+    </div>
+
+    <!-- Collapsible Manual Settings -->
+    <div style="border-top:1px solid #BAE6FD;padding-top:10px;text-align:center;">
+      <button type="button" onclick="document.getElementById('bidsManualTgSection').style.display = document.getElementById('bidsManualTgSection').style.display === 'none' ? 'block' : 'none'"
+              style="background:none;border:none;color:#0369A1;font-size:11px;text-decoration:underline;cursor:pointer;">
+        Advanced: Configure numeric Chat ID manually
+      </button>
+
+      <div id="bidsManualTgSection" style="display:none;margin-top:10px;text-align:left;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;">Telegram Chat ID</label>
+            <input type="text" id="tg-chat-id" placeholder="e.g. 123456789" value="{{ default_chat_id }}"
+                   style="width:100%;padding:6px 8px;border:1px solid #CBD5E1;border-radius:4px;font-size:12px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;">Custom Token (Optional)</label>
+            <input type="password" id="tg-bot-token" placeholder="Default server bot"
+                   style="width:100%;padding:6px 8px;border:1px solid #CBD5E1;border-radius:4px;font-size:12px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;">Keyword Filters (Optional)</label>
+          <input type="text" id="tg-keywords" placeholder="e.g. harbour, asphalt, solar, laptop"
+                 style="width:100%;padding:6px 8px;border:1px solid #CBD5E1;border-radius:4px;font-size:12px;box-sizing:border-box;">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" onclick="saveTelegramSubscription()"
+                  style="cursor:pointer;padding:6px 14px;border-radius:4px;background:#0284C7;color:#fff;border:none;font-weight:600;font-size:12px;">
+            Save Manually
+          </button>
+          <button type="button" onclick="sendTestTelegramAlert()"
+                  style="cursor:pointer;padding:6px 14px;border-radius:4px;background:#fff;color:#0284C7;border:1px solid #0284C7;font-weight:600;font-size:12px;">
+            Send Test Alert
+          </button>
+          <span id="tg-status-msg" style="font-size:11px;font-weight:600;margin-left:6px;"></span>
+        </div>
+      </div>
     </div>
   </div>
-  {% else %}
-  <p class="text-sm text-slate py-12 text-center">No bids match this filter.</p>
-  {% endfor %}
+
+  </header>
+
+<main class="px-4 py-4 max-w-3xl mx-auto" id="bids-container">
+  <div class="my-3">
+    {% include "_ad_leaderboard.html" %}
+  </div>
+  {% include "components/bids_stream.html" %}
 </main>
 
 <footer class="max-w-3xl mx-auto px-4 py-8 text-sm text-slate border-t border-hairline">
-  These 12 bids are real notices pulled and verified from gazette.gov.mv during development (see scrapers/README.md) — not invented placeholder data. Discipline is our own classification layer; gazette.gov.mv has no native discipline taxonomy for bids (unlike Jobs, where it does).
+  Khulaasaa Tender Pipeline aggregates notices across gazette.gov.mv and official SOE / Ministry procurement portals (finance.gov.mv, tourism.gov.mv, mwsc.com.mv, stelco.com.mv, sto.mv). Notices cross-published across sources are deduplicated by reference number and linked.
 </footer>
+
+<script>
+// LocalStorage caching for user's chat_id & token
+document.addEventListener("DOMContentLoaded", function() {
+  const savedChat = localStorage.getItem("khulaasaa_tg_chat");
+  const savedToken = localStorage.getItem("khulaasaa_tg_token");
+  const chatInput = document.getElementById("tg-chat-id");
+  const tokenInput = document.getElementById("tg-bot-token");
+  if (savedChat && !chatInput.value) chatInput.value = savedChat;
+  if (savedToken && !tokenInput.value) tokenInput.value = savedToken;
+});
+
+function toggleTelegramPanel() {
+  const p = document.getElementById("telegram-panel");
+  p.style.display = (p.style.display === "none" || p.style.display === "") ? "block" : "none";
+}
+
+function updateBidsTelegramLink() {
+  const checkboxes = document.querySelectorAll('#tg-disciplines input[type="checkbox"]:checked');
+  const discs = Array.from(checkboxes).map(c => c.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  let payload = 'tenders';
+  if (discs.length > 0 && discs.length < 5) {
+    payload = 'tenders_' + discs.join('_');
+  }
+  const btn = document.getElementById('bidsTgConnectBtn');
+  if (btn) {
+    btn.href = 'https://t.me/khulaasaa_bot?start=' + payload;
+  }
+}
+
+async function saveTelegramSubscription() {
+  const chatId = document.getElementById("tg-chat-id").value.trim();
+  const botToken = document.getElementById("tg-bot-token").value.trim();
+  const keywordsStr = document.getElementById("tg-keywords").value.trim();
+  const statusMsg = document.getElementById("tg-status-msg");
+
+  if (!chatId) {
+    statusMsg.style.color = "#DC2626";
+    statusMsg.innerText = "Please enter your Telegram Chat ID.";
+    return;
+  }
+
+  const discCheckboxes = document.querySelectorAll("#tg-disciplines input[type='checkbox']:checked");
+  const disciplines = Array.from(discCheckboxes).map(c => c.value);
+  const keywords = keywordsStr ? keywordsStr.split(",").map(k => k.trim()).filter(Boolean) : [];
+
+  localStorage.setItem("khulaasaa_tg_chat", chatId);
+  if (botToken) localStorage.setItem("khulaasaa_tg_token", botToken);
+
+  statusMsg.style.color = "#0284C7";
+  statusMsg.innerText = "Saving subscription...";
+
+  try {
+    const resp = await fetch("/api/alerts/telegram/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        bot_token: botToken,
+        disciplines: disciplines,
+        keywords: keywords
+      })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      statusMsg.style.color = "#16A34A";
+      statusMsg.innerText = "Subscribed! Confirmation sent to Telegram.";
+    } else {
+      statusMsg.style.color = "#DC2626";
+      statusMsg.innerText = "Error: " + (data.error || data.detail || "Failed to subscribe");
+    }
+  } catch (err) {
+    statusMsg.style.color = "#DC2626";
+    statusMsg.innerText = "Network error: " + err.message;
+  }
+}
+
+async function sendTestTelegramAlert() {
+  const chatId = document.getElementById("tg-chat-id").value.trim();
+  const botToken = document.getElementById("tg-bot-token").value.trim();
+  const statusMsg = document.getElementById("tg-status-msg");
+
+  if (!chatId) {
+    statusMsg.style.color = "#DC2626";
+    statusMsg.innerText = "Please enter your Telegram Chat ID.";
+    return;
+  }
+
+  statusMsg.style.color = "#0284C7";
+  statusMsg.innerText = "Sending test alert...";
+
+  try {
+    const resp = await fetch("/api/alerts/telegram/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, bot_token: botToken })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      statusMsg.style.color = "#16A34A";
+      statusMsg.innerText = "Test alert sent to Telegram!";
+    } else {
+      statusMsg.style.color = "#DC2626";
+      statusMsg.innerText = "Telegram error: " + data.error;
+    }
+  } catch (err) {
+    statusMsg.style.color = "#DC2626";
+    statusMsg.innerText = "Failed: " + err.message;
+  }
+}
+
+async function sendSpecificTenderAlert(noticeId) {
+  let chatId = document.getElementById("tg-chat-id")?.value.trim() || localStorage.getItem("khulaasaa_tg_chat");
+  let botToken = document.getElementById("tg-bot-token")?.value.trim() || localStorage.getItem("khulaasaa_tg_token");
+
+  if (!chatId) {
+    toggleTelegramPanel();
+    alert("Please enter your Telegram Chat ID first in the Telegram Alerts panel.");
+    return;
+  }
+
+  try {
+    const resp = await fetch("/api/alerts/telegram/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, bot_token: botToken, notice_id: noticeId })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      alert("Tender alert successfully sent to Telegram!");
+    } else {
+      alert("Failed to send alert: " + data.error);
+    }
+  } catch (err) {
+    alert("Error sending tender alert: " + err.message);
+  }
+}
+</script>
 {% endblock %}

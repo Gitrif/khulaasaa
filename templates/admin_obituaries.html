@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}Obituary &amp; Janaza Manager — Khulaasaa Editor{% endblock %}
+{% block body_class %}bg-ink text-paper{% endblock %}
+
+{% block content %}
+<header class="border-b border-hairline-dark px-4 pt-6 pb-4 sticky top-0 bg-ink z-10">
+  <div class="flex items-center justify-between">
+    <h1 class="font-serif-display text-xl font-semibold">Obituary &amp; Janaza Registry</h1>
+    <span class="text-sm text-slate">{{ editor }}</span>
+  </div>
+  <p class="text-sm text-slate mt-1">Manage funeral announcements, prayer times, cemetery mosque locations, and condolence contacts</p>
+</header>
+
+<nav class="flex border-b border-hairline-dark px-4 bg-ink overflow-x-auto whitespace-nowrap">
+  <a href="/admin" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Story Moderation
+  </a>
+  <a href="/admin/ads" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Ad Manager
+  </a>
+  <a href="/admin/sources" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-slate hover:text-paper">
+    Provider Sources &amp; Logos
+  </a>
+  <a href="/admin/obituaries" class="py-3 px-4 text-sm font-medium border-b-2 border-lagoon text-lagoon">
+    Obituaries / Janaza
+  </a>
+</nav>
+
+{% if message %}
+<div class="mx-4 mt-4 p-3 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm rounded">
+  {{ message }}
+</div>
+{% endif %}
+
+<main class="px-4 py-4 space-y-6 pb-28 max-w-5xl mx-auto">
+
+  <!-- KPI stats -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center">
+      <div class="text-2xl font-semibold text-paper">{{ obituaries|length }}</div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Total Notices</div>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center">
+      <div class="text-2xl font-semibold text-emerald-400">
+        {{ obituaries | selectattr('is_active', 'equalto', 1) | list | length }}
+      </div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Active Notices</div>
+    </div>
+    <div class="bg-ink-soft border border-hairline-dark p-3 text-center">
+      <div class="text-2xl font-semibold text-lagoon">
+        <a href="/obituaries" target="_blank" class="hover:underline text-lagoon">View Public ↗</a>
+      </div>
+      <div class="text-xs text-slate uppercase tracking-wider mt-1">Live Registry</div>
+    </div>
+  </div>
+
+  <!-- Quick Import from KashuNamaadhu Facebook -->
+  <section class="bg-ink-soft border border-hairline-dark p-5 rounded space-y-3">
+    <div class="flex items-center justify-between border-b border-hairline-dark pb-2">
+      <div>
+        <h2 class="font-serif-display text-base font-semibold text-paper">Quick Import from KashuNamaadhu</h2>
+        <p class="text-xs text-slate mt-0.5">
+          Copy announcement text from <a href="https://www.facebook.com/KashuNamaadhuMV/" target="_blank" rel="noopener noreferrer" class="text-lagoon underline font-medium">facebook.com/KashuNamaadhuMV</a> and paste here. Auto-parses name, age, address, mosque venue, timing, and phone numbers.
+        </p>
+      </div>
+      <a href="https://www.facebook.com/KashuNamaadhuMV/" target="_blank" rel="noopener noreferrer" class="text-xs px-2.5 py-1 rounded bg-blue-900/40 border border-blue-500/40 text-blue-300 hover:bg-blue-800/50">
+        Open Facebook Page
+      </a>
+    </div>
+
+    <form action="/admin/obituaries/quick-import" method="POST" enctype="multipart/form-data" class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+          Paste Raw Announcement Text
+        </label>
+        <textarea 
+          name="post_text" 
+          rows="3" 
+          required 
+          placeholder="ކަށުނަމާދު: އިބްރާހީމް މުޙައްމަދު (72އ) ހ. ރޫބީވިލާ..." 
+          class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper font-thaana focus:outline-none focus:border-lagoon"
+          dir="rtl"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 max-w-sm">
+          <label class="block text-[11px] text-slate uppercase tracking-wider mb-1">
+            Optional Portrait Image
+          </label>
+          <input 
+            type="file" 
+            name="photo_file" 
+            accept="image/*" 
+            class="w-full text-xs text-slate file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-paper-soft file:text-ink cursor-pointer"
+          >
+        </div>
+        <button 
+          type="submit" 
+          class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-paper rounded font-medium text-xs transition"
+        >
+          Parse &amp; Publish Immediately
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Create New Obituary Announcement -->
+  <section id="new-notice-form" class="bg-ink-soft border border-hairline-dark p-5 rounded space-y-4">
+    <div class="flex items-center justify-between border-b border-hairline-dark pb-3">
+      <div>
+        <h2 class="font-serif-display text-base font-semibold text-paper">+ Post New Obituary / Janaza Notice</h2>
+        <p class="text-xs text-slate mt-0.5">Publish a verified funeral notice with deceased details, mosque venue, and condolence contacts</p>
+      </div>
+    </div>
+
+    <form action="/admin/obituaries/create" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Deceased Name (Thaana) <span class="text-flag">*</span>
+          </label>
+          <input 
+            type="text" 
+            name="name_dv" 
+            required 
+            placeholder="e.g. އިބްރާހީމް މުޙައްމަދު" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper font-thaana focus:outline-none focus:border-lagoon"
+            dir="rtl"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Deceased Name / Relationship (English)
+          </label>
+          <input 
+            type="text" 
+            name="name_en" 
+            placeholder="e.g. Ibrahim Mohamed (Former Minister Dr. Shainee's father)" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Address / Island (Thaana)
+          </label>
+          <input 
+            type="text" 
+            name="address_dv" 
+            placeholder="e.g. ހ. ރޫބީވިލާ / މާލެ" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper font-thaana focus:outline-none focus:border-lagoon"
+            dir="rtl"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Address (English)
+          </label>
+          <input 
+            type="text" 
+            name="address_en" 
+            placeholder="e.g. H. Roobyvilla, Male'" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Age (އަހަރު)
+          </label>
+          <input 
+            type="number" 
+            name="age" 
+            min="0" 
+            max="130" 
+            placeholder="72" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Funeral Mosque (Thaana) <span class="text-flag">*</span>
+          </label>
+          <input 
+            type="text" 
+            name="funeral_mosque_dv" 
+            required 
+            value="މަސްޖިދުލް ތަޢާވުން (އާސަހަރާ މިސްކިތް)" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper font-thaana focus:outline-none focus:border-lagoon"
+            dir="rtl"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Funeral Mosque (English)
+          </label>
+          <input 
+            type="text" 
+            name="funeral_mosque_en" 
+            value="Masjid al-Ta'awun (Aasahara Mosque), Male'" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Prayer Time (Thaana) <span class="text-flag">*</span>
+          </label>
+          <input 
+            type="text" 
+            name="prayer_time_dv" 
+            required 
+            value="މިއަދުގެ ޢަޞްރު ނަމާދަށްފަހު" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper font-thaana focus:outline-none focus:border-lagoon"
+            dir="rtl"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Prayer Time (English)
+          </label>
+          <input 
+            type="text" 
+            name="prayer_time_en" 
+            value="After Asr Prayer" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Funeral Date
+          </label>
+          <input 
+            type="date" 
+            name="funeral_date" 
+            value="{{ today_date }}" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Condolence Contact Numbers
+          </label>
+          <input 
+            type="text" 
+            name="contact_numbers" 
+            placeholder="e.g. 7992266 / 9394545" 
+            class="w-full px-3 py-2 text-sm bg-ink border border-hairline-dark rounded text-paper focus:outline-none focus:border-lagoon"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate uppercase tracking-wider mb-1">
+            Deceased Portrait Photo (Optional)
+          </label>
+          <input 
+            type="file" 
+            name="photo_file" 
+            accept="image/*" 
+            class="w-full px-3 py-1.5 text-xs bg-ink border border-hairline-dark rounded text-slate file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-paper-soft file:text-ink cursor-pointer"
+          >
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button 
+          type="submit" 
+          class="px-5 py-2 bg-lagoon text-paper rounded font-medium text-sm hover:opacity-90 transition"
+        >
+          Publish Obituary Announcement
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Configured Announcements Table -->
+  <section class="space-y-4">
+    <h2 class="font-serif-display text-base font-semibold text-paper">Published Announcements</h2>
+
+    <div class="bg-ink-soft border border-hairline-dark rounded overflow-hidden">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-ink border-b border-hairline-dark text-slate text-xs uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4">Deceased</th>
+            <th class="py-3 px-4">Venue &amp; Time</th>
+            <th class="py-3 px-4">Contacts</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline-dark">
+          {% for ob in obituaries %}
+          <tr class="hover:bg-ink/50 transition">
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-12 rounded bg-ink border border-hairline-dark flex-shrink-0 overflow-hidden flex items-center justify-center">
+                  {% if ob.photo_url %}
+                  <img src="{{ ob.photo_url }}" alt="" class="w-full h-full object-cover">
+                  {% else %}
+                  <span class="font-thaana text-xs font-bold text-slate">{{ (ob.name_dv or '')[:1] }}</span>
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="font-thaana font-bold text-paper text-sm" dir="rtl">{{ ob.name_dv }}</div>
+                  {% if ob.name_en %}
+                  <div class="text-xs text-slate">{{ ob.name_en }}</div>
+                  {% endif %}
+                  {% if ob.address_dv %}
+                  <div class="text-[11px] text-slate/80 font-thaana" dir="rtl">{{ ob.address_dv }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-xs">
+              <div class="font-thaana text-paper" dir="rtl">{{ ob.funeral_mosque_dv }}</div>
+              <div class="text-slate font-thaana" dir="rtl">{{ ob.prayer_time_dv }}</div>
+              {% if ob.funeral_date %}
+              <div class="text-[11px] text-slate/60">{{ ob.funeral_date }}</div>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-xs font-mono text-slate">
+              {{ ob.contact_numbers or '—' }}
+            </td>
+            <td class="py-3 px-4 text-xs">
+              {% if ob.is_active == 1 %}
+              <span class="inline-flex items-center gap-1 text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 px-2 py-0.5 rounded text-[11px]">
+                Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 text-slate bg-ink border border-hairline-dark px-2 py-0.5 rounded text-[11px]">
+                Archived
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-xs text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-2">
+                <form action="/admin/obituaries/{{ ob.id }}/toggle" method="POST" class="inline">
+                  <button type="submit" class="px-2 py-1 rounded border border-hairline-dark text-slate hover:text-paper hover:bg-ink">
+                    {{ 'Archive' if ob.is_active == 1 else 'Activate' }}
+                  </button>
+                </form>
+                <form action="/admin/obituaries/{{ ob.id }}/delete" method="POST" class="inline" onsubmit="return confirm('Delete this obituary notice permanently?');">
+                  <button type="submit" class="px-2 py-1 rounded border border-flag/40 text-flag hover:bg-flag/10">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

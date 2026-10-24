@@ -9,12 +9,12 @@ layout, routes, and editor journey before Phase 2/3 backend work starts.
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8300
 ```
 
-- Public feed: http://localhost:8000/
-- Timeline: http://localhost:8000/timeline/mmprc-followup-2026
-- Admin console: http://localhost:8000/admin
+- Public feed: http://localhost:8300/
+- Timeline: http://localhost:8300/timeline/mmprc-followup-2026
+- Admin console: http://localhost:8300/admin
   - user `editor`, pass `changeme` (override via `EDITOR_USERNAME` /
     `EDITOR_PASSWORD` env vars — do this before anything but local demo use)
 - Broadcast preview: reachable from a card's "Preview broadcast" button
@@ -112,10 +112,10 @@ an approval done on one is invisible to requests landing on another. Both
 wiring in a real datastore before scaling, not by working around it.
 
 Then:
-- http://localhost:8000 — news feed
-- http://localhost:8000/bids, /jobs — the new pages
-- http://localhost:8000/admin — editor console (credentials from `.env`)
-- http://localhost:8000/healthz — liveness check, returns `{"status": "ok"}`
+- http://localhost:8300 — news feed
+- http://localhost:8300/bids, /jobs — the new pages
+- http://localhost:8300/admin — editor console (credentials from `.env`)
+- http://localhost:8300/healthz — liveness check, returns `{"status": "ok"}`
 
 If the build fails, the most likely culprits given what's in this project:
 `beautifulsoup4`/`requests` version pins in `requirements.txt` (added this
