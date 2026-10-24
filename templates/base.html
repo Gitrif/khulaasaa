@@ -269,12 +269,6 @@
           <a href="/bids" class="nav-tab {{ 'active' if request.url.path.startswith('/bids') else '' }}">Tenders</a>
           <a href="/jobs" class="nav-tab {{ 'active' if request.url.path == '/jobs' else '' }}">Jobs</a>
         </nav>
-        <div class="flex items-center gap-2">
-          <a href="/subscription" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition shadow-2xs">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-            <span>hooks85 POS &amp; ERP</span>
-          </a>
-        </div>
       </div>
     </div>
   </header>
@@ -295,10 +289,7 @@
         <a href="/about#removal" class="hover:underline">Content Removal / Opt-Out</a>
       </div>
       <div class="flex items-center gap-3 text-slate">
-        <a href="/calculator" class="text-ink font-semibold hover:underline">Construction Estimator</a>
-        <a href="/subscription" class="text-emerald-800 font-semibold hover:underline">hooks85 POS &amp; ERP</a>
-        <a href="/about" class="hover:underline">Compliance</a>
-        <a href="/alerts" class="hover:underline">Alerts</a>
+        <a href="/about" class="hover:underline">About &amp; Compliance</a>
         <a href="/feed.xml" class="hover:underline">RSS</a>
       </div>
     </div>
@@ -409,27 +400,57 @@
         </div>
       </div>
 
-      <!-- TAB 4: Web Sign In -->
+      <!-- TAB 4: Web Sign In & Register -->
       <div id="tabContentAuth" class="space-y-3.5 hidden">
         <div>
-          <h3 class="font-serif-display text-lg font-bold text-ink">Sign In to Khulaasaa</h3>
-          <p class="text-xs text-slate">Access saved CVs, company tender profiles, and personalized job alerts.</p>
+          <h3 id="modalAuthTitle" class="font-serif-display text-lg font-bold text-ink">Sign In to Khulaasaa</h3>
+          <p id="modalAuthSubtitle" class="text-xs text-slate">Access saved CVs, company tender profiles, and real-time alerts.</p>
         </div>
 
-        <!-- Email & Password Form -->
-        <form onsubmit="handleEmailLogin(event)" class="space-y-2.5 pt-1">
+        <!-- Mode Toggle: Sign In vs Register -->
+        <div class="flex items-center gap-2 border-b border-hairline pb-2">
+          <button type="button" id="authModeLoginBtn" onclick="toggleAuthMode('login')" class="text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer">
+            Sign In
+          </button>
+          <button type="button" id="authModeRegisterBtn" onclick="toggleAuthMode('register')" class="text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Email & Password Sign In Form -->
+        <form id="modalLoginForm" onsubmit="handleEmailLogin(event)" class="space-y-2.5 pt-1">
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Email</label>
-            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white">
+            <input type="email" id="modalAuthEmail" required placeholder="your.name@example.com" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate mb-1">Password</label>
-            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white">
+            <input type="password" id="modalAuthPass" required placeholder="••••••••" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
           </div>
           <button type="submit" id="modalAuthBtn" class="w-full py-2 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
             Sign In with Email
           </button>
           <div id="modalAuthStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden"></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="modalRegisterForm" onsubmit="handleEmailRegister(event)" class="space-y-2.5 pt-1 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-slate mb-1">Full Name</label>
+            <input type="text" id="modalRegName" required placeholder="Ahmed Naseem" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate mb-1">Email</label>
+            <input type="email" id="modalRegEmail" required placeholder="your.name@example.com" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate mb-1">Password</label>
+            <input type="password" id="modalRegPass" required minlength="6" placeholder="At least 6 characters" class="w-full px-3 py-1.5 border border-hairline rounded text-xs bg-white text-ink">
+          </div>
+          <button type="submit" id="modalRegBtn" class="w-full py-2 px-4 bg-ink text-white font-semibold text-xs rounded hover:bg-slate-800 transition cursor-pointer">
+            Create Account &amp; Continue
+          </button>
+          <div id="modalRegStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden"></div>
         </form>
       </div>
 
@@ -474,15 +495,70 @@
   </div>
 
   <script>
+    function isUserAuthenticated() {
+      return document.cookie.includes('session_token=') || Boolean(localStorage.getItem('khulaasaa_user_id'));
+    }
+
+    function toggleAuthMode(mode) {
+      const loginForm = document.getElementById('modalLoginForm');
+      const regForm = document.getElementById('modalRegisterForm');
+      const loginBtn = document.getElementById('authModeLoginBtn');
+      const regBtn = document.getElementById('authModeRegisterBtn');
+      const title = document.getElementById('modalAuthTitle');
+      const subtitle = document.getElementById('modalAuthSubtitle');
+
+      if (mode === 'register') {
+        if (loginForm) loginForm.classList.add('hidden');
+        if (regForm) regForm.classList.remove('hidden');
+        if (loginBtn) loginBtn.className = 'text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer';
+        if (regBtn) regBtn.className = 'text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer';
+        if (title) title.textContent = 'Create Free Account';
+        if (subtitle) subtitle.textContent = 'Register to create & download CVs and receive instant tender & job alerts.';
+      } else {
+        if (regForm) regForm.classList.add('hidden');
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (regBtn) regBtn.className = 'text-xs font-semibold text-slate hover:text-ink pb-1 cursor-pointer';
+        if (loginBtn) loginBtn.className = 'text-xs font-bold text-ink border-b-2 border-ink pb-1 cursor-pointer';
+        if (title) title.textContent = 'Sign In to Khulaasaa';
+        if (subtitle) subtitle.textContent = 'Access saved CVs, company tender profiles, and real-time alerts.';
+      }
+    }
+
     function openGlobalAlertsModal(initialTab = 'viber') {
       const modal = document.getElementById('globalUnifiedModal');
       if (modal) modal.classList.remove('hidden');
-      switchGlobalModalTab(initialTab);
+      if (!isUserAuthenticated() && initialTab !== 'auth') {
+        switchGlobalModalTab('auth');
+      } else {
+        switchGlobalModalTab(initialTab);
+      }
     }
 
     function closeGlobalAlertsModal() {
       const modal = document.getElementById('globalUnifiedModal');
       if (modal) modal.classList.add('hidden');
+    }
+
+    function handleCvClick(e) {
+      if (!isUserAuthenticated()) {
+        if (e) e.preventDefault();
+        openGlobalAlertsModal('auth');
+        return false;
+      }
+      return true;
+    }
+
+    function handleTenderAlertClick(event, noticeId, disc, source) {
+      if (event) event.stopPropagation();
+      if (!isUserAuthenticated()) {
+        openGlobalAlertsModal('auth');
+        return;
+      }
+      if (typeof sendSpecificTenderAlert === 'function') {
+        sendSpecificTenderAlert(noticeId);
+      } else {
+        openGlobalAlertsModal('viber');
+      }
     }
 
     function openProTrialModal(feature) {
@@ -581,10 +657,14 @@
         });
         const data = await res.json();
         if (data.status === 'ok') {
+          if (data.user && data.user.id) {
+            localStorage.setItem('khulaasaa_user_id', data.user.id);
+            localStorage.setItem('khulaasaa_user_email', data.user.email);
+          }
           statusEl.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-green-50 text-green-800 border border-green-200 block';
           statusEl.textContent = 'Signed in successfully!';
           refreshGlobalAuthPill();
-          setTimeout(() => { closeGlobalAlertsModal(); window.location.reload(); }, 1000);
+          setTimeout(() => { closeGlobalAlertsModal(); window.location.reload(); }, 800);
         } else {
           statusEl.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block';
           statusEl.textContent = data.detail || 'Invalid email or password.';
@@ -595,6 +675,46 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'Sign In with Email';
+      }
+    }
+
+    async function handleEmailRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('modalRegName').value.trim();
+      const email = document.getElementById('modalRegEmail').value.trim();
+      const pass = document.getElementById('modalRegPass').value;
+      const statusEl = document.getElementById('modalRegStatus');
+      const btn = document.getElementById('modalRegBtn');
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name: name, email: email, password: pass })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          if (data.user && data.user.id) {
+            localStorage.setItem('khulaasaa_user_id', data.user.id);
+            localStorage.setItem('khulaasaa_user_email', data.user.email);
+          }
+          statusEl.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-green-50 text-green-800 border border-green-200 block';
+          statusEl.textContent = 'Account created successfully!';
+          refreshGlobalAuthPill();
+          setTimeout(() => { closeGlobalAlertsModal(); window.location.reload(); }, 800);
+        } else {
+          statusEl.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block';
+          statusEl.textContent = data.detail || 'Registration failed.';
+        }
+      } catch (err) {
+        statusEl.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-red-50 text-red-800 border border-red-200 block';
+        statusEl.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account & Continue';
       }
     }
 

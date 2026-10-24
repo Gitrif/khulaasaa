@@ -321,17 +321,10 @@ function shareStory(evt, headline, url) {
 
 async function toggleFollow(evt, btn){
   evt.stopPropagation();
-  if (window.Telegram?.WebApp?.HapticFeedback) {
-    try { window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); } catch(e){}
-  }
-  const following = btn.classList.toggle('following');
-  btn.textContent = following ? 'Following' : '+ Follow';
-  if (following) {
-    if (currentTelegramUser) {
-      saveAlertPreferences();
-    } else {
-      openTelegramModal();
-    }
+  if (typeof showToast === "function") {
+    showToast("News alerts are coming soon. Real-time Tender and Job alerts are currently active.");
+  } else {
+    alert("News alerts are coming soon. Real-time Tender and Job alerts are currently active.");
   }
 }
 

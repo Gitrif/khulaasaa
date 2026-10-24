@@ -156,6 +156,17 @@ function shareJob(event, designation, employer, url) {
   }
 }
 
+function handleJobAlertClick(event, discipline, employer) {
+  if (event) event.stopPropagation();
+  if (typeof isUserAuthenticated === 'function' && !isUserAuthenticated()) {
+    if (typeof openGlobalAlertsModal === 'function') {
+      openGlobalAlertsModal('auth');
+    }
+    return;
+  }
+  openJobAlertModal(event, discipline, employer);
+}
+
 // Open Vacancy Alert Modal (Discipline & Employer Alerts)
 function openJobAlertModal(event, discipline, employer) {
   if (event) event.stopPropagation();

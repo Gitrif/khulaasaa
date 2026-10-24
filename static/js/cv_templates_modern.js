@@ -250,7 +250,11 @@ function selectTemplate(tmplKey, force = false) {
 // Save CV to SQLite server (Pro feature)
 async function saveCvToServer() {
   if (!currentUser) {
-    openAuthModal('register');
+    if (typeof openGlobalAlertsModal === 'function') {
+      openGlobalAlertsModal('auth');
+    } else if (typeof openAuthModal === 'function') {
+      openAuthModal('register');
+    }
     return;
   }
 

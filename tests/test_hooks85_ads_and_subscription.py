@@ -35,8 +35,12 @@ class TestHooks85AdsAndSubscription(unittest.TestCase):
         res = client.get("/bids?source=mock")
         self.assertEqual(res.status_code, 200)
         self.assertIn("hooks85", res.text)
-        # Check that Prepare Bid button links to subscription
-        self.assertIn("/subscription?plan=tender_erp", res.text)
+        # Check that Prepare Bid workspace links to hooks85 subscription
+        with get_db() as conn:
+            row = conn.execute("SELECT notice_id FROM bids LIMIT 1;").fetchone()
+            notice_id = row[0] if row else "166396"
+        prep = client.get(f"/bids/prepare?notice_id={notice_id}")
+        self.assertIn("/subscription?plan=tender_erp", prep.text)
 
     def test_jobs_page_renders_hooks85_ad(self):
         res = client.get("/jobs")

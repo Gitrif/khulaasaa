@@ -47,10 +47,10 @@
     </div>
 
     <div class="flex flex-col sm:flex-row gap-2">
-      <a href="/jobs/cv" class="btn-primary py-2.5 px-4 rounded text-xs font-bold text-center text-white bg-lagoon hover:bg-emerald-800 transition shadow-xs flex-1">
+      <a href="/jobs/cv" onclick="return handleCvClick(event)" class="btn-primary py-2.5 px-4 rounded text-xs font-bold text-center text-white bg-lagoon hover:bg-emerald-800 transition shadow-xs flex-1">
         Create Your CV Now &rarr;
       </a>
-      <button type="button" onclick="closeJobModal(); openGlobalAlertsModal('viber')" class="py-2.5 px-4 rounded text-xs font-bold text-center border border-hairline bg-white text-ink hover:bg-cream transition flex-1">
+      <button type="button" onclick="closeJobModal(); openGlobalAlertsModal('auth')" class="py-2.5 px-4 rounded text-xs font-bold text-center border border-hairline bg-white text-ink hover:bg-cream transition flex-1">
         Set Job Alerts
       </button>
       <button type="button" onclick="closeJobModal()" class="py-2.5 px-3 rounded text-xs font-medium text-slate hover:text-ink transition">

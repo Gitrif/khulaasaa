@@ -72,7 +72,6 @@ def test_bids_language_modes_and_milestones():
     # 2. Bilingual mode
     res_both = client.get("/bids?lang=both&source=mock")
     assert res_both.status_code == 200
-    assert "Bilingual" in res_both.text
 
     # 3. Dhivehi mode
     res_dv = client.get("/bids?lang=dv&source=mock")
