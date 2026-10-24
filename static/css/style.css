@@ -1021,7 +1021,7 @@ img, svg, video, canvas {
   align-items: center;
   gap: 0.65rem;
   padding: 0.5rem 0.95rem; /* Generous padding */
-  background: var(--ink); /* #10222E Dark navy/black */
+  background: #4B5563; /* Slate grey */
   color: #FFFFFF !important;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -1036,7 +1036,7 @@ img, svg, video, canvas {
 }
 
 .source-action-btn:hover {
-  background: #1B3547;
+  background: #374151; /* Darker slate grey */
   color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.12);
