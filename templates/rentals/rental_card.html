@@ -53,26 +53,36 @@
       <!-- Specifications Grid (Booking / Agoda Style) -->
       <div class="grid grid-cols-4 gap-2 p-2.5 bg-paper-soft rounded border border-hairline mb-3 text-xs text-center">
         <div>
-          <span class="text-[10px] text-slate uppercase tracking-wider block">Bedrooms</span>
+          <span class="text-[10px] text-slate uppercase tracking-wider block mb-0.5">Bedrooms</span>
           <div class="font-bold text-ink flex items-center justify-center gap-1">
             <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 17h20M2 13h20M4 9v8M20 9v8M4 11h16"/></svg>
             <span>{{ r.bedrooms }} BHK</span>
           </div>
+          <span class="text-[10px] text-slate block font-medium">{% if r.bedrooms == 1 %}Studio{% else %}{{ r.bedrooms }} Rooms{% endif %}</span>
         </div>
         <div class="border-l border-hairline/80">
-          <span class="text-[10px] text-slate uppercase tracking-wider block">Bathroom</span>
+          <span class="text-[10px] text-slate uppercase tracking-wider block mb-0.5">Toilets</span>
           <div class="font-bold text-ink flex items-center justify-center gap-1">
             <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6M4 12h16M10 4h4v3a4 4 0 0 1-4 4"/></svg>
-            <span>{{ r.attached_toilets or r.bathrooms or 1 }} Att</span>
+            <span class="font-mono">{{ r.total_toilets or r.bathrooms or 1 }} Total</span>
           </div>
+          <span class="text-[10px] text-slate block font-medium">{{ r.attached_toilets or 1 }} Attached</span>
         </div>
         <div class="border-l border-hairline/80">
-          <span class="text-[10px] text-slate uppercase tracking-wider block">Toilets</span>
-          <strong class="text-ink font-mono">{{ r.total_toilets or r.bathrooms or 1 }} Total</strong>
+          <span class="text-[10px] text-slate uppercase tracking-wider block mb-0.5">Floor Level</span>
+          <div class="font-bold text-ink flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span>{{ r.floor }}</span>
+          </div>
+          <span class="text-[10px] text-slate block font-medium">{% if r.lift %}With Lift{% else %}Walk-up{% endif %}</span>
         </div>
         <div class="border-l border-hairline/80">
-          <span class="text-[10px] text-slate uppercase tracking-wider block">Floor Area</span>
-          <strong class="text-ink font-mono">{% if r.sqft_size %}{{ r.sqft_size }} sqft{% else %}Standard{% endif %}</strong>
+          <span class="text-[10px] text-slate uppercase tracking-wider block mb-0.5">Floor Area</span>
+          <div class="font-bold text-ink flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            <span class="font-mono">{% if r.sqft_size %}{{ r.sqft_size }} sqft{% else %}Standard{% endif %}</span>
+          </div>
+          <span class="text-[10px] text-slate block font-medium">sqft area</span>
         </div>
       </div>
 

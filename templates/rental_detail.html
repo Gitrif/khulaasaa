@@ -91,18 +91,22 @@
             <div class="p-2 bg-white rounded border border-hairline/60">
               <span class="text-[10px] text-slate block uppercase">Bedrooms</span>
               <strong class="text-base text-ink font-bold">{{ rental.bedrooms }} BHK</strong>
+              <span class="text-[10px] text-slate block font-medium">{% if rental.bedrooms == 1 %}Studio{% else %}{{ rental.bedrooms }} Rooms{% endif %}</span>
             </div>
             <div class="p-2 bg-white rounded border border-hairline/60">
               <span class="text-[10px] text-slate block uppercase">Toilets</span>
-              <strong class="text-base text-ink font-bold">{{ rental.attached_toilets or rental.bathrooms }} Att / {{ rental.total_toilets or rental.bathrooms }} Tot</strong>
+              <strong class="text-base text-ink font-bold">{{ rental.total_toilets or rental.bathrooms or 1 }} Total</strong>
+              <span class="text-[10px] text-slate block font-medium">{{ rental.attached_toilets or 1 }} Attached</span>
             </div>
             <div class="p-2 bg-white rounded border border-hairline/60">
-              <span class="text-[10px] text-slate block uppercase">Area Size</span>
+              <span class="text-[10px] text-slate block uppercase">Floor Area</span>
               <strong class="text-base text-ink font-bold">{% if rental.sqft_size %}{{ rental.sqft_size }} sqft{% else %}Standard{% endif %}</strong>
+              <span class="text-[10px] text-slate block font-medium">sqft area</span>
             </div>
             <div class="p-2 bg-white rounded border border-hairline/60">
               <span class="text-[10px] text-slate block uppercase">Floor Level</span>
               <strong class="text-base text-ink font-bold">Floor {{ rental.floor_num or rental.floor or 'G' }}</strong>
+              <span class="text-[10px] text-slate block font-medium">{% if rental.lift %}With Lift{% else %}Walk-up{% endif %}</span>
             </div>
           </div>
         </div>

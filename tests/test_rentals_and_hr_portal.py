@@ -41,6 +41,8 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Source: <strong>iBay Maldives</strong>", res.text)
         self.assertIn("View on iBay Maldives", res.text)
         self.assertIn("Also listed at MVR 23,500 on Boahiyaa", res.text)
+        self.assertIn("Attached", res.text)
+        self.assertIn("sqft", res.text)
 
     def test_rentals_filter_by_location_and_bedrooms(self):
         res = client.get("/rentals?location=Hulhumale+Phase+1&bedrooms=2")
