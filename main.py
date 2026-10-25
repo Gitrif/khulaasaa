@@ -139,6 +139,7 @@ from routers.api_jobs import router as api_jobs_router
 from routers.api_news import router as api_news_router
 from routers.api_rfq import router as api_rfq_router
 from routers.web_ui import router as web_ui_router
+from routers.web_rentals import router as web_rentals_router
 from routers.webhooks import router as webhooks_router
 
 
@@ -198,6 +199,7 @@ def healthz():
 
 # Mount domain presentation routers
 app.include_router(web_ui_router)
+app.include_router(web_rentals_router)
 app.include_router(api_news_router)
 app.include_router(api_rfq_router)
 app.include_router(api_jobs_router)

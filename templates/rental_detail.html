@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <!-- Back Link & Breadcrumbs -->
+  <div class="mb-4 flex items-center justify-between text-xs text-slate">
+    <a href="/rentals" class="hover:text-ink font-semibold flex items-center gap-1">
+      <span>&larr;</span> Back to All Rentals
+    </a>
+    <span class="text-slate-400">ID #{{ rental.id }} &middot; Consolidated Listing</span>
+  </div>
+
+  <div class="bg-white border border-hairline rounded-lg shadow-xs overflow-hidden">
+    <!-- Header Hero -->
+    <div class="p-6 border-b border-hairline bg-paper-soft/40">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+          {{ rental.location }} ({{ rental.district }})
+        </span>
+        <span class="px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+          {{ rental.furnished }}
+        </span>
+        {% if rental.lift %}
+        <span class="px-2.5 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-800 border border-sky-200">
+          Lift Available (Floor {{ rental.floor or 'N/A' }})
+        </span>
+        {% else %}
+        <span class="px-2.5 py-0.5 rounded text-xs font-medium bg-slate-50 text-slate-600 border border-slate-200">
+          Floor {{ rental.floor or 'N/A' }}
+        </span>
+        {% endif %}
+      </div>
+
+      <h1 class="text-2xl font-bold text-ink mb-2">{{ rental.title }}</h1>
+      <p class="text-sm text-slate font-medium">{{ rental.address }}, {{ rental.district }}, {{ rental.location }}</p>
+
+      <div class="mt-4 flex flex-wrap items-baseline gap-6 pt-4 border-t border-hairline">
+        <div>
+          <span class="text-xs text-slate uppercase tracking-wider font-semibold block">Monthly Rent</span>
+          <span class="text-2xl font-bold text-ink">MVR {{ "{:,.0f}".format(rental.rent_mvr) }}</span>
+          <span class="text-xs text-slate"> / month</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate uppercase tracking-wider font-semibold block">Security Deposit</span>
+          <span class="text-lg font-bold text-slate-700">MVR {{ "{:,.0f}".format(rental.deposit_mvr) }}</span>
+        </div>
+        <div>
+          <span class="text-xs text-slate uppercase tracking-wider font-semibold block">Available From</span>
+          <span class="text-sm font-semibold text-slate-800">{{ rental.available_date or 'Immediate' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Listing Details & Contacts -->
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Left 2 Cols: Description & Amenities -->
+      <div class="md:col-span-2 space-y-6">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate mb-2">Key Specifications</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-paper-soft/40 p-3.5 rounded border border-hairline text-center">
+            <div>
+              <span class="text-xs text-slate block">Bedrooms</span>
+              <strong class="text-base text-ink font-bold">{{ rental.bedrooms }} BHK</strong>
+            </div>
+            <div>
+              <span class="text-xs text-slate block">Bathrooms</span>
+              <strong class="text-base text-ink font-bold">{{ rental.bathrooms }} Attached</strong>
+            </div>
+            <div>
+              <span class="text-xs text-slate block">Floor Level</span>
+              <strong class="text-base text-ink font-bold">Floor {{ rental.floor or 'G' }}</strong>
+            </div>
+            <div>
+              <span class="text-xs text-slate block">Furnishing</span>
+              <strong class="text-base text-ink font-bold">{{ rental.furnished }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate mb-2">Property Description</h2>
+          <div class="text-sm text-slate-700 leading-relaxed space-y-2">
+            <p>{{ rental.description or 'No full description provided by source.' }}</p>
+          </div>
+        </div>
+
+        {% if rental.amenities %}
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate mb-2">Features &amp; Amenities</h2>
+          <div class="flex flex-wrap gap-1.5">
+            {% for am in rental.amenities.split(',') %}
+            <span class="px-2.5 py-1 bg-paper-soft border border-hairline rounded text-xs text-ink font-medium">
+              {{ am.strip() }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Legal Consolidation Disclaimer -->
+        <div class="p-3.5 bg-paper-soft/50 border border-hairline rounded text-xs text-slate-600">
+          <strong class="text-ink font-semibold">Khulaasaa Consolidation Notice:</strong>
+          This listing is aggregated from public Maldivian property channels for discovery convenience. Contact details and listing parameters are presented as published by the original source.
+        </div>
+      </div>
+
+      <!-- Right Col: Landlord Contact & Contract CTA -->
+      <div class="space-y-4">
+        <!-- Direct Contact Card -->
+        <div class="p-4 bg-paper-soft/60 border border-hairline rounded-lg space-y-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-ink border-b border-hairline pb-2">
+            Direct Contact Details
+          </h2>
+          <div>
+            <span class="text-xs text-slate block">Landlord / Lister</span>
+            <span class="text-sm font-bold text-ink">{{ rental.contact_name or 'Direct Lister' }}</span>
+          </div>
+
+          {% if rental.contact_phone %}
+          <div>
+            <span class="text-xs text-slate block">Phone Number</span>
+            <a href="tel:{{ rental.contact_phone }}" class="text-base font-bold text-lagoon hover:underline font-mono">
+              {{ rental.contact_phone }}
+            </a>
+          </div>
+
+          <div class="pt-2">
+            <a href="https://wa.me/{{ rental.contact_phone|replace(' ', '')|replace('+', '') }}?text=Hello,%20I%20am%20inquiring%20about%20the%20apartment%20listing%20{{ rental.title|urlencode }}%20listed%20on%20Khulaasaa." target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-semibold shadow-xs transition">
+              <span>Message on WhatsApp</span>
+            </a>
+          </div>
+          {% endif %}
+
+          {% if rental.contact_email %}
+          <div class="pt-1">
+            <span class="text-xs text-slate block">Email</span>
+            <a href="mailto:{{ rental.contact_email }}" class="text-xs text-lagoon hover:underline">
+              {{ rental.contact_email }}
+            </a>
+          </div>
+          {% endif %}
+
+          <div class="pt-2 border-t border-hairline text-xs text-slate">
+            <span class="block text-[11px] text-slate-500">Source Attribution:</span>
+            {% if rental.source_url %}
+            <a href="{{ rental.source_url }}" target="_blank" rel="noopener" class="text-xs text-lagoon hover:underline font-medium">
+              {{ rental.source_name or 'Original Source' }} &rarr;
+            </a>
+            {% else %}
+            <span class="font-medium text-slate-700">{{ rental.source_name or 'Direct Listing' }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Hooks85 Tenancy Suite CTA -->
+        <div class="p-4 bg-lagoon/5 border border-lagoon/20 rounded-lg space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-lagoon">Hooks85 Tenancy Suite</span>
+            <span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-800 font-bold rounded">PRO</span>
+          </div>
+          <h3 class="text-xs font-bold text-ink">Draft Legal Tenancy Agreement</h3>
+          <p class="text-[11px] text-slate leading-relaxed">
+            Auto-fill a court-admissible Maldivian Residential Tenancy Lease &amp; monthly rent ledger for this property.
+          </p>
+          <a href="/rentals/{{ rental.id }}/contract" class="w-full block text-center px-3 py-2 bg-lagoon hover:bg-lagoon-deep text-white rounded text-xs font-semibold shadow-xs transition">
+            Open Lease Agreement Suite &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

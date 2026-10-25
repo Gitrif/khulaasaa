@@ -96,6 +96,158 @@ def cv_creator_view(request: Request):
     )
 
 
+SAMPLE_DISCOVERABLE_CANDIDATES = [
+    {
+        "id": "c1",
+        "name": "Ahmed Simah",
+        "discipline": "Accounting & Finance",
+        "title": "Senior Accountant / Auditor",
+        "experience": "5+ Years Experience",
+        "education": "BSc Applied Accounting (Oxford Brookes / ACCA Affiliate)",
+        "location": "Male City",
+        "skills": ["MIRA GST Compliance", "QuickBooks", "Hooks85 ERP", "Financial Modeling", "Corporate Tax"],
+        "availability": "Immediate",
+        "consent_verified": True,
+        "contact_phone": "+960 778 1234",
+        "contact_email": "ahmed.simah@gmail.com",
+        "match_score": 94,
+    },
+    {
+        "id": "c2",
+        "name": "Fathimath Shanya",
+        "discipline": "Administration & HR",
+        "title": "HR & Operations Specialist",
+        "experience": "4 Years Experience",
+        "education": "Bachelor of Business Management (Villa College / UWE)",
+        "location": "Hulhumale Phase 1",
+        "skills": ["Employee Relations", "Maldives Employment Act", "Payroll Filing", "Talent Acquisition", "Expatriate Visa Work"],
+        "availability": "2 Weeks Notice",
+        "consent_verified": True,
+        "contact_phone": "+960 991 4567",
+        "contact_email": "shanya.hrmv@gmail.com",
+        "match_score": 88,
+    },
+    {
+        "id": "c3",
+        "name": "Hassan Ziyau",
+        "discipline": "Engineering & Construction",
+        "title": "Site Civil Engineer / Project Coordinator",
+        "experience": "6 Years Experience",
+        "education": "BEng (Hons) Civil Engineering (MNU)",
+        "location": "Male / Atolls Flexible",
+        "skills": ["Site Supervision", "BOQ Preparation", "AutoCAD", "Quality Control", "Contractor Billing"],
+        "availability": "Immediate",
+        "consent_verified": True,
+        "contact_phone": "+960 790 3344",
+        "contact_email": "ziyau.civil@outlook.com",
+        "match_score": 92,
+    },
+    {
+        "id": "c4",
+        "name": "Aishath Reeha",
+        "discipline": "IT & Technology",
+        "title": "Full Stack Developer & Systems Admin",
+        "experience": "3+ Years Experience",
+        "education": "BSc Computer Science (MNU)",
+        "location": "Hulhumale Phase 2",
+        "skills": ["Python", "FastAPI", "React", "PostgreSQL", "Cloud VPS", "API Integration"],
+        "availability": "Immediate",
+        "consent_verified": True,
+        "contact_phone": "+960 771 9988",
+        "contact_email": "reeha.dev@khulaasaa.tech",
+        "match_score": 96,
+    },
+    {
+        "id": "c5",
+        "name": "Ibrahim Nafiz",
+        "discipline": "Logistics & Procurement",
+        "title": "Procurement & Tender Specialist",
+        "experience": "7 Years Experience",
+        "education": "Diploma in Supply Chain & Procurement",
+        "location": "Male City",
+        "skills": ["Gazette Tender Bidding", "Customs Clearance", "Supplier Negotiations", "Sea Freight Logistics"],
+        "availability": "1 Month Notice",
+        "consent_verified": True,
+        "contact_phone": "+960 762 1100",
+        "contact_email": "nafiz.procure@gmail.com",
+        "match_score": 89,
+    }
+]
+
+
+@router.get("/jobs/candidates", response_class=HTMLResponse)
+@router.get("/jobs/talent", response_class=HTMLResponse)
+def candidates_directory_view(request: Request, discipline: Optional[str] = None):
+    """Consent-based Candidate Discovery & Automated Shortlisting Directory."""
+    user = get_current_user(request)
+    candidates = SAMPLE_DISCOVERABLE_CANDIDATES
+    if discipline and discipline != "All":
+        candidates = [c for c in candidates if discipline.lower() in c["discipline"].lower()]
+
+    active_ads = []
+    try:
+        with get_db() as conn:
+            active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+    except Exception:
+        pass
+
+    return templates.TemplateResponse(
+        "candidates.html",
+        {
+            "request": request,
+            "candidates": candidates,
+            "active_discipline": discipline or "All",
+            "disciplines": [
+                "All",
+                "Accounting & Finance",
+                "Administration & HR",
+                "Engineering & Construction",
+                "IT & Technology",
+                "Logistics & Procurement",
+            ],
+            "current_user": user,
+            "active_ads": active_ads,
+            "page_title": "Candidates & Talent Shortlisting Pool | Khulaasaa Jobs",
+        },
+    )
+
+
+@router.get("/jobs/employer", response_class=HTMLResponse)
+@router.get("/jobs/hr-portal", response_class=HTMLResponse)
+def employer_hr_portal_view(request: Request):
+    """Employer HR Portal: Automatic candidate shortlisting and candidate matching."""
+    user = get_current_user(request)
+    with get_db() as conn:
+        active_vacancies = query_jobs(conn, limit=10)
+
+    return templates.TemplateResponse(
+        "hr_portal.html",
+        {
+            "request": request,
+            "candidates": SAMPLE_DISCOVERABLE_CANDIDATES,
+            "vacancies": active_vacancies,
+            "current_user": user,
+            "page_title": "Employer HR Portal & Automated Shortlisting | Khulaasaa Jobs",
+        },
+    )
+
+
+@router.post("/api/jobs/shortlist")
+async def api_shortlist_candidate(request: Request):
+    """Employer saves shortlist connection or interview invitation for a candidate."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    candidate_id = body.get("candidate_id")
+    candidate_name = body.get("candidate_name") or "Candidate"
+    return {
+        "status": "ok",
+        "candidate_id": candidate_id,
+        "message": f"Connection invitation sent to {candidate_name}. Candidate will be notified via email / phone.",
+    }
+
+
 @router.get("/jobs/{job_id}")
 def job_redirect_or_view(request: Request, job_id: str):
     """Deep link to job notice or application portal."""

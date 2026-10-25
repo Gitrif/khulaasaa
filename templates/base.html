@@ -273,7 +273,8 @@
         <nav class="flex items-center gap-1.5 text-xs font-semibold" aria-label="Main Navigation">
           <a href="/" class="nav-tab {{ 'active' if request.url.path == '/' else '' }}">News</a>
           <a href="/bids" class="nav-tab {{ 'active' if request.url.path.startswith('/bids') else '' }}">Tenders</a>
-          <a href="/jobs" class="nav-tab {{ 'active' if request.url.path == '/jobs' else '' }}">Jobs</a>
+          <a href="/jobs" class="nav-tab {{ 'active' if request.url.path.startswith('/jobs') else '' }}">Jobs</a>
+          <a href="/rentals" class="nav-tab {{ 'active' if request.url.path.startswith('/rentals') else '' }}">Rentals</a>
         </nav>
       </div>
     </div>
@@ -293,10 +294,10 @@
         <div class="flex items-center gap-2.5">
           <span class="font-serif-display font-bold text-lg text-ink tracking-tight">Khulaasaa</span>
           <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink text-white">MV</span>
-          <span class="text-xs text-slate ml-2 hidden sm:inline">Independent Maldivian News, Gazette Procurement &amp; Employment Intelligence</span>
+          <span class="text-xs text-slate ml-2 hidden sm:inline">Consolidated Maldivian News, Gazette Procurement, Careers &amp; Apartment Rentals</span>
         </div>
         <div class="text-[11px] text-slate-500">
-          <span>Republic of Maldives</span> &middot; <span>Act No. 23/2010 Fair Dealing</span>
+          <span>Ad-Supported Public Consolidator</span> &middot; <span>Hooks85 Subscription Features</span> &middot; <span>Act No. 23/2010 Fair Dealing</span>
         </div>
       </div>
 
@@ -309,6 +310,8 @@
             <li><a href="/">Live News Wire (All Outlets)</a></li>
             <li><a href="/bids">Government Gazette Tenders</a></li>
             <li><a href="/jobs">Careers &amp; Civil Service Vacancies</a></li>
+            <li><a href="/rentals">Apartments &amp; Rentals Directory</a></li>
+            <li><a href="/jobs/candidates">Candidate Talent Discovery</a></li>
             <li><a href="/jobs/cv">Free Maldivian CV Builder</a></li>
             <li><a href="/feed.xml">
               <svg class="w-3.5 h-3.5 text-amber-600 fill-current shrink-0" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
@@ -322,6 +325,8 @@
           <h4 class="footer-col-title">Business &amp; Advertising</h4>
           <ul class="footer-links-list">
             <li><a href="/advertise" style="color:var(--ink); font-weight:600;">Advertise with Us</a></li>
+            <li><a href="/rentals/contract">Tenancy Agreement &amp; Rent Ledger</a></li>
+            <li><a href="/jobs/hr-portal">Employer HR &amp; Shortlisting Portal</a></li>
             <li><a href="/advertise#formats">Display Banners &amp; Native Slots</a></li>
             <li><a href="/advertise#broadcasts">Telegram &amp; Viber Broadcasts</a></li>
             <li><a href="/subscription" target="_blank" rel="noopener noreferrer">Hooks85 ERP &amp; Tender Suite &rarr;</a></li>
@@ -370,9 +375,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       <span>Tenders</span>
     </a>
-    <a href="/jobs" class="mobile-nav-item {{ 'active' if request.url.path == '/jobs' else '' }}">
+    <a href="/jobs" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/jobs') else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
       <span>Jobs</span>
+    </a>
+    <a href="/rentals" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/rentals') else '' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span>Rentals</span>
     </a>
     <button type="button" onclick="openGlobalAlertsModal('viber')" class="mobile-nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>

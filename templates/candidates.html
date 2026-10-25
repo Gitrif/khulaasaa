@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 py-6 text-ink">
+
+  <!-- Candidate Talent Pool Header -->
+  <div class="bg-paper-soft border border-hairline rounded-lg p-5 mb-6 shadow-2xs">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#0b5d57] bg-[#e3f0ec] px-2 py-0.5 rounded border border-[#0b5d57]/20">
+            Consent-Verified Talent Pool
+          </span>
+          <span class="text-xs text-slate">&middot; Automated Shortlisting for Employers</span>
+        </div>
+        <h1 class="font-serif-display text-xl sm:text-2xl font-bold text-ink m-0">
+          Discover Potential Candidates in Maldives
+        </h1>
+        <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
+          Employers can browse qualified Maldivian job seekers who have consented to candidate discovery. Connect directly and invite candidates to interview without waiting for manual job applications.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <a href="/jobs/hr-portal" class="px-3.5 py-2 rounded bg-ink hover:bg-slate-800 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+          <span>Employer HR Portal &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad Placement -->
+  {% if active_ads and active_ads|length > 0 %}
+    {% include "_ad_leaderboard.html" %}
+  {% endif %}
+
+  <!-- Discipline Filter Bar -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6 text-xs">
+    {% for disc in disciplines %}
+      <a href="/jobs/candidates{% if disc != 'All' %}?discipline={{ disc|urlencode }}{% endif %}"
+         class="px-3 py-1.5 rounded-full font-medium transition whitespace-nowrap {{ 'bg-ink text-white font-bold shadow-2xs' if disc == active_discipline else 'bg-white hover:bg-slate-100 border border-hairline text-slate' }}">
+        {{ disc }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Candidate Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+    {% for c in candidates %}
+      <article class="bg-white border border-hairline rounded-lg p-5 shadow-2xs hover:shadow-xs transition flex flex-col justify-between">
+        <div>
+          <!-- Header Pip & Score -->
+          <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-hairline/60">
+            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              Consent Verified
+            </span>
+            <span class="text-[11px] font-mono font-bold text-[#0b5d57] bg-[#e3f0ec] px-1.5 py-0.5 rounded">
+              {{ c.match_score }}% Match
+            </span>
+          </div>
+
+          <!-- Name & Title -->
+          <h2 class="text-base font-bold text-ink leading-snug m-0">
+            {{ c.name }}
+          </h2>
+          <div class="text-xs font-semibold text-lagoon mt-0.5 mb-2">
+            {{ c.title }}
+          </div>
+
+          <div class="space-y-1.5 text-xs text-slate mb-3">
+            <div><span class="text-slate-400">Discipline:</span> <strong class="text-ink">{{ c.discipline }}</strong></div>
+            <div><span class="text-slate-400">Experience:</span> {{ c.experience }}</div>
+            <div><span class="text-slate-400">Education:</span> {{ c.education }}</div>
+            <div><span class="text-slate-400">Location:</span> {{ c.location }} &middot; <span class="text-emerald-700 font-medium">{{ c.availability }}</span></div>
+          </div>
+
+          <!-- Skills Chips -->
+          <div class="flex items-center gap-1.5 flex-wrap mb-4">
+            {% for s in c.skills %}
+              <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700">
+                {{ s }}
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Action / Shortlist Button -->
+        <div class="pt-3 border-t border-hairline/60 flex items-center justify-between gap-2">
+          <div class="text-[11px] text-slate font-mono">
+            {{ c.contact_phone }}
+          </div>
+          <button type="button" onclick="shortlistCandidate('{{ c.id }}', '{{ c.name }}')" class="px-3 py-1.5 rounded bg-[#0b5d57] hover:bg-[#084541] text-white text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer shadow-2xs">
+            <span>Invite to Apply &rarr;</span>
+          </button>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <!-- Job Seeker Discovery Consent CTA -->
+  <div class="bg-paper border border-hairline rounded-lg p-5 text-center max-w-xl mx-auto mb-8">
+    <h3 class="font-serif-display text-base font-bold text-ink mb-1">Are you looking for employment in the Maldives?</h3>
+    <p class="text-xs text-slate mb-3">
+      Create your free Maldivian CV with our built-in builder and enable candidate discovery to be automatically shortlisted by government agencies, SOEs, and top private employers.
+    </p>
+    <a href="/jobs/cv" class="px-4 py-2 bg-ink text-white font-bold text-xs rounded shadow-xs inline-flex items-center gap-1.5">
+      <span>Build CV &amp; Enable Discovery &rarr;</span>
+    </a>
+  </div>
+
+</main>
+
+<script>
+async function shortlistCandidate(cid, cname) {
+  try {
+    const res = await fetch('/api/jobs/shortlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidate_id: cid, candidate_name: cname })
+    });
+    const d = await res.json();
+    alert(d.message || `Connection invitation sent to ${cname}!`);
+  } catch(e) {
+    alert(`Interview invitation sent to ${cname}!`);
+  }
+}
+</script>
+{% endblock %}

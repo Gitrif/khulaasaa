@@ -327,6 +327,14 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception:
             pass
 
+        # Initialize rentals schema and seed initial apartment listings
+        try:
+            from data.rentals import init_rentals_schema, seed_initial_rentals
+            init_rentals_schema(conn)
+            seed_initial_rentals(conn)
+        except Exception:
+            pass
+
 
 
 # ---------------------------------------------------------------------

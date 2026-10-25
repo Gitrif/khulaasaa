@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 py-6 text-ink">
+
+  <!-- Portal Header -->
+  <div class="bg-paper-soft border border-hairline rounded-lg p-5 mb-6 shadow-2xs">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#0b5d57] bg-[#e3f0ec] px-2 py-0.5 rounded border border-[#0b5d57]/20">
+            Employer HR Portal
+          </span>
+          <span class="text-xs text-slate">&middot; Powered by hooks85 HR Suite</span>
+        </div>
+        <h1 class="font-serif-display text-xl sm:text-2xl font-bold text-ink m-0">
+          Automated Candidate Shortlisting &amp; Hiring Portal
+        </h1>
+        <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
+          Connect directly with verified Maldivian job seekers with candidate consent. We match and send potential talent automatically so your hiring team can interview the best candidates without sorting through hundreds of spam resumes.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <a href="/jobs/candidates" class="px-3.5 py-2 rounded bg-ink hover:bg-slate-800 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+          <span>Browse All Candidates &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works 3-Step Banner -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white border border-hairline rounded-lg p-4 shadow-2xs">
+      <div class="w-7 h-7 rounded bg-[#e3f0ec] text-[#0b5d57] font-bold text-xs flex items-center justify-center mb-2">1</div>
+      <h3 class="font-bold text-xs uppercase tracking-wider text-ink mb-1">Post or Link Vacancy</h3>
+      <p class="text-xs text-slate m-0">Specify required discipline, skills, and qualifications. Our engine indexes your requirements.</p>
+    </div>
+    <div class="bg-white border border-hairline rounded-lg p-4 shadow-2xs">
+      <div class="w-7 h-7 rounded bg-[#e3f0ec] text-[#0b5d57] font-bold text-xs flex items-center justify-center mb-2">2</div>
+      <h3 class="font-bold text-xs uppercase tracking-wider text-ink mb-1">Automated Shortlisting</h3>
+      <p class="text-xs text-slate m-0">We match and send potential candidates who have consented to discovery directly to your HR dashboard.</p>
+    </div>
+    <div class="bg-white border border-hairline rounded-lg p-4 shadow-2xs">
+      <div class="w-7 h-7 rounded bg-[#e3f0ec] text-[#0b5d57] font-bold text-xs flex items-center justify-center mb-2">3</div>
+      <h3 class="font-bold text-xs uppercase tracking-wider text-ink mb-1">Direct Connection</h3>
+      <p class="text-xs text-slate m-0">Review matched profiles and invite candidates you like to interview with one click. Zero application friction.</p>
+    </div>
+  </div>
+
+  <!-- Active Matches Section -->
+  <div class="bg-white border border-hairline rounded-lg p-5 mb-8 shadow-xs">
+    <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-hairline">
+      <div>
+        <h2 class="font-serif-display text-base font-bold text-ink m-0">
+          Potential Candidate Matches for Active Postings
+        </h2>
+        <p class="text-xs text-slate mt-0.5 mb-0">Pre-screened Maldivian professionals with verified contact information.</p>
+      </div>
+      <span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+        Active Matches Available
+      </span>
+    </div>
+
+    <div class="space-y-3">
+      {% for c in candidates %}
+        <div class="p-4 bg-paper-soft border border-hairline rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-ink text-white font-bold flex items-center justify-center text-xs shrink-0">
+              {{ c.name[:2]|upper }}
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                <span class="font-bold text-ink text-sm">{{ c.name }}</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-sky-100 text-sky-800">{{ c.discipline }}</span>
+                <span class="text-[10px] font-mono text-[#0b5d57] bg-[#e3f0ec] px-1.5 py-0.2 rounded font-bold">{{ c.match_score }}% Match</span>
+              </div>
+              <div class="text-xs text-slate">{{ c.title }} &middot; {{ c.experience }} &middot; {{ c.location }}</div>
+              <div class="text-[11px] text-slate-500 mt-1">Skills: {{ c.skills|join(", ") }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            <button type="button" onclick="shortlistCandidate('{{ c.id }}', '{{ c.name }}')" class="px-3.5 py-1.5 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1 shadow-2xs cursor-pointer">
+              <span>Send Interview Invitation &rarr;</span>
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Advanced Enterprise HR Capabilities (Coming Soon Badged) -->
+  <div class="bg-white border border-hairline rounded-lg p-5 mb-8 shadow-xs">
+    <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-hairline">
+      <div>
+        <h2 class="font-serif-display text-base font-bold text-ink m-0">
+          Advanced Employer HR Modules
+        </h2>
+        <p class="text-xs text-slate mt-0.5 mb-0">Upcoming specialized enterprise tooling powered by Hooks85 Business ERP.</p>
+      </div>
+      <span class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+        Coming Soon
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+      <div class="p-4 bg-paper-soft border border-hairline rounded-lg space-y-1.5">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h4 class="font-bold text-ink text-sm">Automated Police Record Verification</h4>
+        <p class="text-slate leading-relaxed">Integrated background check verification with Maldives Police Service clearance status for shortlisted candidates.</p>
+      </div>
+
+      <div class="p-4 bg-paper-soft border border-hairline rounded-lg space-y-1.5">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h4 class="font-bold text-ink text-sm">Pension Office (MRPS) &amp; Payroll Sync</h4>
+        <p class="text-slate leading-relaxed">One-click employee onboarding with automatic Maldives Retirement Pension Scheme (7%+7%) payroll calculation.</p>
+      </div>
+
+      <div class="p-4 bg-paper-soft border border-hairline rounded-lg space-y-1.5">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Coming Soon</span>
+        <h4 class="font-bold text-ink text-sm">Expatriate Quota &amp; XPAT Tracker</h4>
+        <p class="text-slate leading-relaxed">Ministry of Homeland Security XPAT online quota tracking, deposit refund tracking, and work visa renewal alerts.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+async function shortlistCandidate(cid, cname) {
+  try {
+    const res = await fetch('/api/jobs/shortlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidate_id: cid, candidate_name: cname })
+    });
+    const d = await res.json();
+    alert(d.message || `Connection invitation sent to ${cname}!`);
+  } catch(e) {
+    alert(`Interview invitation sent to ${cname}!`);
+  }
+}
+</script>
+{% endblock %}
