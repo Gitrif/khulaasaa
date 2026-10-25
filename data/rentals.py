@@ -62,6 +62,12 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
             source_name TEXT NOT NULL,
             source_url TEXT,
             secondary_sources TEXT,
+            secondary_rent_mvr INTEGER,
+            secondary_rent_source TEXT,
+            is_direct INTEGER DEFAULT 0,
+            photo_count INTEGER DEFAULT 8,
+            image_url TEXT,
+            parking_type TEXT DEFAULT '1x Motorbike Parking Included',
             contact_name TEXT,
             contact_phone TEXT,
             contact_email TEXT,
@@ -84,7 +90,10 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
         ("is_serviced", "INTEGER DEFAULT 0"), ("garbage_management", "TEXT DEFAULT 'WAMCO Included'"),
         ("maintenance_terms", "TEXT"), ("advance_months", "INTEGER DEFAULT 0"),
         ("late_fine_mvr_per_day", "INTEGER DEFAULT 100"), ("secondary_sources", "TEXT"),
-        ("contact_whatsapp", "TEXT"), ("building_facilities", "TEXT"), ("is_leased", "INTEGER DEFAULT 0")
+        ("contact_whatsapp", "TEXT"), ("building_facilities", "TEXT"), ("is_leased", "INTEGER DEFAULT 0"),
+        ("is_direct", "INTEGER DEFAULT 0"), ("secondary_rent_mvr", "INTEGER"),
+        ("secondary_rent_source", "TEXT"), ("photo_count", "INTEGER DEFAULT 8"),
+        ("image_url", "TEXT"), ("parking_type", "TEXT DEFAULT '1x Motorbike Parking Included'")
     ]
     for c, ctype in cols_to_check:
         _ensure_column(conn, "rentals", c, ctype)

@@ -1,0 +1,206 @@
+{# Maldivian Consolidated Apartment Card Component #}
+{# Matches reference layout strictly under 500 lines. Zero emojis. #}
+<article class="bg-white border border-hairline rounded-lg overflow-hidden shadow-2xs hover:shadow-xs transition flex flex-col justify-between">
+  <div>
+    <!-- Top Image Container with Floating Badges -->
+    <div class="relative w-full h-48 sm:h-52 bg-slate-100 overflow-hidden">
+      {% if r.image_url %}
+        <img src="{{ r.image_url }}" alt="{{ r.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center bg-paper-soft text-slate-400">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+        </div>
+      {% endif %}
+
+      <!-- Top-Left Badges -->
+      <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap z-10">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#0b5d57] text-white shadow-xs">
+          {{ r.location }}
+        </span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/95 text-slate-800 shadow-xs border border-white/60">
+          {{ r.furnished }}
+        </span>
+        {% if r.lift %}
+          <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-600 text-white shadow-xs flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m9 10 3-3 3 3M9 14l3 3 3-3"/></svg>
+            <span>Lift</span>
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Top-Right Bookmark Heart -->
+      <button type="button" onclick="this.classList.toggle('text-rose-600'); this.classList.toggle('text-slate-600');" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-600 flex items-center justify-center shadow-xs transition z-10 cursor-pointer" title="Save listing">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+
+      <!-- Bottom-Right Photo Count -->
+      <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-mono font-medium flex items-center gap-1 backdrop-blur-xs z-10">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><circle cx="12" cy="13.5" r="3.25"/></svg>
+        <span>1/{{ r.photo_count or 8 }}</span>
+      </div>
+    </div>
+
+    <!-- Details Body -->
+    <div class="p-4 sm:p-5">
+      <!-- Title & Location -->
+      <h2 class="text-base font-bold text-ink leading-snug mb-1">
+        <a href="/rentals/{{ r.id }}" class="hover:text-lagoon transition">{{ r.title }}</a>
+      </h2>
+      <p class="text-xs text-slate mb-3">
+        <span class="font-semibold text-ink">{{ r.plot_building or r.address }}</span> &middot; {{ r.district or r.location }} &middot; <span class="font-medium text-slate-700">{{ r.floor }}</span>{% if r.building_total_floors and r.building_total_floors > 1 %} ({{ r.building_total_floors }} Floors){% endif %}
+      </p>
+
+      <!-- Specifications Grid (Booking / Agoda Style) -->
+      <div class="grid grid-cols-4 gap-2 p-2.5 bg-paper-soft rounded border border-hairline mb-3 text-xs text-center">
+        <div>
+          <span class="text-[10px] text-slate uppercase tracking-wider block">Bedrooms</span>
+          <div class="font-bold text-ink flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 17h20M2 13h20M4 9v8M20 9v8M4 11h16"/></svg>
+            <span>{{ r.bedrooms }} BHK</span>
+          </div>
+        </div>
+        <div class="border-l border-hairline/80">
+          <span class="text-[10px] text-slate uppercase tracking-wider block">Bathroom</span>
+          <div class="font-bold text-ink flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6M4 12h16M10 4h4v3a4 4 0 0 1-4 4"/></svg>
+            <span>{{ r.attached_toilets or r.bathrooms or 1 }} Att</span>
+          </div>
+        </div>
+        <div class="border-l border-hairline/80">
+          <span class="text-[10px] text-slate uppercase tracking-wider block">Toilets</span>
+          <strong class="text-ink font-mono">{{ r.total_toilets or r.bathrooms or 1 }} Total</strong>
+        </div>
+        <div class="border-l border-hairline/80">
+          <span class="text-[10px] text-slate uppercase tracking-wider block">Floor Area</span>
+          <strong class="text-ink font-mono">{% if r.sqft_size %}{{ r.sqft_size }} sqft{% else %}Standard{% endif %}</strong>
+        </div>
+      </div>
+
+      <!-- Description Excerpt -->
+      <p class="text-xs text-slate-700 leading-relaxed mb-3 line-clamp-2">
+        {{ r.description }}
+      </p>
+
+      <!-- Section 1: Apartment Layout & Climate -->
+      <div class="mb-2 text-xs">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate block mb-1">Apartment Layout &amp; Climate</span>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-800 font-medium border border-slate-200">
+            &check; {{ r.kitchen_type or 'Separate Kitchen' }}
+          </span>
+          <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-800 font-medium border border-slate-200">
+            &check; {{ r.living_dining_type or 'Sitting & Dining Area' }}
+          </span>
+          {% if r.water_heaters_count and r.water_heaters_count > 0 %}
+            <span class="px-2 py-0.5 rounded text-[10px] bg-sky-50 text-sky-800 font-medium border border-sky-100">
+              &check; {{ r.water_heaters_count }} Water Heater{% if r.water_heaters_count > 1 %}s{% endif %}
+            </span>
+          {% endif %}
+          {% if r.ac_details and r.ac_details != 'None' %}
+            <span class="px-2 py-0.5 rounded text-[10px] bg-sky-50 text-sky-800 font-medium border border-sky-100">
+              &check; AC Installed
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Section 2: Building Facilities & Services -->
+      <div class="mb-3 text-xs">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate block mb-1">Building Facilities &amp; Services</span>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          {% if r.lift %}
+            <span class="px-2 py-0.5 rounded text-[10px] bg-paper-soft text-slate-700 border border-hairline">
+              &check; Elevator / Lift
+            </span>
+          {% endif %}
+          <span class="px-2 py-0.5 rounded text-[10px] bg-paper-soft text-slate-700 border border-hairline">
+            &check; {{ r.garbage_management or 'WAMCO Included' }}
+          </span>
+          {% if r.parking_type %}
+            <span class="px-2 py-0.5 rounded text-[10px] bg-paper-soft text-slate-700 border border-hairline">
+              &check; {{ r.parking_type }}
+            </span>
+          {% endif %}
+          {% if r.building_facilities_list and r.building_facilities_list|length > 0 %}
+            {% for b in r.building_facilities_list %}
+              {% if b not in ['Elevator / Lift', r.garbage_management, r.parking_type] and loop.index <= 4 %}
+                <span class="px-2 py-0.5 rounded text-[10px] bg-paper-soft text-slate-700 border border-hairline">
+                  &check; {{ b }}
+                </span>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Pricing & Source Attribution Section -->
+  <div class="p-4 sm:p-5 pt-3 border-t border-hairline/80 bg-paper-soft/30">
+    <div class="flex items-end justify-between gap-3 mb-2.5">
+      <div>
+        <div class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          <span class="text-xl font-bold font-serif-display text-ink">
+            MVR {{ "{:,}".format(r.rent_mvr) }}
+          </span>
+          <span class="text-xs font-sans font-normal text-slate">/ month</span>
+        </div>
+        {% if r.deposit_mvr %}
+          <div class="text-[11px] text-slate mt-0.5">
+            Deposit: MVR {{ "{:,}".format(r.deposit_mvr) }}
+          </div>
+        {% endif %}
+        {% if r.secondary_rent_mvr and r.secondary_rent_source %}
+          <div class="text-[11px] text-amber-700 font-medium mt-0.5">
+            Also listed at MVR {{ "{:,}".format(r.secondary_rent_mvr) }} on {{ r.secondary_rent_source }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Primary Action CTA -->
+      <div>
+        {% if r.is_direct %}
+          <div class="flex items-center gap-1.5">
+            {% if r.contact_phone %}
+              <a href="tel:{{ r.contact_phone }}" class="px-3 py-1.5 rounded bg-white hover:bg-slate-50 border border-hairline text-xs font-semibold text-ink transition inline-flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-slate fill-current" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 4V3z"/></svg>
+                <span>Call Landlord</span>
+              </a>
+            {% endif %}
+            <a href="/rentals/contract?rental_id={{ r.id }}" class="px-3 py-1.5 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1 shadow-xs">
+              <span>Draft Tenancy Agreement &rarr;</span>
+            </a>
+          </div>
+        {% else %}
+          <a href="{{ r.source_url or '#' }}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
+            <span>View on {{ r.source_name }} &rarr;</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Bottom Attribution / Secondary Sources Strip -->
+    <div class="pt-2 border-t border-hairline/60 flex items-center justify-between text-[11px] text-slate flex-wrap gap-2">
+      <div class="flex items-center gap-1 text-slate-500">
+        <span>Source: <strong>{{ r.source_name }}</strong></span>
+        {% if r.secondary_sources_list and r.secondary_sources_list|length > 0 %}
+          <span class="text-slate-300">&middot;</span>
+          <span>Also indexed on:</span>
+          {% for s_url in r.secondary_sources_list %}
+            <a href="{{ s_url }}" target="_blank" rel="noopener noreferrer" class="text-lagoon hover:underline">
+              {{ 'Boahiyaa' if 'boahiyaa' in s_url else ('iBay' if 'ibay' in s_url else ('Property.mv' if 'property' in s_url else ('Hiyaa.mv' if 'hiyaa' in s_url else ('KobaPages' if 'kobapages' in s_url else 'Apex Atoll')))) }}
+            </a>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div>
+        {% if r.is_direct %}
+          <span class="text-emerald-700 font-semibold">Direct Owner Verified</span>
+        {% else %}
+          <span class="text-slate-400">Consolidated &middot; Contacts on original platform</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

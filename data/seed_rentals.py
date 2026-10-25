@@ -31,23 +31,29 @@ SAMPLE_RENTALS = [
         "furnished": "Fully Furnished",
         "furnished_items": json.dumps(["Bed & Mattress", "Sofa Set", "Dressing Table", "Wardrobe", "Coffee Table", "TV Rack", "Dining Table & Chairs", "Refrigerator", "Washing Machine"]),
         "is_serviced": 0,
-        "garbage_management": "WAMCO door-to-door collection included",
-        "maintenance_terms": "Lessor covers structural and lift maintenance; tenant pays minor consumables",
+        "garbage_management": "WAMCO Included",
+        "maintenance_terms": "General Maintenance Included; Lessor covers structural and lift servicing",
         "rent_mvr": 22000,
+        "secondary_rent_mvr": 23500,
+        "secondary_rent_source": "Boahiyaa",
         "deposit_mvr": 44000,
         "advance_months": 0,
         "late_fine_mvr_per_day": 100,
         "available_date": "1 November 2026",
         "source_name": "iBay Maldives",
-        "source_url": "https://ibay.com.mv/listing/apartment-hulhumale-2br-41829",
-        "secondary_sources": json.dumps(["https://boahiyaa.com/listing/lot-10423-fl4"]),
-        "contact_name": "Hussain Solih",
-        "contact_phone": "7789123",
-        "contact_whatsapp": "7789123",
-        "contact_email": "solih.rentals@gmail.com",
+        "source_url": "https://ibay.com.mv/housing-real-estate-b19.html?ref=popcat",
+        "secondary_sources": json.dumps(["https://boahiyaa.com/"]),
+        "is_direct": 0,
+        "photo_count": 8,
+        "image_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "1x Motorbike Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
         "description": "Spacious fully furnished 2-bedroom home with ACs in all rooms, complete kitchen cabinets with cooker hood, hot water heaters, and balcony. Dual elevator and CCTV installed in building.",
         "amenities": json.dumps(["Air Conditioning", "Balcony", "Lift Access", "Kitchen Cabinets", "CCTV Security", "Water Heaters"]),
-        "building_facilities": json.dumps(["Dual Elevators", "CCTV Security", "Access Control Card", "Garbage Chute", "Motorcycle Parking"]),
+        "building_facilities": json.dumps(["Elevator / Lift", "WAMCO Included", "24hr Security", "1x Motorbike Parking Included", "General Maintenance Included"]),
         "is_leased": 0
     },
     {
@@ -72,23 +78,29 @@ SAMPLE_RENTALS = [
         "furnished": "Semi-Furnished",
         "furnished_items": json.dumps(["Wardrobe", "Dressing Table", "Water Heaters", "Curtains & Blinds"]),
         "is_serviced": 0,
-        "garbage_management": "Floor garbage chute to central compactor",
+        "garbage_management": "WAMCO Included",
         "maintenance_terms": "Building management covers lifts, corridors, and exterior painting",
         "rent_mvr": 25000,
+        "secondary_rent_mvr": None,
+        "secondary_rent_source": None,
         "deposit_mvr": 25000,
         "advance_months": 1,
         "late_fine_mvr_per_day": 150,
         "available_date": "Immediate",
         "source_name": "Hiyaa.mv Residential",
         "source_url": "https://www.hiyaa.mv/search?type=residential&category=apartment",
-        "secondary_sources": json.dumps(["https://kobapages.com/listing/tower-14-1208"]),
-        "contact_name": "Mariyam Nazra",
-        "contact_phone": "9912045",
-        "contact_whatsapp": "9912045",
-        "contact_email": "nazra.properties@outlook.com",
+        "secondary_sources": json.dumps(["https://kobapages.com/neighborhood/hulhumale_phase_1/"]),
+        "is_direct": 0,
+        "photo_count": 14,
+        "image_url": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "1x Motorbike Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
         "description": "Corner unit with panoramic sea breeze and morning sunlight. Complete kitchen cupboards, 3 attached toilets, separate laundry room, and dual elevator service.",
         "amenities": json.dumps(["Sea View", "Lift Access", "Semi-Furnished", "Laundry Space", "Garbage Chute", "Fiber Internet Ready"]),
-        "building_facilities": json.dumps(["3 High-Speed Lifts", "Security Desk", "Fire Sprinkler System", "Ground Floor Supermarket"]),
+        "building_facilities": json.dumps(["Elevator / Lift", "WAMCO Included", "24hr Security", "1x Motorbike Parking Included", "General Maintenance Included"]),
         "is_leased": 0
     },
     {
@@ -116,20 +128,26 @@ SAMPLE_RENTALS = [
         "garbage_management": "WAMCO Included",
         "maintenance_terms": "Lessor covers plumbing and AC servicing; tenant pays electric/water bills",
         "rent_mvr": 24000,
+        "secondary_rent_mvr": None,
+        "secondary_rent_source": None,
         "deposit_mvr": 48000,
         "advance_months": 0,
         "late_fine_mvr_per_day": 100,
         "available_date": "Immediate",
         "source_name": "Property.mv",
         "source_url": "https://www.property.mv/",
-        "secondary_sources": json.dumps(["https://apexatoll.com/rentals/dhunfini-5a"]),
-        "contact_name": "Ahmed Latheef",
-        "contact_phone": "7901188",
-        "contact_whatsapp": "7901188",
-        "contact_email": "latheef.properties@gmail.com",
+        "secondary_sources": json.dumps(["https://apexatoll.com/"]),
+        "is_direct": 0,
+        "photo_count": 10,
+        "image_url": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "1x Motorbike Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
         "description": "Centrally located near banks, schools, and Artificial Beach. Features private balcony, acoustic double-glazed windows, and video intercom system.",
         "amenities": json.dumps(["Lift Access", "Intercom", "Balcony", "Full Inverter AC", "Granite Kitchen", "Hot Water"]),
-        "building_facilities": json.dumps(["Elevator", "Intercom System", "Motorcycle Basement", "CCTV Monitoring"]),
+        "building_facilities": json.dumps(["Elevator / Lift", "WAMCO Included", "24hr Security", "1x Motorbike Parking Included", "General Maintenance Included"]),
         "is_leased": 0
     },
     {
@@ -154,23 +172,29 @@ SAMPLE_RENTALS = [
         "furnished": "Fully Furnished",
         "furnished_items": json.dumps(["Bed & Mattress", "Sofa Set", "Dressing Table", "Wardrobe", "Coffee Table", "TV Rack", "Bookshelf", "Side Table", "Dining Table & Chairs", "Refrigerator", "Oven & Microwave", "Washing Machine"]),
         "is_serviced": 1,
-        "garbage_management": "Daily door service & WAMCO",
+        "garbage_management": "WAMCO Included",
         "maintenance_terms": "Full on-call building maintenance team included",
         "rent_mvr": 38000,
+        "secondary_rent_mvr": 40000,
+        "secondary_rent_source": "Boahiyaa",
         "deposit_mvr": 76000,
         "advance_months": 0,
         "late_fine_mvr_per_day": 200,
         "available_date": "15 November 2026",
         "source_name": "Apex Atoll Properties",
         "source_url": "https://apexatoll.com/",
-        "secondary_sources": json.dumps(["https://boahiyaa.com/listing/villa-corner-penthouse"]),
-        "contact_name": "Ibrahim Zaki",
-        "contact_phone": "7774020",
-        "contact_whatsapp": "7774020",
-        "contact_email": "zaki@coralrealestate.mv",
-        "description": "Executive penthouse with master en-suite, maid quarters with private toilet, island counter kitchen, smart door-locks, and outdoor terrace overlooking harbour.",
+        "secondary_sources": json.dumps(["https://boahiyaa.com/"]),
+        "is_direct": 0,
+        "photo_count": 12,
+        "image_url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "Car Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
+        "description": "Executive penthouse with master en-suite, maid quarters with private toilet, island counter kitchen, smart door-locks, and outdoor private terrace overlooking harbour.",
         "amenities": json.dumps(["Private Terrace", "Smart Lock", "Maid Room", "Dual Lifts", "Dishwasher", "Backup Generator", "Gym Access"]),
-        "building_facilities": json.dumps(["Dual Elevators", "Backup Generator", "Private Terrace", "Gym Access", "24/7 Security Guard"]),
+        "building_facilities": json.dumps(["Private Terrace", "Elevator / Lift", "WAMCO Included", "Public Pool", "24hr Security", "General Maintenance Included", "Car Parking Included"]),
         "is_leased": 0
     },
     {
@@ -198,6 +222,8 @@ SAMPLE_RENTALS = [
         "garbage_management": "WAMCO Included",
         "maintenance_terms": "Lessor responsible for building envelope; tenant maintains interior fixtures",
         "rent_mvr": 13500,
+        "secondary_rent_mvr": None,
+        "secondary_rent_source": None,
         "deposit_mvr": 13500,
         "advance_months": 0,
         "late_fine_mvr_per_day": 75,
@@ -205,13 +231,17 @@ SAMPLE_RENTALS = [
         "source_name": "KobaPages Maldives",
         "source_url": "https://kobapages.com/neighborhood/hulhumale_phase_1/",
         "secondary_sources": json.dumps([]),
-        "contact_name": "Aishath Shifa",
-        "contact_phone": "9998144",
-        "contact_whatsapp": "9998144",
-        "contact_email": "shifa.aishath@live.com",
+        "is_direct": 0,
+        "photo_count": 6,
+        "image_url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "1x Motorbike Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
         "description": "Affordable quiet studio apartment steps from Central Park and bus terminal. Natural cross-ventilation, hot water shower, and motorcycle parking.",
         "amenities": json.dumps(["Cross Ventilation", "Park Access", "Kitchenette", "Hot Water", "Motorcycle Parking"]),
-        "building_facilities": json.dumps(["Secure Ground Entrance", "Motorcycle Parking"]),
+        "building_facilities": json.dumps(["WAMCO Included", "1x Motorbike Parking Included", "General Maintenance Included"]),
         "is_leased": 0
     },
     {
@@ -237,33 +267,48 @@ SAMPLE_RENTALS = [
         "furnished_items": json.dumps(["Bed & Mattress", "Sofa Set", "Dressing Table", "Wardrobe", "Coffee Table", "TV Rack", "Dining Table & Chairs", "Washing Machine"]),
         "is_serviced": 0,
         "garbage_management": "WAMCO Included",
-        "maintenance_terms": "Lessor maintains AC and water pump; lessee keeps fixtures clean",
+        "maintenance_terms": "General Maintenance Included; Lessor maintains AC and water pump",
         "rent_mvr": 23000,
+        "secondary_rent_mvr": None,
+        "secondary_rent_source": None,
         "deposit_mvr": 46000,
         "advance_months": 0,
         "late_fine_mvr_per_day": 100,
         "available_date": "1 December 2026",
         "source_name": "Boahiyaa Real Estate",
         "source_url": "https://boahiyaa.com/",
-        "secondary_sources": json.dumps(["https://ibay.com.mv/listing/g-coral-haven-2br"]),
-        "contact_name": "Ali Shareef",
-        "contact_phone": "7711223",
-        "contact_whatsapp": "7711223",
-        "contact_email": "shareef.rentals@gmail.com",
+        "secondary_sources": json.dumps(["https://ibay.com.mv/housing-real-estate-b19.html?ref=popcat"]),
+        "is_direct": 0,
+        "photo_count": 9,
+        "image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+        "parking_type": "1x Motorbike Parking Included",
+        "contact_name": "",
+        "contact_phone": "",
+        "contact_whatsapp": "",
+        "contact_email": "",
         "description": "Well maintained residential apartment in quiet Galolhu lane. 2 spacious bedrooms with attached toilets, dedicated laundry area, cross-ventilation, and lift.",
         "amenities": json.dumps(["Lift Access", "Balcony", "Separate Kitchen", "Laundry Area", "Water Heaters", "Air Conditioning"]),
-        "building_facilities": json.dumps(["Elevator", "CCTV at Gate", "Doorphone Access"]),
+        "building_facilities": json.dumps(["Elevator / Lift", "WAMCO Included", "24hr Security", "1x Motorbike Parking Included", "General Maintenance Included"]),
         "is_leased": 0
     }
 ]
 
 
 def seed_initial_rentals(conn: sqlite3.Connection) -> None:
-    """Seed sample rental properties into the rentals table."""
-    count = conn.execute("SELECT COUNT(*) FROM rentals;").fetchone()[0]
-    if count >= len(SAMPLE_RENTALS):
-        conn.execute("UPDATE rentals SET address = plot_building || ', ' || road || ', ' || district || ', ' || location WHERE address IS NULL OR address = '';")
+    """Seed or refresh sample rental properties into the rentals table."""
+    try:
+        cur = conn.execute("SELECT COUNT(*) FROM rentals WHERE is_direct = 0 AND (contact_name != '' OR image_url IS NULL);")
+        legacy_count = cur.fetchone()[0]
+    except Exception:
+        legacy_count = 0
+
+    total_count = conn.execute("SELECT COUNT(*) FROM rentals;").fetchone()[0]
+
+    if total_count >= len(SAMPLE_RENTALS) and legacy_count == 0:
         return
+
+    # Delete legacy dummy-seeded aggregated listings
+    conn.execute("DELETE FROM rentals WHERE is_direct = 0;")
 
     for item in SAMPLE_RENTALS:
         conn.execute(
@@ -273,12 +318,13 @@ def seed_initial_rentals(conn: sqlite3.Connection) -> None:
                 floor_num, floor, apartment_unit, bedrooms, attached_toilets, total_toilets,
                 sqft_size, lift, kitchen_type, living_dining_type, ac_details, water_heaters_count,
                 furnished, furnished_items, is_serviced, garbage_management, maintenance_terms,
-                rent_mvr, deposit_mvr, advance_months, late_fine_mvr_per_day, available_date,
-                source_name, source_url, secondary_sources, contact_name, contact_phone,
-                contact_whatsapp, contact_email, description, amenities, building_facilities,
-                is_leased, is_active
+                rent_mvr, secondary_rent_mvr, secondary_rent_source, deposit_mvr, advance_months,
+                late_fine_mvr_per_day, available_date, source_name, source_url, secondary_sources,
+                is_direct, photo_count, image_url, parking_type,
+                contact_name, contact_phone, contact_whatsapp, contact_email,
+                description, amenities, building_facilities, is_leased, is_active
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1
             );
             """,
             (
@@ -289,10 +335,13 @@ def seed_initial_rentals(conn: sqlite3.Connection) -> None:
                 item["bedrooms"], item["attached_toilets"], item["total_toilets"], item["sqft_size"],
                 item["lift"], item["kitchen_type"], item["living_dining_type"], item["ac_details"],
                 item["water_heaters_count"], item["furnished"], item["furnished_items"], item["is_serviced"],
-                item["garbage_management"], item["maintenance_terms"], item["rent_mvr"], item["deposit_mvr"],
-                item["advance_months"], item["late_fine_mvr_per_day"], item["available_date"], item["source_name"],
-                item["source_url"], item["secondary_sources"], item["contact_name"], item["contact_phone"],
-                item["contact_whatsapp"], item["contact_email"], item["description"], item["amenities"],
-                item["building_facilities"], item["is_leased"]
+                item["garbage_management"], item["maintenance_terms"], item["rent_mvr"],
+                item.get("secondary_rent_mvr"), item.get("secondary_rent_source"),
+                item["deposit_mvr"], item["advance_months"], item["late_fine_mvr_per_day"],
+                item["available_date"], item["source_name"], item["source_url"], item["secondary_sources"],
+                item.get("is_direct", 0), item.get("photo_count", 8), item.get("image_url", ""),
+                item.get("parking_type", "1x Motorbike Parking Included"),
+                item["contact_name"], item["contact_phone"], item["contact_whatsapp"], item["contact_email"],
+                item["description"], item["amenities"], item["building_facilities"], item["is_leased"]
             )
         )

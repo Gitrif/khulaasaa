@@ -1,5 +1,6 @@
 """
 News Aggregation, Enrichment, and In-Memory Caching Service.
+Strictly non-blocking for HTTP requests with stale-while-revalidate caching.
 """
 from __future__ import annotations
 
@@ -31,25 +32,44 @@ _LIVE_NEWS_IS_SYNCING: bool = False
 _LIVE_NEWS_LAST_SYNC: float = 0.0
 
 
+def init_news_cache() -> None:
+    """Pre-warm in-memory news cache from SQLite so initial HTTP requests are instantaneous."""
+    try:
+        with get_db() as conn:
+            stored = query_articles(conn, limit=100)
+            if stored:
+                clustered = cluster_articles(stored)
+                _LIVE_NEWS_CACHE["data"] = clustered
+                _LIVE_NEWS_CACHE["timestamp"] = time.time()
+    except Exception as e:
+        logger.warning("Cache pre-warm skipped: %s", e)
+
+
 def _run_news_sync() -> None:
     """Background worker to fetch live news from external outlets without blocking web traffic."""
     global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC
     try:
         articles = fetch_all_live_news()
         if articles:
+            # 1. Update in-memory cache immediately so web requests get fresh news with 0ms delay
+            _LIVE_NEWS_CACHE["data"] = articles
+            _LIVE_NEWS_CACHE["timestamp"] = time.time()
+            _LIVE_NEWS_LAST_SYNC = time.time()
+
+            # 2. Fast batch persist to DB with brief transaction
             with get_db() as conn:
                 for art in articles:
                     try:
                         upsert_article(conn, art)
                     except Exception:
                         pass
-                try:
+
+            # 3. Dispatch news alerts with isolated transaction
+            try:
+                with get_db() as conn:
                     dispatch_news_alerts(conn, articles)
-                except Exception as e:
-                    logger.warning("Failed to dispatch news alerts: %s", e)
-            _LIVE_NEWS_CACHE["data"] = articles
-            _LIVE_NEWS_CACHE["timestamp"] = time.time()
-            _LIVE_NEWS_LAST_SYNC = time.time()
+            except Exception as e:
+                logger.warning("Failed to dispatch news alerts: %s", e)
     except Exception as e:
         logger.warning("Background news sync failed: %s", e)
     finally:
@@ -66,7 +86,7 @@ def trigger_news_background_sync(force: bool = False) -> bool:
         if not force and _LIVE_NEWS_LAST_SYNC > 0 and (now - _LIVE_NEWS_LAST_SYNC < NEWS_CACHE_TTL_SECONDS):
             return False
         _LIVE_NEWS_IS_SYNCING = True
-        worker = threading.Thread(target=_run_news_sync, daemon=True)
+        worker = threading.Thread(target=_run_news_sync, daemon=True, name="NewsSyncWorker")
         worker.start()
         return True
 
@@ -127,41 +147,31 @@ def enrich_event(evt: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
-    """Fetch live news across Maldivian media outlets, persist to SQLite, and return instantly."""
+    """Fetch live news across Maldivian media outlets, return cached data instantly, sync in background."""
     now = time.time()
+
+    # Fast Path 1: Fresh in-memory cache
     if not force_refresh and _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
 
-    # Trigger background sync so external outlet scraping never blocks the HTTP request
+    # Trigger background sync asynchronously (never blocks the web request)
     trigger_news_background_sync(force=force_refresh)
 
-    # Fast path: Serve stored database articles immediately
-    with get_db() as conn:
-        try:
+    # Fast Path 2: Stale in-memory cache is served immediately while background sync refreshes
+    if _LIVE_NEWS_CACHE["data"]:
+        return _LIVE_NEWS_CACHE["data"]
+
+    # Fast Path 3: Read stored database articles from SQLite
+    try:
+        with get_db() as conn:
             stored = query_articles(conn, limit=100)
             if stored:
                 clustered = cluster_articles(stored)
                 _LIVE_NEWS_CACHE["data"] = clustered
                 _LIVE_NEWS_CACHE["timestamp"] = now
                 return clustered
-        except Exception as e:
-            logger.warning("Error loading cached news articles: %s", e)
+    except Exception as e:
+        logger.warning("Error loading cached news articles: %s", e)
 
-    # If DB is completely empty and force_refresh is requested, run synchronous fallback
-    if force_refresh:
-        try:
-            articles = fetch_all_live_news()
-            if articles:
-                with get_db() as conn:
-                    for art in articles:
-                        try:
-                            upsert_article(conn, art)
-                        except Exception:
-                            pass
-                _LIVE_NEWS_CACHE["data"] = articles
-                _LIVE_NEWS_CACHE["timestamp"] = now
-                return articles
-        except Exception as e:
-            logger.warning("Synchronous news fetch fallback failed: %s", e)
-
+    # Default fallback events
     return DEFAULT_EVENTS

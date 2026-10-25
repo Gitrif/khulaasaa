@@ -97,7 +97,7 @@ from scrapers.translator import (
     translate_dhivehi_title,
     translate_venue,
 )
-from services.news_service import enrich_event, get_live_news
+from services.news_service import enrich_event, get_live_news, init_news_cache
 from services.hooks85_service import register_khulaasaa_manifest
 from services.tenders_service import (
     CACHE_TTL_SECONDS,
@@ -161,6 +161,7 @@ def _periodic_sync_worker():
 async def lifespan(app: FastAPI):
     # Startup lifecycle
     init_db(seed_bids=True)
+    init_news_cache()
     with get_db() as conn:
         purge_expired_bids(conn, retention_days=30)
     if not os.environ.get("PYTEST_CURRENT_TEST"):

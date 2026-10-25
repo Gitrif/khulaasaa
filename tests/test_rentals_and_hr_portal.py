@@ -38,8 +38,9 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Maldivian Apartment &amp; Rental Directory", res.text)
         self.assertIn("Hulhumale Phase 1", res.text)
         self.assertIn("MVR 22,000", res.text)
-        self.assertIn("Source: iBay Maldives", res.text)
-        self.assertIn("Draft Tenancy Agreement", res.text)
+        self.assertIn("Source: <strong>iBay Maldives</strong>", res.text)
+        self.assertIn("View on iBay Maldives", res.text)
+        self.assertIn("Also listed at MVR 23,500 on Boahiyaa", res.text)
 
     def test_rentals_filter_by_location_and_bedrooms(self):
         res = client.get("/rentals?location=Hulhumale+Phase+1&bedrooms=2")
@@ -59,8 +60,12 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         res = client.get(f"/rentals/{r['id']}")
         self.assertEqual(res.status_code, 200)
         self.assertIn(r["title"], res.text)
-        self.assertIn("Direct Contact Details", res.text)
-        self.assertIn("hooks85 Tenancy Suite", res.text)
+        # Aggregated listings must have public aggregation disclaimers and source button, not dummy contacts
+        if not r.get("is_direct"):
+            self.assertIn("Public Aggregation", res.text)
+            self.assertIn("View Original Listing on", res.text)
+        else:
+            self.assertIn("Direct Contact Details", res.text)
         self.assertIn("Key Specifications", res.text)
         self.assertIn("Layout &amp; Climate", res.text)
 
