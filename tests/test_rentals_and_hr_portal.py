@@ -42,8 +42,8 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Also listed at MVR 23,500 on", res.text)
         self.assertIn("Boahiyaa", res.text)
         self.assertIn("Bedrooms", res.text)
-        self.assertIn("Bathroom", res.text)
-        self.assertIn("Toilets", res.text)
+        self.assertIn("Bathrooms", res.text)
+        self.assertIn("Floor Level", res.text)
         self.assertIn("Floor Area", res.text)
 
     def test_rentals_filter_by_location_and_bedrooms(self):

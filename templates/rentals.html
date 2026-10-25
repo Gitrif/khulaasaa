@@ -56,269 +56,76 @@
     {% include "_ad_leaderboard.html" %}
   {% endif %}
 
-  <!-- Collapsible Interactive Filter Box -->
-  <div class="bg-white border border-hairline rounded-lg mb-6 shadow-xs overflow-hidden">
-    <!-- Collapsed Summary Bar (Always Visible) -->
-    <div class="p-3.5 sm:p-4 bg-paper-soft/40 border-b border-hairline flex items-center justify-between gap-3 cursor-pointer select-none" onclick="toggleRentalFilterPanel()">
-      <div class="flex items-center gap-2 flex-wrap text-xs">
-        <span class="font-bold text-ink flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-lagoon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-          Filter Listings
-        </span>
-        <span class="text-slate-300">|</span>
-        <span class="px-2 py-0.5 rounded bg-white border border-hairline font-semibold text-slate-700">
-          {{ active_location }}
-        </span>
-        {% if active_bedrooms > 0 %}
-          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
-            {{ active_bedrooms }} Room{% if active_bedrooms > 1 %}s{% endif %}
-          </span>
-        {% endif %}
-        {% if active_max_rent > 0 %}
-          <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
-            &le; MVR {{ "{:,}".format(active_max_rent) }}
-          </span>
-        {% endif %}
-        {% if active_lift == 1 %}
-          <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-semibold">
-            Lift Access
-          </span>
-        {% endif %}
-        {% if active_ac == 1 %}
-          <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-semibold">
-            Air Conditioned
-          </span>
-        {% endif %}
-        {% if active_water_heater == 1 %}
-          <span class="px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-semibold">
-            Water Heaters
-          </span>
-        {% endif %}
-        {% if active_furnished != 'All' %}
-          <span class="px-2 py-0.5 rounded bg-white border border-hairline font-semibold text-slate-700">
-            {{ active_furnished }}
-          </span>
-        {% endif %}
+  <!-- Unified Real-Time Rental Filter Bar (Island, Ward/Phase, BHK + Features) -->
+  <div class="bg-white border border-hairline rounded-xl p-4 sm:p-5 mb-5 shadow-xs">
+    <!-- Top Row: Location & Room Selectors -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end mb-4">
+      <!-- 1. Island / City (col-span-4) -->
+      <div class="md:col-span-4">
+        <label for="filterIsland" class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
+          Island
+        </label>
+        <select id="filterIsland" onchange="onIslandChange(this.value)" class="w-full h-[36px] px-3 bg-paper-soft/40 border border-hairline rounded-lg text-xs font-semibold text-ink focus:outline-none focus:border-[#0b5d57] transition">
+          <option value="all">All Islands</option>
+          <option value="male">Male' City</option>
+          <option value="hulhumale">Hulhumale'</option>
+          <option value="villimale">Villimale'</option>
+          <option value="other">Other Islands</option>
+        </select>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <span id="filterToggleIcon" class="text-xs font-semibold text-lagoon hover:underline flex items-center gap-1">
-          <span id="filterToggleLabel">Expand Filters</span> &darr;
-        </span>
+
+      <!-- 2. Ward / Phase (Dynamic options based on Island) (col-span-4) -->
+      <div class="md:col-span-4">
+        <label for="filterWard" class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
+          Ward / Phase
+        </label>
+        <select id="filterWard" onchange="onWardChange(this.value)" class="w-full h-[36px] px-3 bg-paper-soft/40 border border-hairline rounded-lg text-xs font-semibold text-ink focus:outline-none focus:border-[#0b5d57] transition">
+          <option value="">All Wards / Phases</option>
+        </select>
+      </div>
+
+      <!-- 3. Bedrooms / BHK Selector (col-span-4) -->
+      <div class="md:col-span-4">
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
+          Bedrooms (BHK)
+        </label>
+        <div class="flex items-center gap-1 flex-wrap sm:flex-nowrap">
+          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-bold transition cursor-pointer select-none bg-[#0b5d57] text-white border-[#0b5d57]" data-rooms="0" onclick="setRoomsFilter(0, this)">Any</button>
+          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="1" onclick="setRoomsFilter(1, this)">1</button>
+          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="2" onclick="setRoomsFilter(2, this)">2</button>
+          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="3" onclick="setRoomsFilter(3, this)">3</button>
+          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="4" onclick="setRoomsFilter(4, this)">4</button>
+          <input type="number" id="filterCustomRooms" min="1" max="10" placeholder="4+" title="Custom room count" oninput="setCustomRooms(this.value)" class="w-12 h-[36px] px-1 text-center text-xs border border-hairline rounded-lg font-bold bg-white text-ink focus:outline-none focus:border-[#0b5d57]">
+        </div>
       </div>
     </div>
 
-    <!-- Expanded Filter Form (Normally Collapsed) -->
-    <div id="rentalFilterPanel" class="p-4 sm:p-5 space-y-4 hidden">
-      <form method="GET" action="/rentals" id="rentalFilterForm" class="space-y-4">
-        <input type="hidden" name="bedrooms" id="inpBedrooms" value="{{ active_bedrooms }}">
-        <input type="hidden" name="max_rent" id="inpMaxRent" value="{{ active_max_rent }}">
-        <input type="hidden" name="has_lift" id="inpHasLift" value="{{ active_lift }}">
-        <input type="hidden" name="has_ac" id="inpHasAc" value="{{ active_ac }}">
-        <input type="hidden" name="has_water_heater" id="inpHasWaterHeater" value="{{ active_water_heater }}">
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <!-- 1. Island / City -->
-          <div>
-            <label class="block font-bold text-slate mb-1">Island / District</label>
-            <select name="location" class="w-full p-2 border border-hairline rounded text-xs bg-white focus:outline-none focus:border-ink font-medium">
-              {% for loc in locations %}
-                <option value="{{ loc }}" {{ 'selected' if loc == active_location else '' }}>{{ loc }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- 2. Bedrooms Stepper (Click + / -) -->
-          <div>
-            <label class="block font-bold text-slate mb-1">Bedrooms</label>
-            <div class="flex items-center border border-hairline rounded bg-white overflow-hidden h-[34px]">
-              <button type="button" onclick="stepBedrooms(-1)" class="w-10 h-full bg-paper-soft hover:bg-slate-200 text-ink font-bold text-sm transition cursor-pointer select-none border-r border-hairline">&minus;</button>
-              <div class="flex-1 text-center font-bold text-ink text-xs" id="bedStepperDisplay">
-                {% if active_bedrooms == 0 %}Any Bedrooms{% elif active_bedrooms == 1 %}1 Room (Studio){% else %}{{ active_bedrooms }} Rooms{% endif %}
-              </div>
-              <button type="button" onclick="stepBedrooms(1)" class="w-10 h-full bg-paper-soft hover:bg-slate-200 text-ink font-bold text-sm transition cursor-pointer select-none border-l border-hairline">+</button>
-            </div>
-          </div>
-
-          <!-- 3. Furnishing Dropdown -->
-          <div>
-            <label class="block font-bold text-slate mb-1">Furnishing</label>
-            <select name="furnished" class="w-full p-2 border border-hairline rounded text-xs bg-white focus:outline-none focus:border-ink font-medium">
-              <option value="All" {{ 'selected' if active_furnished == 'All' else '' }}>All Furnishing</option>
-              <option value="Fully Furnished" {{ 'selected' if active_furnished == 'Fully Furnished' else '' }}>Fully Furnished</option>
-              <option value="Semi-Furnished" {{ 'selected' if active_furnished == 'Semi-Furnished' else '' }}>Semi-Furnished</option>
-              <option value="Unfurnished" {{ 'selected' if active_furnished == 'Unfurnished' else '' }}>Unfurnished</option>
-            </select>
-          </div>
-
-          <!-- 4. Search Keywords -->
-          <div>
-            <label class="block font-bold text-slate mb-1">Building / Street / Keywords</label>
-            <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. Nirolhu, Tower 14, Dhunfini..." class="w-full p-2 border border-hairline rounded text-xs focus:outline-none focus:border-ink">
-          </div>
-        </div>
-
-        <!-- Budget Scroller (Range Slider) -->
-        <div class="pt-2 border-t border-hairline/70">
-          <div class="flex items-center justify-between text-xs mb-1.5">
-            <label class="font-bold text-slate">Maximum Budget (MVR / Month)</label>
-            <span class="font-bold text-ink text-sm font-mono" id="budgetScrollerValue">
-              {% if active_max_rent == 0 %}Any Rent (Unlimited){% else %}MVR {{ "{:,}".format(active_max_rent) }} / month{% endif %}
-            </span>
-          </div>
-          <input type="range" id="budgetRangeSlider" min="10000" max="50000" step="1000" value="{{ active_max_rent if active_max_rent > 0 else 50000 }}" oninput="updateBudgetSlider(this.value)" class="w-full accent-[#0b5d57] cursor-pointer">
-          <div class="flex items-center justify-between text-[10px] text-slate font-mono mt-0.5">
-            <span>MVR 10,000</span>
-            <span>MVR 20,000</span>
-            <span>MVR 30,000</span>
-            <span>MVR 40,000</span>
-            <span>MVR 50,000+ (Any)</span>
-          </div>
-        </div>
-
-        <!-- Quick Feature Toggle Chips -->
-        <div class="pt-2 border-t border-hairline/70">
-          <label class="block font-bold text-slate text-xs mb-1.5">Essential Building &amp; Apartment Amenities</label>
-          <div class="flex items-center gap-2 flex-wrap">
-            <button type="button" id="toggleBtnLift" onclick="toggleRentalFeature('has_lift')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer select-none flex items-center gap-1.5 {{ 'bg-emerald-100 text-emerald-900 border-emerald-300' if active_lift == 1 else 'bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100' }}">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m9 10 3-3 3 3M9 14l3 3 3-3"/></svg>
-              <span>Lift Access</span>
-            </button>
-
-            <button type="button" id="toggleBtnAc" onclick="toggleRentalFeature('has_ac')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer select-none flex items-center gap-1.5 {{ 'bg-emerald-100 text-emerald-900 border-emerald-300' if active_ac == 1 else 'bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100' }}">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07 19.07 4.93"/></svg>
-              <span>AC Installed</span>
-            </button>
-
-            <button type="button" id="toggleBtnWaterHeater" onclick="toggleRentalFeature('has_water_heater')" class="px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer select-none flex items-center gap-1.5 {{ 'bg-emerald-100 text-emerald-900 border-emerald-300' if active_water_heater == 1 else 'bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100' }}">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5c0 4-5 13-5 13S7 11 7 7a5 5 0 0 1 5-5z"/></svg>
-              <span>Water Heaters</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="flex items-center justify-between gap-3 pt-2 border-t border-hairline">
-          <button type="button" onclick="openGlobalAlertsModal('telegram')" class="text-xs text-lagoon font-semibold hover:underline inline-flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-            <span>Set Telegram/Viber Alert for this search</span>
-          </button>
-          <div class="flex items-center gap-2">
-            <a href="/rentals" class="px-3 py-1.5 border border-hairline rounded text-xs font-semibold text-slate hover:text-ink hover:bg-paper">
-              Reset
-            </a>
-            <button type="submit" class="px-4 py-1.5 bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs rounded transition shadow-xs cursor-pointer">
-              Apply Filters
-            </button>
-          </div>
-        </div>
-      </form>
+    <!-- Divider -->
+    <div class="border-t border-hairline/70 pt-3">
+      <!-- Feature Filter Section with Legend -->
+      {% include "rentals/feature_legend.html" %}
     </div>
   </div>
 
-  <!-- Visible Feature Icon Legend (Booking / Agoda Style) -->
-  <div class="bg-paper-soft border border-hairline rounded-lg p-3 sm:p-3.5 mb-4 text-xs">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 pb-2 border-b border-hairline/60">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-slate shrink-0">Feature Icon Legend:</span>
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-          <span>Green = Included / Available</span>
-        </span>
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span>Grey = Not Available</span>
-        </span>
-      </div>
-      <div class="text-[11px] text-slate-500">
-        Hover any icon on a card to see detailed specifications
-      </div>
+  <!-- Listings Stream Header with Send Alert Button -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <div class="text-xs text-slate flex items-center gap-2 flex-wrap">
+      <span>Showing <strong id="rentalVisibleCount" class="text-ink font-bold">{{ rentals|length }}</strong> consolidated rental listing{% if rentals|length != 1 %}s{% endif %}</span>
+      <span id="activeFeatureCountBadge" style="display:none;" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"></span>
     </div>
 
-    <div class="flex items-center gap-3 sm:gap-4 flex-wrap pt-2 text-[11px] text-slate-700">
-      <div class="flex items-center gap-1.5" title="Water Heater">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0zM12 11v4m-2-2h4"/></svg>
-        </span>
-        <span>Water Heater</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Air Conditioning">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m-9-9h18m-15.5-6.5l13 13m0-13l-13 13"/></svg>
-        </span>
-        <span>AC Installed</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Kitchen">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 3v7a2 2 0 002 2h0a2 2 0 002-2V3m-4 5h4m-2 4v9m7-18v18m0-18a3 3 0 013 3v5a3 3 0 01-3 3"/></svg>
-        </span>
-        <span>Kitchen</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Living Area">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 11V7a2 2 0 012-2h12a2 2 0 012 2v4M4 11h16m-16 0v6a1 1 0 001 1h14a1 1 0 001-1v-6M2 13v4a2 2 0 002 2h1m15-6v4a2 2 0 01-2 2h-1M6 18v2m12-2v2"/></svg>
-        </span>
-        <span>Living Area</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Balcony">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M4 10l8-7 8 7"/></svg>
-        </span>
-        <span>Balcony</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Elevator / Lift">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 10l3-3 3 3M9 14l3 3 3-3"/></svg>
-        </span>
-        <span>Elevator / Lift</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Parking">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 6h-3l-2.5 5.5H5.5M12 11.5l1.5-3.5 3 2.5h2"/></svg>
-        </span>
-        <span>Parking</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="24hr Security">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        </span>
-        <span>24hr Security</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="WAMCO Garbage">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </span>
-        <span>WAMCO Waste</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="General Maintenance">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        </span>
-        <span>Maintenance</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Rooftop Terrace / Gym">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 7l9-4 9 4v2H3V7zm3 4v7m4-7v7m4-7v7m4-7v7"/></svg>
-        </span>
-        <span>Terrace / Gym</span>
-      </div>
-      <div class="flex items-center gap-1.5" title="Swimming Pool / Sea Access">
-        <span class="w-5 h-5 flex items-center justify-center rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 7a3 3 0 10-6 0 3 3 0 006 0zM3 17c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M3 21c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/></svg>
-        </span>
-        <span>Pool / Sea Access</span>
-      </div>
-    </div>
+    <!-- Prominent Alert CTA: "Send alert when listings come available for this search" -->
+    <button type="button" onclick="openAlertModalForCurrentFilter()" class="px-3.5 py-2 rounded-lg bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs transition cursor-pointer self-start sm:self-auto shrink-0">
+      <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+      <span>Send alert when listings become available for this search</span>
+    </button>
   </div>
 
-  <!-- Listings Stream Header -->
-  <div class="flex items-center justify-between gap-3 mb-4">
-    <div class="text-xs text-slate">
-      Showing <strong>{{ rentals|length }}</strong> consolidated rental listing{% if rentals|length != 1 %}s{% endif %}
-      {% if active_location != 'All Locations' %} in <strong>{{ active_location }}</strong>{% endif %}
-    </div>
-    <div class="text-[11px] text-slate-500">
-      Multi-source consolidated &middot; Direct contacts verified &middot; No duplicates
-    </div>
+  <!-- Real-time Filter No Results Notice -->
+  <div id="rentalNoResults" style="display:none;" class="bg-white border border-hairline rounded-lg p-8 text-center text-slate mb-8">
+    <h3 class="font-serif-display text-base font-bold text-ink mb-1">No apartments match all selected feature filters</h3>
+    <p class="text-xs mb-3">Try removing one or more feature filters to widen the search results.</p>
+    <button type="button" onclick="clearAllFeatureFilters()" class="px-3.5 py-1.5 bg-ink text-white font-semibold text-xs rounded cursor-pointer">Clear Feature Filters</button>
   </div>
 
   <!-- Listings Grid (Increased Padding and Gap Between Cards) -->
@@ -359,70 +166,173 @@
 </main>
 
 <script>
-function toggleRentalFilterPanel() {
-  const p = document.getElementById('rentalFilterPanel');
-  const l = document.getElementById('filterToggleLabel');
-  const icon = document.getElementById('filterToggleIcon');
-  if (!p) return;
-  const isHidden = p.classList.contains('hidden');
-  if (isHidden) {
-    p.classList.remove('hidden');
-    if (l) l.innerText = 'Collapse Filters';
-    if (icon) icon.innerHTML = '<span>Collapse Filters</span> &uarr;';
-  } else {
-    p.classList.add('hidden');
-    if (l) l.innerText = 'Expand Filters';
-    if (icon) icon.innerHTML = '<span>Expand Filters</span> &darr;';
+const ISLAND_WARDS = {
+  'all': [{ label: 'All Wards / Phases', value: '' }],
+  'male': [
+    { label: 'All Wards', value: '' },
+    { label: 'Henveiru', value: 'henveiru' },
+    { label: 'Galolhu', value: 'galolhu' },
+    { label: 'Machangoalhi', value: 'machangoalhi' },
+    { label: 'Maafannu', value: 'maafannu' }
+  ],
+  'hulhumale': [
+    { label: 'All Phases', value: '' },
+    { label: 'Phase 1', value: 'phase 1' },
+    { label: 'Phase 2', value: 'phase 2' }
+  ],
+  'villimale': [
+    { label: 'All Villimale', value: 'villimale' }
+  ],
+  'other': [
+    { label: 'All Other Islands', value: '' }
+  ]
+};
+
+let currentIsland = 'all';
+let currentWard = '';
+let currentRooms = 0;
+const activeLegendFeatures = new Set();
+
+function onIslandChange(island) {
+  currentIsland = island;
+  currentWard = '';
+  const wardSel = document.getElementById('filterWard');
+  if (wardSel) {
+    const list = ISLAND_WARDS[island] || ISLAND_WARDS['all'];
+    wardSel.innerHTML = list.map(item => `<option value="${item.value}">${item.label}</option>`).join('');
+  }
+  applyAllCardFilters();
+}
+
+function onWardChange(ward) {
+  currentWard = ward;
+  applyAllCardFilters();
+}
+
+function setRoomsFilter(rooms, btn) {
+  currentRooms = parseInt(rooms, 10);
+  const cust = document.getElementById('filterCustomRooms');
+  if (cust) cust.value = '';
+  document.querySelectorAll('.bhk-btn').forEach(b => {
+    b.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100';
+  });
+  if (btn) {
+    btn.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-bold transition cursor-pointer select-none bg-[#0b5d57] text-white border-[#0b5d57]';
+  }
+  applyAllCardFilters();
+}
+
+function setCustomRooms(val) {
+  const num = parseInt(val, 10);
+  if (!isNaN(num) && num > 0) {
+    currentRooms = num;
+    document.querySelectorAll('.bhk-btn').forEach(b => {
+      b.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100';
+    });
+    applyAllCardFilters();
+  } else if (!val) {
+    setRoomsFilter(0, document.querySelector('.bhk-btn[data-rooms="0"]'));
   }
 }
 
-function stepBedrooms(delta) {
-  const inp = document.getElementById('inpBedrooms');
-  const disp = document.getElementById('bedStepperDisplay');
-  if (!inp) return;
-  let val = parseInt(inp.value) || 0;
-  val = Math.max(0, Math.min(6, val + delta));
-  inp.value = val;
-  if (disp) {
-    if (val === 0) disp.innerText = 'Any Bedrooms';
-    else if (val === 1) disp.innerText = '1 Room (Studio)';
-    else disp.innerText = val + ' Rooms';
+function toggleFeatureFilter(feat, btn) {
+  const on = activeLegendFeatures.has(feat);
+  if (on) {
+    activeLegendFeatures.delete(feat);
+    btn.style.backgroundColor = '#ffffff';
+    btn.style.borderColor = '#cbd5e1';
+    btn.style.color = '#334155';
+    btn.style.fontWeight = '600';
+    btn.style.boxShadow = 'none';
+    const b = btn.querySelector('.legend-badge');
+    if (b) { b.style.backgroundColor = '#ecfdf5'; b.style.borderColor = '#6ee7b7'; const s = b.querySelector('svg'); if (s) s.style.stroke = '#047857'; }
+  } else {
+    activeLegendFeatures.add(feat);
+    btn.style.backgroundColor = '#047857';
+    btn.style.borderColor = '#047857';
+    btn.style.color = '#ffffff';
+    btn.style.fontWeight = '600';
+    btn.style.boxShadow = 'none';
+    const b = btn.querySelector('.legend-badge');
+    if (b) { b.style.backgroundColor = 'rgba(255,255,255,0.2)'; b.style.borderColor = 'rgba(255,255,255,0.35)'; const s = b.querySelector('svg'); if (s) s.style.stroke = '#ffffff'; }
+  }
+  applyAllCardFilters();
+}
+
+function clearAllFeatureFilters() {
+  activeLegendFeatures.clear();
+  document.querySelectorAll('.legend-filter-btn').forEach(btn => {
+    btn.style.backgroundColor = '#ffffff';
+    btn.style.borderColor = '#cbd5e1';
+    btn.style.color = '#334155';
+    btn.style.fontWeight = '600';
+    btn.style.boxShadow = 'none';
+    const b = btn.querySelector('.legend-badge');
+    if (b) { b.style.backgroundColor = '#ecfdf5'; b.style.borderColor = '#6ee7b7'; const s = b.querySelector('svg'); if (s) s.style.stroke = '#047857'; }
+  });
+  applyAllCardFilters();
+}
+
+function applyAllCardFilters() {
+  const cards = document.querySelectorAll('[data-card-rental="1"]');
+  let vis = 0;
+  cards.forEach(card => {
+    let match = true;
+
+    // Island
+    if (currentIsland !== 'all') {
+      const cardIsland = card.getAttribute('data-island') || '';
+      if (cardIsland !== currentIsland) match = false;
+    }
+
+    // Ward
+    if (match && currentWard !== '') {
+      const cardWard = (card.getAttribute('data-ward') || '').toLowerCase();
+      if (!cardWard.includes(currentWard.toLowerCase())) match = false;
+    }
+
+    // Rooms
+    if (match && currentRooms > 0) {
+      const cardRooms = parseInt(card.getAttribute('data-bedrooms') || '0', 10);
+      if (cardRooms !== currentRooms) match = false;
+    }
+
+    // Features
+    if (match && activeLegendFeatures.size > 0) {
+      for (const f of activeLegendFeatures) {
+        if (card.getAttribute('data-has-' + f) !== '1') {
+          match = false;
+          break;
+        }
+      }
+    }
+
+    card.style.display = match ? '' : 'none';
+    if (match) vis++;
+  });
+
+  const cEl = document.getElementById('rentalVisibleCount');
+  if (cEl) cEl.innerText = vis;
+
+  const clr = document.getElementById('clearFeatureFiltersBtn');
+  if (clr) clr.style.display = activeLegendFeatures.size > 0 ? 'inline' : 'none';
+
+  const nr = document.getElementById('rentalNoResults');
+  if (nr) nr.style.display = (vis === 0 && cards.length > 0) ? 'block' : 'none';
+
+  const bg = document.getElementById('activeFeatureCountBadge');
+  if (bg) {
+    const totalActive = activeLegendFeatures.size + (currentIsland !== 'all' ? 1 : 0) + (currentWard ? 1 : 0) + (currentRooms > 0 ? 1 : 0);
+    bg.style.display = totalActive > 0 ? 'inline-block' : 'none';
+    bg.innerText = totalActive + ' active filter' + (totalActive > 1 ? 's' : '');
   }
 }
 
-function updateBudgetSlider(val) {
-  const num = parseInt(val) || 0;
-  const disp = document.getElementById('budgetScrollerValue');
-  const inp = document.getElementById('inpMaxRent');
-  if (num >= 50000) {
-    if (inp) inp.value = 0;
-    if (disp) disp.innerText = 'Any Rent (Unlimited)';
+function openAlertModalForCurrentFilter() {
+  if (typeof openGlobalAlertsModal === 'function') {
+    openGlobalAlertsModal('telegram');
   } else {
-    if (inp) inp.value = num;
-    if (disp) disp.innerText = 'MVR ' + num.toLocaleString() + ' / month';
-  }
-}
-
-function toggleRentalFeature(featureKey) {
-  const map = {
-    'has_lift': { inpId: 'inpHasLift', btnId: 'toggleBtnLift' },
-    'has_ac': { inpId: 'inpHasAc', btnId: 'toggleBtnAc' },
-    'has_water_heater': { inpId: 'inpHasWaterHeater', btnId: 'toggleBtnWaterHeater' }
-  };
-  const cfg = map[featureKey];
-  if (!cfg) return;
-  const inp = document.getElementById(cfg.inpId);
-  const btn = document.getElementById(cfg.btnId);
-  if (!inp || !btn) return;
-
-  const current = parseInt(inp.value) || 0;
-  const next = current === 1 ? 0 : 1;
-  inp.value = next;
-
-  if (next === 1) {
-    btn.className = 'px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer select-none flex items-center gap-1.5 bg-emerald-100 text-emerald-900 border-emerald-300';
-  } else {
-    btn.className = 'px-3 py-1.5 rounded-full border text-xs font-semibold transition cursor-pointer select-none flex items-center gap-1.5 bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100';
+    window.location.href = '/alerts';
   }
 }
 </script>
