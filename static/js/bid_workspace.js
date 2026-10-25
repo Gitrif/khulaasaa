@@ -13,16 +13,20 @@ const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el
 function switchSuiteTab(tabId) {
   document.querySelectorAll('.suite-content-pane').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.suite-tab-btn').forEach(el => {
-    el.classList.remove('active-tab', 'border-lagoon', 'text-lagoon');
-    el.classList.add('border-transparent', 'text-slate');
+    el.classList.remove('active-tab', 'border-lagoon', 'bg-white', 'shadow-2xs');
+    el.classList.add('border-transparent');
+    const icon = el.querySelector('svg');
+    if (icon) { icon.classList.remove('text-lagoon'); icon.classList.add('text-slate-500'); }
   });
 
   const pane = document.getElementById('suiteTab-' + tabId);
   const btn = document.getElementById('tabBtn-' + tabId);
   if (pane) pane.style.display = 'block';
   if (btn) {
-    btn.classList.add('active-tab', 'border-lagoon', 'text-lagoon');
-    btn.classList.remove('border-transparent', 'text-slate');
+    btn.classList.add('active-tab', 'border-lagoon', 'bg-white', 'shadow-2xs');
+    btn.classList.remove('border-transparent');
+    const icon = btn.querySelector('svg');
+    if (icon) { icon.classList.add('text-lagoon'); icon.classList.remove('text-slate-500'); }
   }
 
   const docMap = {
@@ -100,30 +104,14 @@ function updateLetterContent() {
 
   if (letterType === 'registration') {
     setTxt('prevLetterSubject', `Subject: Bidder Registration & Document Request — Ref: ${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}`);
-    document.getElementById('prevLetterBody').innerHTML = `
-      <p>Dear Sir / Madam,</p>
-      <p>We, <strong>${form.compName}</strong> (${regInfo}), hereby formally express our keen interest in participating in the public procurement tender for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Reference: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>).</p>
-      <p>In accordance with the gazette announcement, we kindly request your office to complete our registration as an official bidder and facilitate access to the full tender dossier, project specifications, and Bill of Quantities (BOQ).</p>
-      <p>Please transmit all relevant bidding documents and instructions to our corporate contact at <strong>${form.email}</strong> or telephone <strong>${form.phone}</strong>.</p>
-      <p>We confirm our commitment to comply with the public procurement procedures and regulations of the Government of Maldives.</p>
-    `;
+    document.getElementById('prevLetterBody').innerHTML = `<p>Dear Sir / Madam,</p><p>We, <strong>${form.compName}</strong> (${regInfo}), hereby formally express our keen interest in participating in the public procurement tender for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Reference: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>).</p><p>In accordance with the gazette announcement, we kindly request your office to complete our registration as an official bidder and facilitate access to the full tender dossier, project specifications, and Bill of Quantities (BOQ).</p><p>Please transmit all relevant bidding documents and instructions to our corporate contact at <strong>${form.email}</strong> or telephone <strong>${form.phone}</strong>.</p><p>We confirm our commitment to comply with the public procurement procedures and regulations of the Government of Maldives.</p>`;
   } else if (letterType === 'inquiry') {
     setTxt('prevLetterSubject', `Subject: Pre-Bid Clarifications & Inquiries — Ref: ${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}`);
     const queryList = form.customQueries ? `<div class="p-3 bg-slate-50 border border-slate-200 rounded font-mono text-[11px] whitespace-pre-wrap">${form.customQueries}</div>` : `<p><em>[Please specify technical drawings or timeline questions using the inquiries field]</em></p>`;
-    document.getElementById('prevLetterBody').innerHTML = `
-      <p>Dear Sir / Madam,</p>
-      <p>With reference to the tender notice for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Ref: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>), we would like to request official clarifications regarding technical specifications:</p>
-      ${queryList}
-      <p>We kindly request written responses before the pre-bid deadline so our team may formulate a compliant tender submission.</p>
-    `;
+    document.getElementById('prevLetterBody').innerHTML = `<p>Dear Sir / Madam,</p><p>With reference to the tender notice for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Ref: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>), we would like to request official clarifications regarding technical specifications:</p>${queryList}<p>We kindly request written responses before the pre-bid deadline so our team may formulate a compliant tender submission.</p>`;
   } else {
     setTxt('prevLetterSubject', `Subject: Formal Bid Submission — Ref: ${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}`);
-    document.getElementById('prevLetterBody').innerHTML = `
-      <p>Dear Sir / Madam,</p>
-      <p>We, the undersigned, having examined the bidding documents for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Reference: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>), hereby offer to execute the required works/services in strict conformity with the conditions of the contract.</p>
-      <p>We confirm that our bid proposal remains valid for the required validity period specified in the tender notice.</p>
-      <p>Accompanying this letter, we submit our technical proposal, corporate profile, financial schedule, and bid documentation.</p>
-    `;
+    document.getElementById('prevLetterBody').innerHTML = `<p>Dear Sir / Madam,</p><p>We, the undersigned, having examined the bidding documents for <strong>"${window.BID_CONTEXT?.titleEn}"</strong> (Reference: <code>${window.BID_CONTEXT?.referenceNumber || window.BID_CONTEXT?.noticeId}</code>), hereby offer to execute the required works/services in strict conformity with the conditions of the contract.</p><p>We confirm that our bid proposal remains valid for the required validity period specified in the tender notice.</p><p>Accompanying this letter, we submit our technical proposal, corporate profile, financial schedule, and bid documentation.</p>`;
   }
 
   updateMailtoLink(form);
@@ -186,25 +174,12 @@ function renderQuoteItemsTable() {
 
     const tr = document.createElement('tr');
     tr.className = 'border-b border-hairline/60';
-    tr.innerHTML = `
-      <td class="py-1.5 pr-2"><input type="text" value="${item.desc}" oninput="quoteItems[${idx}].desc=this.value; updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded"></td>
-      <td class="py-1.5 px-1 w-16"><input type="number" value="${item.qty}" min="1" oninput="quoteItems[${idx}].qty=parseFloat(this.value)||0; renderQuoteItemsTable(); updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td>
-      <td class="py-1.5 px-1 w-16"><input type="text" value="${item.unit}" oninput="quoteItems[${idx}].unit=this.value; updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td>
-      <td class="py-1.5 px-1 w-24"><input type="number" value="${item.rate}" min="0" step="50" oninput="quoteItems[${idx}].rate=parseFloat(this.value)||0; renderQuoteItemsTable(); updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td>
-      <td class="py-1.5 pl-1 w-8 text-center"><button type="button" onclick="removeQuoteItem(${idx})" class="text-rose-600 font-bold hover:text-rose-800">&times;</button></td>
-    `;
+    tr.innerHTML = `<td class="py-1.5 pr-2"><input type="text" value="${item.desc}" oninput="quoteItems[${idx}].desc=this.value; updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded"></td><td class="py-1.5 px-1 w-16"><input type="number" value="${item.qty}" min="1" oninput="quoteItems[${idx}].qty=parseFloat(this.value)||0; renderQuoteItemsTable(); updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td><td class="py-1.5 px-1 w-16"><input type="text" value="${item.unit}" oninput="quoteItems[${idx}].unit=this.value; updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td><td class="py-1.5 px-1 w-24"><input type="number" value="${item.rate}" min="0" step="50" oninput="quoteItems[${idx}].rate=parseFloat(this.value)||0; renderQuoteItemsTable(); updateQuotePreview();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td><td class="py-1.5 pl-1 w-8 text-center"><button type="button" onclick="removeQuoteItem(${idx})" class="text-rose-600 font-bold hover:text-rose-800">&times;</button></td>`;
     tbody.appendChild(tr);
 
     const prevTr = document.createElement('tr');
     prevTr.className = 'border-b border-hairline/60 text-xs';
-    prevTr.innerHTML = `
-      <td class="py-2 pr-2 text-slate-500 font-mono">${idx + 1}</td>
-      <td class="py-2 pr-2 font-medium text-ink">${item.desc}</td>
-      <td class="py-2 px-2 text-center text-slate">${item.qty}</td>
-      <td class="py-2 px-2 text-center text-slate">${item.unit}</td>
-      <td class="py-2 px-2 text-right font-mono">${fmtMvr(item.rate)}</td>
-      <td class="py-2 pl-2 text-right font-mono font-semibold text-ink">${fmtMvr(amount)}</td>
-    `;
+    prevTr.innerHTML = `<td class="py-2 pr-2 text-slate-500 font-mono">${idx + 1}</td><td class="py-2 pr-2 font-medium text-ink">${item.desc}</td><td class="py-2 px-2 text-center text-slate">${item.qty}</td><td class="py-2 px-2 text-center text-slate">${item.unit}</td><td class="py-2 px-2 text-right font-mono">${fmtMvr(item.rate)}</td><td class="py-2 pl-2 text-right font-mono font-semibold text-ink">${fmtMvr(amount)}</td>`;
     prevTbody.appendChild(prevTr);
   });
 
@@ -272,27 +247,12 @@ function renderBoqTable() {
 
     const tr = document.createElement('tr');
     tr.className = 'border-b border-hairline/60';
-    tr.innerHTML = `
-      <td class="py-1.5 pr-1 w-14"><input type="text" value="${b.code}" oninput="boqItems[${idx}].code=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded font-mono"></td>
-      <td class="py-1.5 px-1"><input type="text" value="${b.desc}" oninput="boqItems[${idx}].desc=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded"></td>
-      <td class="py-1.5 px-1 w-14"><input type="text" value="${b.unit}" oninput="boqItems[${idx}].unit=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td>
-      <td class="py-1.5 px-1 w-14"><input type="number" value="${b.qty}" min="1" oninput="boqItems[${idx}].qty=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td>
-      <td class="py-1.5 px-1 w-18"><input type="number" value="${b.mat}" min="0" oninput="boqItems[${idx}].mat=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td>
-      <td class="py-1.5 px-1 w-18"><input type="number" value="${b.lab}" min="0" oninput="boqItems[${idx}].lab=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td>
-      <td class="py-1.5 pl-1 w-8 text-center"><button type="button" onclick="removeBoqItem(${idx})" class="text-rose-600 font-bold hover:text-rose-800">&times;</button></td>
-    `;
+    tr.innerHTML = `<td class="py-1.5 pr-1 w-14"><input type="text" value="${b.code}" oninput="boqItems[${idx}].code=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded font-mono"></td><td class="py-1.5 px-1"><input type="text" value="${b.desc}" oninput="boqItems[${idx}].desc=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded"></td><td class="py-1.5 px-1 w-14"><input type="text" value="${b.unit}" oninput="boqItems[${idx}].unit=this.value; updateBoqPreview();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td><td class="py-1.5 px-1 w-14"><input type="number" value="${b.qty}" min="1" oninput="boqItems[${idx}].qty=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-center"></td><td class="py-1.5 px-1 w-18"><input type="number" value="${b.mat}" min="0" oninput="boqItems[${idx}].mat=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td><td class="py-1.5 px-1 w-18"><input type="number" value="${b.lab}" min="0" oninput="boqItems[${idx}].lab=parseFloat(this.value)||0; renderBoqTable();" class="w-full text-xs p-1 border border-hairline rounded text-right"></td><td class="py-1.5 pl-1 w-8 text-center"><button type="button" onclick="removeBoqItem(${idx})" class="text-rose-600 font-bold hover:text-rose-800">&times;</button></td>`;
     tbody.appendChild(tr);
 
     const prevTr = document.createElement('tr');
     prevTr.className = 'border-b border-hairline/60 text-xs';
-    prevTr.innerHTML = `
-      <td class="py-2 pr-2 font-mono text-slate-500">${b.code}</td>
-      <td class="py-2 pr-2 font-medium text-ink">${b.desc}</td>
-      <td class="py-2 px-2 text-center text-slate">${b.unit}</td>
-      <td class="py-2 px-2 text-center text-slate">${b.qty}</td>
-      <td class="py-2 px-2 text-right font-mono">${fmtMvr(unitRate)}</td>
-      <td class="py-2 pl-2 text-right font-mono font-semibold text-ink">${fmtMvr(itemTotal)}</td>
-    `;
+    prevTr.innerHTML = `<td class="py-2 pr-2 font-mono text-slate-500">${b.code}</td><td class="py-2 pr-2 font-medium text-ink">${b.desc}</td><td class="py-2 px-2 text-center text-slate">${b.unit}</td><td class="py-2 px-2 text-center text-slate">${b.qty}</td><td class="py-2 px-2 text-right font-mono">${fmtMvr(unitRate)}</td><td class="py-2 pl-2 text-right font-mono font-semibold text-ink">${fmtMvr(itemTotal)}</td>`;
     prevTbody.appendChild(prevTr);
   });
 
@@ -356,7 +316,60 @@ function updateInvoicePreview() {
   setTxt('prevInvSignComp', form.compName);
 }
 
-// HOOKS85 DOWNLOAD & SUBSCRIPTION GATEWAY
+// 1 FREE BID PACKAGE SUBMISSION & HOOKS85 GATEWAY
+const currentNoticeId = String(window.BID_CONTEXT?.noticeId || '');
+
+function getFreeBidNoticeId() {
+  try { return localStorage.getItem('khulaasaa_free_bid_notice_id') || ''; } catch (e) { return ''; }
+}
+
+function isEligibleForFreeBid() {
+  const saved = getFreeBidNoticeId();
+  return (!saved || saved === currentNoticeId);
+}
+
+function claimFreeBidNotice() {
+  try {
+    if (!localStorage.getItem('khulaasaa_free_bid_notice_id') && currentNoticeId) {
+      localStorage.setItem('khulaasaa_free_bid_notice_id', currentNoticeId);
+      updateFreeBidUI();
+    }
+  } catch (e) {}
+}
+
+function updateFreeBidUI() {
+  const saved = getFreeBidNoticeId();
+  const bannerDesc = document.getElementById('freeBidBannerDesc');
+  const bannerStatus = document.getElementById('freeBidNoticeStatus');
+  const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
+
+  if (isPaid) {
+    if (bannerDesc) bannerDesc.innerText = 'Unlimited Bids Active: Your hooks85 Pro subscription unlocks unlimited unwatermarked submissions across all tenders.';
+    if (bannerStatus) bannerStatus.innerText = 'hooks85 Pro Active';
+    document.querySelectorAll('.tab-free-badge').forEach(b => {
+      b.innerText = 'Pro Unlocked';
+      b.className = 'px-1.5 py-0.2 rounded font-semibold bg-emerald-100 text-emerald-800 tab-free-badge';
+    });
+    return;
+  }
+
+  if (!saved || saved === currentNoticeId) {
+    if (bannerDesc) bannerDesc.innerText = `You have 1 free bid package credit! Create, customize, and export all 6 documents for Notice #${currentNoticeId} at zero cost.`;
+    if (bannerStatus) bannerStatus.innerText = `1 Free Bid Active (#${currentNoticeId})`;
+    document.querySelectorAll('.tab-free-badge').forEach(b => {
+      b.innerText = '1 Free Bid';
+      b.className = 'px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-800 tab-free-badge';
+    });
+  } else {
+    if (bannerDesc) bannerDesc.innerText = `Your 1 free bid was used for Notice #${saved}. Subscribe to hooks85 Tender ERP for unlimited bids and team collaboration.`;
+    if (bannerStatus) bannerStatus.innerText = `Free Bid Used (#${saved})`;
+    document.querySelectorAll('.tab-free-badge').forEach(b => {
+      b.innerText = 'hooks85 Pro';
+      b.className = 'px-1.5 py-0.2 rounded font-semibold bg-amber-50 text-amber-800 tab-free-badge';
+    });
+  }
+}
+
 function downloadDocument(docType) {
   const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
   if (docType === 'letters') {
@@ -364,13 +377,15 @@ function downloadDocument(docType) {
     prepareAndPrint();
     return;
   }
-  if (isPaid) {
-    const docMap = {
-      'proposal': 'printableProposalContainer',
-      'quote': 'printableQuoteContainer',
-      'boq': 'printableBoqContainer',
-      'invoice': 'printableInvoiceContainer'
-    };
+  const docMap = {
+    'proposal': 'printableProposalContainer',
+    'quote': 'printableQuoteContainer',
+    'boq': 'printableBoqContainer',
+    'invoice': 'printableInvoiceContainer'
+  };
+
+  if (isPaid || isEligibleForFreeBid()) {
+    if (!isPaid && isEligibleForFreeBid()) claimFreeBidNotice();
     activePrintDocId = docMap[docType] || 'printableLetterContainer';
     prepareAndPrint();
   } else {
@@ -381,6 +396,8 @@ function downloadDocument(docType) {
 function openHooks85Modal(docType) {
   const modal = document.getElementById('hooks85DownloadModal');
   const docTitleEl = document.getElementById('hooks85ModalDocType');
+  const expEl = document.getElementById('hooks85ModalExplanation');
+  const saved = getFreeBidNoticeId();
   if (docTitleEl) {
     const names = {
       'proposal': 'Official Technical Proposal',
@@ -389,6 +406,9 @@ function openHooks85Modal(docType) {
       'invoice': 'MIRA GST Tax Invoice & Progress Claim'
     };
     docTitleEl.innerText = names[docType] || 'Tender Submission Package';
+  }
+  if (expEl && saved && saved !== currentNoticeId) {
+    expEl.innerText = `You have already created your 1 free bid package for Notice #${saved}. Subscribe to hooks85 Tender ERP to unlock unwatermarked dossiers, BOQ exports, and MIRA invoices for Notice #${currentNoticeId}.`;
   }
   if (modal) modal.classList.remove('hidden');
 }
@@ -407,6 +427,7 @@ async function activateTrialAndDownload(docType) {
     if (data.status === 'ok') {
       localStorage.setItem('khulaasaa_is_paid', '1');
       window.SERVER_IS_PAID = true;
+      updateFreeBidUI();
       closeHooks85Modal();
       downloadDocument(docType || 'proposal');
       return;
@@ -414,6 +435,7 @@ async function activateTrialAndDownload(docType) {
   } catch (err) {}
   localStorage.setItem('khulaasaa_is_paid', '1');
   window.SERVER_IS_PAID = true;
+  updateFreeBidUI();
   closeHooks85Modal();
   downloadDocument(docType || 'proposal');
 }
@@ -427,10 +449,11 @@ function prepareAndPrint() {
 
 function exportBoqCsv() {
   const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
-  if (!isPaid) {
+  if (!isPaid && !isEligibleForFreeBid()) {
     openHooks85Modal('boq');
     return;
   }
+  if (!isPaid && isEligibleForFreeBid()) claimFreeBidNotice();
   let csv = 'Code,Trade,Description,Unit,Qty,Material_Rate,Labour_Rate,Margin_Pct,Unit_Rate,Total_Amount\n';
   boqItems.forEach(b => {
     const directCost = (b.mat || 0) + (b.lab || 0);
@@ -456,11 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saved) data = JSON.parse(saved);
   } catch (e) {}
 
-  const s = (id, val) => {
-    const el = document.getElementById(id);
-    if (el && !el.value) el.value = val;
-  };
-
+  const s = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val; };
   s('letCompName', data?.name || window.SERVER_PROFILE?.company_name || 'Mai & Emi Investments Pvt Ltd');
   s('letCompReg', data?.reg || window.SERVER_PROFILE?.registration_number || 'C04812021');
   s('letCompTin', data?.tin || window.SERVER_PROFILE?.tin_number || '1130267');
@@ -475,4 +494,5 @@ document.addEventListener('DOMContentLoaded', function() {
   renderBoqTable();
   updateBoqPreview();
   updateInvoicePreview();
+  updateFreeBidUI();
 });

@@ -136,6 +136,8 @@ def test_bids_prepare_renders_with_valid_bid():
     assert "BOQ Spreadsheet" in res.text
     assert "Billing &amp; Invoices" in res.text
     assert "hooks85DownloadModal" in res.text
+    assert "1 Free Bid Submission Credit" in res.text
+    assert "All 6 Documents Unlocked" in res.text
 
 
 def test_bids_cards_include_prepare_links():

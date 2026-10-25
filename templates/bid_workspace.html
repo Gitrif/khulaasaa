@@ -23,25 +23,33 @@
         </div>
       </div>
 
-      <!-- hooks85 Tender ERP Top Banner -->
-      <div class="p-4 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between gap-4 flex-wrap shadow-2xs">
+      <!-- 1 Free Bid Submission Credit & hooks85 Tender ERP Top Banner -->
+      <div id="freeBidBanner" class="p-4 mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between gap-4 flex-wrap shadow-2xs">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded bg-[#0b5d57] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono shadow-xs">
-            H85
+          <div class="w-9 h-9 rounded bg-[#0b5d57] text-white flex flex-col items-center justify-center font-bold text-[10px] shrink-0 font-mono shadow-xs leading-none">
+            <span>1/1</span>
+            <span class="text-[8px] font-normal uppercase">FREE</span>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-ink">Hooks<span style="color:#e4572e;">85</span> Tender ERP Suite</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#e3f0ec] text-[#0b5d57]">Maldivian Procurement Engine</span>
+              <span class="font-bold text-ink text-sm">1 Free Bid Submission Credit</span>
+              <span id="freeBidCreditBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-200 text-emerald-900 uppercase tracking-wider">
+                All 6 Documents Unlocked
+              </span>
             </div>
-            <p class="text-[11px] text-slate mt-0.5 mb-0">
-              Draft formal letters, build technical proposals, price itemized quotations, calculate BOQ markups, and generate MIRA-compliant GST progress invoices. Full submission downloads unlock with hooks85 Pro.
+            <p class="text-[11px] text-slate-700 mt-1 mb-0" id="freeBidBannerDesc">
+              Create, customize, and export all 6 documents for Notice #{{ bid.notice_id or bid.id }} (Formal Letters, Company Profile, Technical Proposal, Quotation, BOQ Spreadsheet, and MIRA Tax Invoice) completely for free. Unlimited tenders &amp; ERP sync powered by Hooks85.
             </p>
           </div>
         </div>
-        <a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-2xs shrink-0">
-          <span>Subscribe to hooks85 &rarr;</span>
-        </a>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-[11px] font-semibold text-emerald-800 bg-white px-2.5 py-1 rounded border border-emerald-200" id="freeBidNoticeStatus">
+            Active Tender: #{{ bid.notice_id or bid.id }}
+          </span>
+          <a href="/subscription?plan=tender_erp&notice_id={{ bid.notice_id or bid.id }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-2xs">
+            <span>Hooks85 ERP &rarr;</span>
+          </a>
+        </div>
       </div>
 
       <!-- Selected Bid Overview Card -->
@@ -105,44 +113,76 @@
     </div>
 
     <!-- Suite Tabs Navigation (Hidden on Print) -->
-    <div class="border-b border-hairline mb-6 print:hidden">
-      <nav class="flex items-center gap-2 overflow-x-auto pb-px text-xs font-semibold" aria-label="Bidder Suite Tabs">
-        <button type="button" onclick="switchSuiteTab('letters')" id="tabBtn-letters" class="suite-tab-btn active-tab flex items-center gap-1.5 py-3 px-4 border-b-2 border-lagoon text-lagoon transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          <span>1. Letters &amp; Correspondence</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">Free</span>
-        </button>
+    <div class="mb-6 print:hidden">
+      <div class="border-b border-hairline">
+        <nav class="flex items-stretch gap-1.5 overflow-x-auto pb-px text-xs" aria-label="Bidder Suite Tabs">
+          <button type="button" onclick="switchSuiteTab('letters')" id="tabBtn-letters" class="suite-tab-btn active-tab flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-lagoon bg-white text-ink rounded-t transition cursor-pointer shrink-0 shadow-2xs">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-lagoon shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span class="font-bold text-ink">1. Letters &amp; Correspondence</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="text-slate-500 font-medium">Included Free</span>
+            </div>
+          </button>
 
-        <button type="button" onclick="switchSuiteTab('profile')" id="tabBtn-profile" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-          <span>2. Company Profile</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">Profile</span>
-        </button>
+          <button type="button" onclick="switchSuiteTab('profile')" id="tabBtn-profile" class="suite-tab-btn flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink hover:bg-white/60 rounded-t transition cursor-pointer shrink-0">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span class="font-bold text-ink">2. Company Profile</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="text-slate-500 font-medium">Credentials</span>
+            </div>
+          </button>
 
-        <button type="button" onclick="switchSuiteTab('proposal')" id="tabBtn-proposal" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>3. Proposal &amp; Methodology</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-[#e3f0ec] text-[#0b5d57] font-semibold">hooks85</span>
-        </button>
+          <button type="button" onclick="switchSuiteTab('proposal')" id="tabBtn-proposal" class="suite-tab-btn flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink hover:bg-white/60 rounded-t transition cursor-pointer shrink-0">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span class="font-bold text-ink">3. Proposal &amp; Methodology</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-800 tab-free-badge">1 Free Bid</span>
+            </div>
+          </button>
 
-        <button type="button" onclick="switchSuiteTab('quote')" id="tabBtn-quote" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>4. Quotation &amp; Pricing</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-[#e3f0ec] text-[#0b5d57] font-semibold">hooks85</span>
-        </button>
+          <button type="button" onclick="switchSuiteTab('quote')" id="tabBtn-quote" class="suite-tab-btn flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink hover:bg-white/60 rounded-t transition cursor-pointer shrink-0">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="font-bold text-ink">4. Quotation &amp; Pricing</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-800 tab-free-badge">1 Free Bid</span>
+            </div>
+          </button>
 
-        <button type="button" onclick="switchSuiteTab('boq')" id="tabBtn-boq" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          <span>5. BOQ Spreadsheet</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-[#e3f0ec] text-[#0b5d57] font-semibold">hooks85</span>
-        </button>
+          <button type="button" onclick="switchSuiteTab('boq')" id="tabBtn-boq" class="suite-tab-btn flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink hover:bg-white/60 rounded-t transition cursor-pointer shrink-0">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span class="font-bold text-ink">5. BOQ Spreadsheet</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-800 tab-free-badge">1 Free Bid</span>
+            </div>
+          </button>
 
-        <button type="button" onclick="switchSuiteTab('invoice')" id="tabBtn-invoice" class="suite-tab-btn flex items-center gap-1.5 py-3 px-4 border-b-2 border-transparent text-slate hover:text-ink transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-          <span>6. Billing &amp; Invoices</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-[#e3f0ec] text-[#0b5d57] font-semibold">hooks85</span>
-        </button>
-      </nav>
+          <button type="button" onclick="switchSuiteTab('invoice')" id="tabBtn-invoice" class="suite-tab-btn flex flex-col items-start gap-1 py-2.5 px-3.5 border-b-2 border-transparent text-slate hover:text-ink hover:bg-white/60 rounded-t transition cursor-pointer shrink-0">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              <span class="font-bold text-ink">6. Billing &amp; Invoices</span>
+            </div>
+            <div class="flex items-center gap-1 text-[10px]">
+              <span class="px-1.5 py-0.2 rounded font-bold bg-emerald-100 text-emerald-800">Ready</span>
+              <span class="px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-800 tab-free-badge">1 Free Bid</span>
+            </div>
+          </button>
+        </nav>
+      </div>
     </div>
 
     <!-- ==================================================================== -->
@@ -898,7 +938,7 @@
     <h3 class="font-serif-display text-xl font-bold text-ink mb-1">
       Download <span id="hooks85ModalDocType">Tender Submission Package</span>
     </h3>
-    <p class="text-xs text-slate mb-4 leading-relaxed">
+    <p class="text-xs text-slate mb-4 leading-relaxed" id="hooks85ModalExplanation">
       You have formatted your proposal and pricing! Unwatermarked vector PDF exports, MIRA tax invoices, and Excel BOQ dossiers require an active hooks85 Tender ERP subscription.
     </p>
 
