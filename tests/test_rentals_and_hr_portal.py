@@ -65,7 +65,8 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         # Aggregated listings must have public aggregation disclaimers and source button, not dummy contacts
         if not r.get("is_direct"):
             self.assertIn("Public Aggregation", res.text)
-            self.assertIn("View Original Listing on", res.text)
+            self.assertIn("View on", res.text)
+            self.assertIn("source-action-btn", res.text)
         else:
             self.assertIn("Direct Contact Details", res.text)
         self.assertIn("Key Specifications", res.text)
