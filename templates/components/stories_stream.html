@@ -2,7 +2,7 @@
 <div id="stories-stream" class="card-stack">
   {% for evt in events %}
     {% include "components/story_card.html" %}
-    {% if loop.index % 5 == 0 %}
+    {% if loop.index == 3 or loop.index % 5 == 0 %}
       <div class="my-3">{% include "_ad_infeed.html" %}</div>
     {% endif %}
   {% else %}

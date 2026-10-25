@@ -2,7 +2,7 @@
 <div id="bids-stream">
   {% for b in bids %}
     {% include "components/bid_card.html" %}
-    {% if loop.index % 6 == 0 %}
+    {% if loop.index == 3 or loop.index % 6 == 0 %}
       {% include "_ad_infeed.html" %}
     {% endif %}
   {% else %}

@@ -2,7 +2,7 @@
 <div id="jobs-stream" class="space-y-3">
   {% for j in jobs %}
     {% include "components/job_card.html" %}
-    {% if loop.index % 4 == 0 %}
+    {% if loop.index == 2 or loop.index % 4 == 0 %}
       <div style="margin: 16px 0;">{% include "_ad_infeed.html" %}</div>
     {% endif %}
   {% else %}

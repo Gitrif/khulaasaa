@@ -66,10 +66,7 @@
   </div>
   {% endif %}
 
-  {% set total_stories = (sections.major|length) + (sections.breaking|length) + (sections.general|length) %}
-  {% if total_stories >= 5 %}
   <div class="mt-3">{% include "_ad_leaderboard.html" %}</div>
-  {% endif %}
   <p id="noResults" class="no-results" style="display:none;">No articles or stories match your search.</p>
 
   <div class="news-grid" itemscope itemtype="https://schema.org/ItemList">
@@ -85,7 +82,7 @@
         <div class="card-stack">
           {% for evt in sections.major %}
           {% include "components/story_card.html" %}
-          {% if loop.index % 5 == 0 %}
+          {% if loop.index == 3 or loop.index % 5 == 0 %}
             <div class="my-3">{% include "_ad_infeed.html" %}</div>
           {% endif %}
           {% endfor %}
@@ -119,7 +116,7 @@
         <div class="card-stack">
           {% for evt in sections.general %}
           {% include "components/story_card.html" %}
-          {% if loop.index % 5 == 0 %}
+          {% if loop.index == 3 or loop.index % 5 == 0 %}
             <div class="my-3">{% include "_ad_incontent.html" %}</div>
           {% endif %}
           {% endfor %}
@@ -134,9 +131,7 @@
 
     
   </div>
-  {% if total_stories < 5 %}
-  <div class="mt-6 border-t border-hairline pt-4">{% include "_ad_leaderboard.html" %}</div>
-  {% endif %}
+
 </main>
 
 

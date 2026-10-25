@@ -324,16 +324,16 @@ def collection_view(request: Request, slug: str):
 
 
 @router.get("/about", response_class=HTMLResponse)
+def about_page(request: Request):
+    """About Khulaasaa, editorial mission, platform pillars, and contact."""
+    return templates.TemplateResponse("about.html", {"request": request})
+
+
 @router.get("/compliance", response_class=HTMLResponse)
 @router.get("/legality", response_class=HTMLResponse)
-def about_page(request: Request):
-    """About Khulaasaa, legal fair dealing basis, compliance and content removal policy."""
-    return templates.TemplateResponse(
-        "about.html",
-        {
-            "request": request,
-        },
-    )
+def compliance_page(request: Request):
+    """Legal fair dealing basis, copyright compliance, and publisher removal SLA."""
+    return templates.TemplateResponse("compliance.html", {"request": request})
 
 
 @router.get("/feed.xml", response_class=Response)
