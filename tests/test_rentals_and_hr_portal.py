@@ -13,6 +13,14 @@ os.environ["TELEGRAM_BOT_TOKEN"] = ""
 from main import app
 from data.connection import get_db
 from data.rentals import init_rentals_schema, seed_initial_rentals, list_rentals
+from data.scrapers.rentals_scraper import (
+    RENTAL_SOURCES,
+    COMMON_FURNISHED_ITEMS,
+    extract_rooms_and_toilets,
+    extract_lift_and_floors,
+    detect_leased_status,
+    consolidate_key,
+)
 
 client = TestClient(app)
 
@@ -37,7 +45,13 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         res = client.get("/rentals?location=Hulhumale+Phase+1&bedrooms=2")
         self.assertEqual(res.status_code, 200)
         self.assertIn("Hulhumale Phase 1", res.text)
-        self.assertIn("2 Bedrooms", res.text)
+        self.assertIn("2 BHK", res.text)
+
+    def test_rentals_filter_by_lift_and_ac(self):
+        res = client.get("/rentals?has_lift=1&has_ac=1")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("Lift Access", res.text)
+        self.assertIn("AC Installed", res.text)
 
     def test_rental_detail_view(self):
         with get_db() as conn:
@@ -46,7 +60,9 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn(r["title"], res.text)
         self.assertIn("Direct Contact Details", res.text)
-        self.assertIn("Hooks85 Tenancy Suite", res.text)
+        self.assertIn("hooks85 Tenancy Suite", res.text)
+        self.assertIn("Key Specifications", res.text)
+        self.assertIn("Layout &amp; Climate", res.text)
 
     def test_rental_contract_builder_view(self):
         res = client.get("/rentals/contract")
@@ -55,28 +71,37 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Standard Maldivian Lease Framework", res.text)
         self.assertIn("Monthly Rent Ledger &amp; Receipts", res.text)
         self.assertIn("Download Official Tenancy Agreement", res.text)
+        # Check Dhivehi contract text presence
+        self.assertIn("ކުއްޔަށް ދިނުމާއި ހިފުމުގެ އެއްބަސްވުން", res.text)
+        self.assertIn("ކުއްޔަށްދޭ ފަރާތް", res.text)
+        self.assertIn("ސެކިއުރިޓީ ޑިޕޮޒިޓާއި އުނިކުރުން", res.text)
 
     def test_rental_contract_builder_with_rental_id(self):
         with get_db() as conn:
             r = list_rentals(conn, limit=1)[0]
         res = client.get(f"/rentals/contract?rental_id={r['id']}")
         self.assertEqual(res.status_code, 200)
-        self.assertIn(r["address"], res.text)
+        addr = r.get("address") or r.get("plot_building") or "Nirolhu Magu"
+        self.assertIn(addr, res.text)
 
     def test_save_rental_contract_api(self):
         payload = {
             "landlord_name": "Test Landlord Solih",
             "landlord_nid": "A998877",
             "landlord_phone": "7712345",
+            "landlord_address": "M. Light, Male",
             "tenant_name": "Test Tenant Waheed",
             "tenant_nid": "A112233",
             "tenant_phone": "7987654",
+            "tenant_address": "H. Dawn, Male",
             "property_address": "Flat 402, Nirolhu Magu, Hulhumale",
             "monthly_rent_mvr": 23000,
             "security_deposit_mvr": 46000,
-            "lease_start_date": "2026-11-01",
+            "late_fine_mvr_per_day": 150,
             "lease_duration_months": 12,
-            "utilities_clause": "Tenant pays electricity and water.",
+            "notice_period_days": 30,
+            "contract_language": "dv",
+            "inventory_items": ["Master Bed & Mattress", "Living Room Sofa Set"],
             "status": "draft"
         }
         res = client.post("/api/rentals/contract/save", json=payload)
@@ -84,6 +109,32 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         data = res.json()
         self.assertEqual(data["status"], "ok")
         self.assertGreater(data["contract_id"], 0)
+
+    def test_scraper_heuristics(self):
+        rooms, att, tot = extract_rooms_and_toilets("Spacious 3 room apartment with 3 attached toilets and 1 guest toilet")
+        self.assertEqual(rooms, 3)
+        self.assertEqual(att, 3)
+        self.assertEqual(tot, 4)
+
+        has_lift, b_floors, floor_desc = extract_lift_and_floors("Apartment on 5th floor with lift access and balcony in 10 floors building")
+        self.assertEqual(has_lift, 1)
+        self.assertEqual(floor_desc, "5 Floor")
+        self.assertEqual(b_floors, 10)
+
+        self.assertTrue(detect_leased_status("This property is leased out / rented"))
+        self.assertFalse(detect_leased_status("Available for immediate rent"))
+
+        key = consolidate_key("Hulhumale Phase 1", "Lot 10423", "4", 3)
+        self.assertEqual(key, "hulhumale phase 1|lot 10423|4|3bhk")
+
+        source_names = [s["name"] for s in RENTAL_SOURCES]
+        self.assertEqual(len(source_names), 6)
+        self.assertIn("iBay Maldives", source_names)
+        self.assertIn("Boahiyaa Real Estate", source_names)
+        self.assertIn("Property.mv", source_names)
+        self.assertIn("Hiyaa.mv Residential", source_names)
+        self.assertIn("KobaPages Maldives", source_names)
+        self.assertIn("Apex Atoll Properties", source_names)
 
     def test_candidates_talent_pool_renders_with_consent(self):
         res = client.get("/jobs/candidates")

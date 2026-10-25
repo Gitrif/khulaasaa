@@ -30,6 +30,9 @@ def rentals_directory_view(
     bedrooms: Optional[int] = None,
     max_rent: Optional[int] = None,
     furnished: Optional[str] = None,
+    has_lift: Optional[int] = None,
+    has_ac: Optional[int] = None,
+    has_water_heater: Optional[int] = None,
     q: Optional[str] = None,
 ):
     """Consolidated Apartment & Rental directory across Male, Hulhumale, and atolls."""
@@ -42,6 +45,9 @@ def rentals_directory_view(
             bedrooms=bedrooms,
             max_rent=max_rent,
             furnished=furnished,
+            has_lift=has_lift,
+            has_ac=has_ac,
+            has_water_heater=has_water_heater,
             search_q=q,
         )
         try:
@@ -59,6 +65,9 @@ def rentals_directory_view(
             "active_bedrooms": bedrooms or 0,
             "active_max_rent": max_rent or 0,
             "active_furnished": furnished or "All",
+            "active_lift": has_lift or 0,
+            "active_ac": has_ac or 0,
+            "active_water_heater": has_water_heater or 0,
             "search_query": q or "",
             "current_user": user,
             "active_ads": active_ads,
