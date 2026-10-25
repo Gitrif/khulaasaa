@@ -46,8 +46,8 @@ def test_jobs_partial_rendering():
 
 
 def test_logo_sizing_and_overflow_protection_in_css():
-    """Verify style.css enforces strict logo sizing and overflow prevention."""
-    res = client.get("/static/css/style.css")
+    """Verify base.css enforces strict logo sizing and overflow prevention."""
+    res = client.get("/static/css/base.css")
     assert res.status_code == 200
     assert "object-fit: contain" in res.text
     assert "overflow-wrap: break-word" in res.text

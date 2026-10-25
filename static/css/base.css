@@ -1,0 +1,406 @@
+/* ==========================================================================
+   KHULAASAA BASE DESIGN SYSTEM & UTILITIES
+   Variables, Resets, Core Utilities, Typography, Logo Sizing & Overflow
+   ========================================================================== */
+
+:root {
+  --ink: #10222E;
+  --ink-soft: #1B3140;
+  --paper: #F6F3EC;
+  --paper-soft: #EFEBE1;
+  --lagoon: #2F7C74;
+  --flag: #B3432B;
+  --gold: #C89B3C;
+  --slate: #5B6572;
+  --hairline: #D9D3C4;
+  --hairline-dark: #2A3E4C;
+}
+
+/* Global Reset for Links - Prevents browser default visited purple (#551a8b) & underlines */
+a, a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+
+/* Core Color Utilities & Visited State Overrides */
+.text-white, a.text-white, a.text-white:visited { color: #ffffff !important; }
+.text-ink, a.text-ink, a.text-ink:visited { color: var(--ink) !important; }
+.text-slate, a.text-slate, a.text-slate:visited { color: var(--slate) !important; }
+.text-lagoon, a.text-lagoon, a.text-lagoon:visited { color: var(--lagoon) !important; }
+.text-flag, a.text-flag, a.text-flag:visited { color: var(--flag) !important; }
+.text-gold, a.text-gold, a.text-gold:visited { color: var(--gold) !important; }
+.text-paper, a.text-paper, a.text-paper:visited { color: var(--paper) !important; }
+
+.bg-white { background-color: #ffffff !important; }
+.bg-paper { background-color: var(--paper) !important; }
+.bg-paper-soft { background-color: var(--paper-soft) !important; }
+.bg-ink { background-color: var(--ink) !important; }
+.bg-ink-soft { background-color: var(--ink-soft) !important; }
+.bg-lagoon { background-color: var(--lagoon) !important; }
+.bg-flag { background-color: var(--flag) !important; }
+.bg-gold { background-color: var(--gold) !important; }
+.bg-cream { background-color: #EFEBE1 !important; }
+
+.border-hairline { border-color: var(--hairline) !important; }
+.border-hairline-dark { border-color: var(--hairline-dark) !important; }
+.border-gold { border-color: var(--gold) !important; }
+.border-lagoon { border-color: var(--lagoon) !important; }
+.border-flag { border-color: var(--flag) !important; }
+
+.rounded-xs { border-radius: 2px !important; }
+.rounded-sm { border-radius: 4px !important; }
+.rounded { border-radius: 6px !important; }
+.rounded-md { border-radius: 8px !important; }
+.rounded-lg { border-radius: 10px !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+.shadow-xs { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important; }
+.shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important; }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important; }
+
+.cursor-pointer { cursor: pointer !important; }
+.transition { transition: all 0.15s ease-in-out !important; }
+.whitespace-nowrap { white-space: nowrap !important; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.text-\[10px\] { font-size: 10px !important; line-height: 1.25 !important; }
+.text-\[11px\] { font-size: 11px !important; line-height: 1.35 !important; }
+.text-\[12px\] { font-size: 12px !important; line-height: 1.4 !important; }
+.text-\[13px\] { font-size: 13px !important; line-height: 1.4 !important; }
+.text-\[15px\] { font-size: 15px !important; line-height: 1.5 !important; }
+
+.hover\:bg-ink-soft:hover { background-color: var(--ink-soft) !important; }
+.hover\:bg-paper-soft:hover { background-color: var(--paper-soft) !important; }
+.hover\:bg-cream:hover { background-color: #EFEBE1 !important; }
+.hover\:text-ink:hover { color: var(--ink) !important; }
+.hover\:underline:hover { text-decoration: underline !important; }
+
+
+/* Base Typography & Body Setup */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+}
+
+.font-serif-display {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bg-paper { background-color: var(--paper); }
+.bg-paper-soft { background-color: var(--paper-soft); }
+.bg-ink { background-color: var(--ink); }
+.bg-ink-soft { background-color: var(--ink-soft); }
+.text-ink { color: var(--ink); }
+.text-slate { color: var(--slate); }
+.text-lagoon { color: var(--lagoon); }
+.text-flag { color: var(--flag); }
+.text-gold { color: var(--gold); }
+.bg-lagoon { background-color: var(--lagoon); }
+.bg-flag { background-color: var(--flag); }
+.bg-gold { background-color: var(--gold); }
+.border-hairline { border-color: var(--hairline); }
+.border-hairline-dark { border-color: var(--hairline-dark); }
+.border-gold { border-color: var(--gold); }
+
+/* Stacked list rows (breaking strip, general news list) - plain CSS instead
+   of Tailwind's divide-* utilities, since Play CDN doesn't know our custom
+   color names. */
+.stacked-rows > * + * { border-top: 1px solid var(--hairline); }
+
+/* Dhivehi Thaana Typography & Page Transitions */
+/* Dhivehi Thaana Typography — Crisp, legible, modern (Noto Sans Thaana + Avas/Faseyha fallbacks) */
+.font-thaana, [dir="rtl"], .thaana-title, .thaana-text {
+  font-family: 'Noto Sans Thaana', 'MV Waheed', 'Faseyha', 'Faruma', 'Aaila', 'MV Typewriter', system-ui, sans-serif !important;
+  line-height: 1.85 !important;
+  letter-spacing: 0 !important;
+  word-spacing: 0.05em;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+p.card-headline.font-thaana {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  font-weight: 600;
+}
+
+/* Smooth page transition */
+main, .page-transition {
+  animation: fadeIn 0.18s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0.88; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ==========================================================================
+   Lean Vanilla Utility System (Zero Tailwind Runtime / Zero Dependencies)
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+.hidden { display: none !important; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline-flex { display: inline-flex; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+.flex-1 { flex: 1 1 0%; }
+.flex-shrink-0, .shrink-0 { flex-shrink: 0; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-baseline { align-items: baseline; }
+.items-stretch { align-items: stretch; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.self-start { align-self: flex-start; }
+.self-center { align-self: center; }
+
+.gap-05 { gap: 0.125rem; }
+.gap-1 { gap: 0.25rem; }
+.gap-1\.5 { gap: 0.375rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-2\.5 { gap: 0.625rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+@media (min-width: 640px) {
+  .sm\:flex-row { flex-direction: row; }
+  .sm\:items-center { align-items: center; }
+  .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+}
+@media (min-width: 768px) {
+  .md\:flex-row { flex-direction: row; }
+  .md\:items-center { align-items: center; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.max-w-6xl { max-width: 72rem; }
+.max-w-5xl { max-width: 64rem; }
+.max-w-3xl { max-width: 48rem; }
+.max-w-xl { max-width: 36rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.w-2 { width: 0.5rem; }
+.h-2 { height: 0.5rem; }
+.w-3\.5 { width: 0.875rem; }
+.h-3\.5 { height: 0.875rem; }
+
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-5 { padding: 1.25rem; }
+.p-12 { padding: 3rem; }
+.px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+.px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.pt-2 { padding-top: 0.5rem; }
+.pt-3 { padding-top: 0.75rem; }
+.pt-5 { padding-top: 1.25rem; }
+.pb-1 { padding-bottom: 0.25rem; }
+.pb-4 { padding-bottom: 1rem; }
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-1\.5 { margin-top: 0.375rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-1\.5 { margin-bottom: 0.375rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.space-y-1\.5 > * + * { margin-top: 0.375rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-base { font-size: 1rem; line-height: 1.5rem; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.uppercase { text-transform: uppercase; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-wide { letter-spacing: 0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.whitespace-nowrap { white-space: nowrap; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hover\:underline:hover { text-decoration: underline; }
+
+.bg-white { background-color: #ffffff; }
+.bg-cream { background-color: #FAF8F5; }
+.border { border-width: 1px; border-style: solid; border-color: var(--hairline); }
+.border-b { border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: var(--hairline); }
+.border-t { border-top-width: 1px; border-top-style: solid; border-top-color: var(--hairline); }
+.border-dashed { border-style: dashed; }
+.rounded { border-radius: 4px; }
+.rounded-full { border-radius: 9999px; }
+.shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.cursor-pointer { cursor: pointer; }
+.transition { transition: all 0.15s ease-in-out; }
+
+
+/* ==========================================================================
+   Logo Sizing & Card Overflow Prevention Rules
+   ========================================================================== */
+
+/* Universal width & height sizing helpers */
+.w-3 { width: 12px !important; }
+.h-3 { height: 12px !important; }
+.w-3\.5 { width: 14px !important; }
+.h-3\.5 { height: 14px !important; }
+.w-4 { width: 16px !important; }
+.h-4 { height: 16px !important; }
+.w-5 { width: 20px !important; }
+.h-5 { height: 20px !important; }
+.w-6 { width: 24px !important; }
+.h-6 { height: 24px !important; }
+.w-7 { width: 28px !important; }
+.h-7 { height: 28px !important; }
+.w-8 { width: 32px !important; }
+.h-8 { height: 32px !important; }
+.w-10 { width: 40px !important; }
+.h-10 { height: 40px !important; }
+.w-12 { width: 48px !important; }
+.h-12 { height: 48px !important; }
+.w-16 { width: 64px !important; }
+.h-16 { height: 64px !important; }
+.w-20 { width: 80px !important; }
+.h-20 { height: 80px !important; }
+.w-24 { width: 96px !important; }
+.h-24 { height: 96px !important; }
+.w-32 { width: 128px !important; }
+.h-32 { height: 128px !important; }
+.w-\[18px\] { width: 18px !important; }
+.h-\[18px\] { height: 18px !important; }
+
+.object-contain { object-fit: contain !important; }
+.object-cover { object-fit: cover !important; }
+
+/* Uniform Logo Sizing: guarantees all outlet logos stay identical and never blow up */
+.source-badge img,
+img.source-logo,
+.source-badge-logo,
+.source-badge.sm img,
+.w-\[18px\].h-\[18px\] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+  border-radius: 2px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Card-level outlet logos (e.g. story detail comparison cards) */
+article img[src*="logos"],
+article img[src*="voice"],
+article img[src*="mihaaru"],
+article .w-6.h-6,
+.source-card-logo {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+  border-radius: 4px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Fallback: any image sourced from static/logos directory is constrained */
+img[src*="/static/logos/"],
+img[src*="static/logos/"] {
+  max-width: 28px !important;
+  max-height: 28px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* Complete Overflow Prevention for cards, grids, flex containers, and text */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.story-card,
+article,
+.bid-row,
+.job-row,
+.event-card,
+.sidebar-block,
+.card-stack,
+.news-grid,
+main {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+}
+
+/* Ensure text never overflows horizontally outside card bounds */
+.card-headline,
+.story-card h2,
+.story-card h3,
+article h1,
+article h2,
+article h3,
+.font-thaana,
+[dir="rtl"],
+.thaana-title,
+.thaana-text,
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
+  max-width: 100% !important;
+}
+
+/* Media responsiveness */
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+
+

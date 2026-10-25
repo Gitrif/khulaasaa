@@ -316,74 +316,8 @@
   </div>
 </div>
 
-<!-- Client PDF Engine & Clean Print Stylesheet -->
+<!-- Client PDF Engine (Print styles handled by /static/css/print.css) -->
 <script src="/static/js/html2pdf.bundle.min.js"></script>
-<style>
-@page {
-  size: A4 portrait;
-  margin: 0; /* Critical: Tells browsers NOT to print default system headers (URL, title) and footers (date, page numbers) */
-}
-
-@media print {
-  *, *:before, *:after {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-  }
-
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    width: 210mm !important;
-  }
-
-  body * {
-    visibility: hidden;
-  }
-
-  .site-nav, header, nav, footer, button, .print\:hidden, .border-b, .lg\:col-span-5 {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  #corporatePaper, #corporatePaper * {
-    visibility: visible;
-  }
-
-  #corporatePaper {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 210mm !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-  }
-
-  .page-sheet {
-    page-break-after: always;
-    page-break-inside: avoid;
-    break-after: page;
-    width: 210mm !important;
-    max-width: 210mm !important;
-    min-height: 297mm !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 20mm 18mm !important;
-    box-shadow: none !important;
-    border: none !important;
-    background: #ffffff !important;
-  }
-}
-.page-sheet {
-  background: white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #E5E7EB;
-  min-height: 840px;
-  position: relative;
-}
-</style>
 
 <script src="/static/js/company_profile_form.js"></script>
 <script src="/static/js/company_profile_preview.js"></script>

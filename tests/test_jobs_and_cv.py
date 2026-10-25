@@ -218,14 +218,15 @@ def test_jobs_web_and_api_endpoints(client):
     assert "Company Profile" in cp_view.text
     assert "Download A4 PDF" in cp_view.text
     assert "html2pdf.bundle.min.js" in cp_view.text
-    assert "@page" in cp_view.text
+    assert "@page" in cp_view.text or "print.css" in cp_view.text
+    assert "@page" in client.get("/static/css/print.css").text
 
     # Verify CV Creator also has Download A4 PDF and clean print stylesheet
     cv_view = client.get("/jobs/cv")
     assert cv_view.status_code == 200
     assert "Download A4 PDF" in cv_view.text
     assert "html2pdf.bundle.min.js" in cv_view.text
-    assert "@page" in cv_view.text
+    assert "@page" in cv_view.text or "print.css" in cv_view.text
 
     # Verify static js is served
     static_res = client.get("/static/js/html2pdf.bundle.min.js")

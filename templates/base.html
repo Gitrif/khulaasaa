@@ -22,7 +22,13 @@
     "description": "Multi-outlet news aggregator, procurement tracker, and career platform for the Maldives"
   }
   </script>
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/modals.css">
+  <link rel="stylesheet" href="/static/css/cv.css">
+  <link rel="stylesheet" href="/static/css/print.css">
   <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
