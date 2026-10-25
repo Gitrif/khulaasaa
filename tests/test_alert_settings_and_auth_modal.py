@@ -90,3 +90,45 @@ def test_alert_test_connection_validation(client):
     # With Viber ID mock
     resp_vb = client.post("/api/alerts/test-connection", json={"channel": "viber", "target_id": "viber_test_id"})
     assert resp_vb.status_code in (200, 400)
+
+
+def test_avatar_menu_client_endpoints_and_markup(client):
+    """Test avatar menu markup presence and auth session endpoints."""
+    # 1. Page markup includes avatar menu container and scripts
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "globalUserPillContainer" in resp.text
+    assert "toggleUserAvatarMenu" in resp.text
+    assert "user-avatar-btn" in resp.text
+    assert "user-avatar-dropdown" in resp.text
+
+    # 2. When logged out, /api/auth/me returns null user
+    me_resp = client.get("/api/auth/me")
+    assert me_resp.status_code == 200
+    assert me_resp.json().get("user") is None
+
+    # 3. Register user and verify /api/auth/me returns user object with initials support
+    reg_resp = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Ibrahim Arif",
+            "email": "ibrahim.arif@example.mv",
+            "password": "securepassword123",
+        },
+    )
+    assert reg_resp.status_code == 200
+    token = reg_resp.json()["token"]
+    client.cookies.set("session_token", token)
+
+    me_logged_in = client.get("/api/auth/me")
+    assert me_logged_in.status_code == 200
+    user_data = me_logged_in.json()["user"]
+    assert user_data["full_name"] == "Ibrahim Arif"
+    assert user_data["email"] == "ibrahim.arif@example.mv"
+
+    # 4. Logout endpoint clears authentication
+    logout_resp = client.post("/api/auth/logout")
+    assert logout_resp.status_code == 200
+    client.cookies.delete("session_token")
+    me_logged_out = client.get("/api/auth/me")
+    assert me_logged_out.json().get("user") is None
