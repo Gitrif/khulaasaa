@@ -14,12 +14,16 @@ function formatDateRange(fromDate, toDate, isCurrent) {
 function renderLivePreview() {
   const d = collectCvData();
   const paper = document.getElementById("cvPaper");
+  if (!paper) return;
 
-  if (currentTemplate === 'executive') {
+  const tmpl = currentTemplate || 'standard';
+  paper.className = "cv-paper cv-theme-" + tmpl;
+
+  if (tmpl === 'executive') {
     paper.innerHTML = renderExecutiveTemplate(d);
-  } else if (currentTemplate === 'modern') {
+  } else if (tmpl === 'modern') {
     paper.innerHTML = renderModernTemplate(d);
-  } else if (currentTemplate === 'technical') {
+  } else if (tmpl === 'technical') {
     paper.innerHTML = renderTechnicalTemplate(d);
   } else {
     paper.innerHTML = renderStandardTemplate(d);
@@ -30,21 +34,21 @@ function renderLivePreview() {
 function renderStandardTemplate(d) {
   // Photo rendering rule: IF NO PHOTO, DO NOT PRINT PLACEHOLDER BOX
   const photoHtml = d.photoUrl ? `
-    <div class="shrink-0 w-24 h-28 border border-slate-300 rounded overflow-hidden bg-slate-50 flex items-center justify-center shadow-xs">
-      <img src="${d.photoUrl}" alt="${d.fullName}" class="w-full h-full object-cover">
+    <div class="cv-std-photo">
+      <img src="${d.photoUrl}" alt="${d.fullName}">
     </div>
   ` : '';
 
   // Demographics Bar
   const demographicsHtml = `
-    <div class="text-xs text-slate-800 py-1.5 border-t border-b border-slate-300 font-medium my-4 flex flex-wrap gap-x-3 gap-y-1">
+    <div class="cv-std-demographics">
       <span><b>Sex:</b> ${d.sex || 'Male'}</span>
-      <span class="text-slate-300">|</span>
+      <span class="sep">|</span>
       <span><b>DOB:</b> ${d.dob || '—'}</span>
-      <span class="text-slate-300">|</span>
+      <span class="sep">|</span>
       <span><b>Nationality:</b> ${d.nationality || 'Maldivian'}</span>
-      <span class="text-slate-300">|</span>
-      <span><b>National ID#:</b> <span class="font-mono font-bold">${d.nationalId || '—'}</span></span>
+      <span class="sep">|</span>
+      <span><b>National ID#:</b> <b class="font-mono">${d.nationalId || '—'}</b></span>
     </div>
   `;
 
@@ -52,18 +56,18 @@ function renderStandardTemplate(d) {
   let expHtml = '';
   if (d.experience && d.experience.length > 0) {
     const items = d.experience.map(e => `
-      <div class="space-y-1">
-        <div class="flex flex-wrap justify-between items-baseline font-bold text-slate-900">
+      <div class="cv-std-item">
+        <div class="cv-std-item-header">
           <span>${e.role || 'Designation'} ${e.company ? '– ' + e.company : ''}</span>
-          <span class="text-xs font-semibold text-slate-600 font-mono">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
+          <span class="cv-std-date">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
         </div>
-        ${e.description ? `<div class="text-slate-700 leading-relaxed whitespace-pre-line pl-2 border-l-2 border-slate-200 text-xs">${e.description}</div>` : ''}
+        ${e.description ? `<div class="cv-std-desc">${e.description}</div>` : ''}
       </div>
     `).join('');
     expHtml = `
-      <div class="space-y-3">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Experience</h2>
-        <div class="space-y-3 text-xs">${items}</div>
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Experience</h2>
+        <div>${items}</div>
       </div>
     `;
   }
@@ -74,20 +78,18 @@ function renderStandardTemplate(d) {
     const items = d.education.map(e => {
       const instName = (e.institution === "Other / Overseas University" && e.customInstitution) ? e.customInstitution : e.institution;
       return `
-        <div class="flex flex-wrap justify-between items-baseline text-xs">
-          <div>
-            <span class="font-bold text-slate-900">${e.degree || e.level}</span>
-            ${instName ? ` <span class="text-slate-700">– ${instName}</span>` : ''}
-            ${e.grade ? ` <span class="text-slate-500">(${e.grade})</span>` : ''}
+        <div class="cv-std-item">
+          <div class="cv-std-item-header">
+            <span>${e.degree || e.level} ${instName ? '– ' + instName : ''} ${e.grade ? '(' + e.grade + ')' : ''}</span>
+            <span class="cv-std-date">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
           </div>
-          <span class="text-xs font-semibold text-slate-600 font-mono">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
         </div>
       `;
     }).join('');
     eduHtml = `
-      <div class="space-y-2">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Education</h2>
-        <div class="space-y-2">${items}</div>
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Education &amp; Qualifications</h2>
+        <div>${items}</div>
       </div>
     `;
   }
@@ -96,14 +98,14 @@ function renderStandardTemplate(d) {
   let certHtml = '';
   if ((d.certifications && d.certifications.length > 0) || d.training) {
     const certList = (d.certifications || []).map(c => `
-      <div>• <b>${c.title}</b> ${c.issuer ? `– ${c.issuer}` : ''} ${c.year ? `(${c.year})` : ''}</div>
+      <div class="cv-std-item-header">• ${c.title} ${c.issuer ? '– ' + c.issuer : ''} ${c.year ? '(' + c.year + ')' : ''}</div>
     `).join('');
     certHtml = `
-      <div class="space-y-2">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Other Training &amp; Certifications</h2>
-        <div class="text-xs text-slate-700 space-y-1">
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Other Training &amp; Certifications</h2>
+        <div>
           ${certList}
-          ${d.training ? `<div class="whitespace-pre-line">${d.training}</div>` : ''}
+          ${d.training ? `<div class="cv-std-desc">${d.training}</div>` : ''}
         </div>
       </div>
     `;
@@ -114,9 +116,9 @@ function renderStandardTemplate(d) {
   if (d.languages && d.languages.length > 0) {
     const langItems = d.languages.map(l => `<div>• <b>${l.language}:</b> ${l.proficiency}</div>`).join('');
     langHtml = `
-      <div class="space-y-2">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Languages</h2>
-        <div class="text-xs text-slate-700 space-y-1">${langItems}</div>
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Languages</h2>
+        <div>${langItems}</div>
       </div>
     `;
   }
@@ -125,16 +127,18 @@ function renderStandardTemplate(d) {
   let portHtml = '';
   if (d.portfolio && d.portfolio.length > 0) {
     const portItems = d.portfolio.map(p => `
-      <div class="text-xs">
-        <div class="font-bold text-slate-900">${p.title} ${p.role ? `<span class="font-normal text-slate-600">(${p.role})</span>` : ''}</div>
-        ${p.url ? `<a href="${p.url}" target="_blank" class="text-sky-700 underline text-[11px]">${p.url}</a>` : ''}
-        ${p.description ? `<p class="text-slate-700 mt-0.5">${p.description}</p>` : ''}
+      <div class="cv-std-item">
+        <div class="cv-std-item-header">
+          <span>${p.title} ${p.role ? '(' + p.role + ')' : ''}</span>
+        </div>
+        ${p.url ? `<div><a href="${p.url}" target="_blank" style="color: #0284c7; text-decoration: underline;">${p.url}</a></div>` : ''}
+        ${p.description ? `<div class="cv-std-desc">${p.description}</div>` : ''}
       </div>
     `).join('');
     portHtml = `
-      <div class="space-y-2">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Portfolio &amp; Projects</h2>
-        <div class="space-y-2">${portItems}</div>
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Portfolio &amp; Projects</h2>
+        <div>${portItems}</div>
       </div>
     `;
   }
@@ -143,28 +147,30 @@ function renderStandardTemplate(d) {
   let refHtml = '';
   if (d.referees && d.referees.length > 0) {
     const refItems = d.referees.map(r => `
-      <div class="text-xs">
-        <span class="font-bold text-slate-900">${r.name}</span>
-        ${r.designation ? ` (${r.designation}` : ''}${r.company ? `, ${r.company})` : (r.designation ? ')' : '')}
-        ${r.contact ? ` <span class="font-mono text-slate-700 ml-1">${r.contact}</span>` : ''}
+      <div class="cv-std-item">
+        <b>${r.name}</b> ${r.designation ? '– ' + r.designation : ''}${r.company ? ', ' + r.company : ''}
+        ${r.contact ? ` <span class="cv-std-date">${r.contact}</span>` : ''}
       </div>
     `).join('');
     refHtml = `
-      <div class="space-y-2">
-        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Referees</h2>
-        <div class="space-y-1">${refItems}</div>
+      <div class="cv-std-section">
+        <h2 class="cv-std-heading">Referees</h2>
+        <div>${refItems}</div>
       </div>
     `;
   }
 
   return `
-    <div class="space-y-5 text-slate-900 font-sans">
-      <div class="flex justify-between items-start gap-4">
-        <div class="space-y-1">
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight">${d.fullName || 'Your Full Name'}</h1>
-          <div class="text-xs text-sky-700">${d.email || ''}</div>
-          <div class="text-xs text-slate-600">${d.address || ''}</div>
-          <div class="text-xs text-slate-600 font-mono">${d.phone ? `Mobile ${d.phone}` : ''}</div>
+    <div>
+      <div class="cv-std-header">
+        <div>
+          <h1 class="cv-std-name">${d.fullName || 'Your Full Name'}</h1>
+          <div class="cv-std-contact-row">
+            ${d.email ? `<span>${d.email}</span>` : ''}
+            ${d.email && d.phone ? `<span>·</span>` : ''}
+            ${d.phone ? `<span class="font-mono">Mobile: ${d.phone}</span>` : ''}
+            ${d.address ? `<span>·</span><span>${d.address}</span>` : ''}
+          </div>
         </div>
         ${photoHtml}
       </div>
@@ -172,18 +178,18 @@ function renderStandardTemplate(d) {
       ${demographicsHtml}
 
       ${d.summary ? `
-        <div class="space-y-2">
-          <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Summary</h2>
-          <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${d.summary}</p>
+        <div class="cv-std-section">
+          <h2 class="cv-std-heading">Summary</h2>
+          <p class="cv-std-desc" style="border:none; padding-left:0;">${d.summary}</p>
         </div>
       ` : ''}
 
       ${d.skills && d.skills.length > 0 ? `
-        <div class="space-y-2">
-          <h2 class="text-sm font-bold uppercase tracking-wide text-slate-900 border-b-2 border-slate-800 pb-1">Key Skills</h2>
-          <ul class="text-xs text-slate-700 list-disc list-inside space-y-1">
-            ${d.skills.map(s => `<li>${s}</li>`).join('')}
-          </ul>
+        <div class="cv-std-section">
+          <h2 class="cv-std-heading">Key Skills</h2>
+          <div class="cv-std-badge-list">
+            ${d.skills.map(s => `<span class="cv-std-badge">${s}</span>`).join('')}
+          </div>
         </div>
       ` : ''}
 
@@ -200,38 +206,38 @@ function renderStandardTemplate(d) {
 // 2. EXECUTIVE MODERN TEMPLATE (Pro Tier - Two Columns)
 function renderExecutiveTemplate(d) {
   const photoHtml = d.photoUrl ? `
-    <div class="w-28 h-32 mx-auto mb-4 border-2 border-emerald-700 rounded-sm overflow-hidden shadow-sm">
-      <img src="${d.photoUrl}" alt="${d.fullName}" class="w-full h-full object-cover">
+    <div class="cv-exec-photo">
+      <img src="${d.photoUrl}" alt="${d.fullName}">
     </div>
   ` : '';
 
   const skillsHtml = d.skills && d.skills.length > 0 ? `
-    <div class="space-y-1.5">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-700 pb-1">Core Competencies</h3>
-      <div class="flex flex-wrap gap-1 pt-1">
-        ${d.skills.map(s => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-950 font-medium rounded text-[11px] border border-emerald-200">${s}</span>`).join('')}
+    <div class="cv-exec-side-section">
+      <h3 class="cv-exec-side-heading">Competencies</h3>
+      <div>
+        ${d.skills.map(s => `<span class="cv-exec-skill-badge">${s}</span>`).join('')}
       </div>
     </div>
   ` : '';
 
   const langHtml = d.languages && d.languages.length > 0 ? `
-    <div class="space-y-1.5">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-700 pb-1">Languages</h3>
-      <div class="space-y-1 text-xs text-slate-800">
-        ${d.languages.map(l => `<div><span class="font-semibold">${l.language}</span><div class="text-[10px] text-slate-600">${l.proficiency}</div></div>`).join('')}
+    <div class="cv-exec-side-section">
+      <h3 class="cv-exec-side-heading">Languages</h3>
+      <div>
+        ${d.languages.map(l => `<div class="cv-exec-side-item"><b>${l.language}</b><div style="font-size:10px; color:#64748b;">${l.proficiency}</div></div>`).join('')}
       </div>
     </div>
   ` : '';
 
   const refHtml = d.referees && d.referees.length > 0 ? `
-    <div class="space-y-1.5">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-700 pb-1">References</h3>
-      <div class="space-y-2 text-xs text-slate-800">
+    <div class="cv-exec-side-section">
+      <h3 class="cv-exec-side-heading">References</h3>
+      <div>
         ${d.referees.map(r => `
-          <div>
-            <div class="font-bold">${r.name}</div>
-            <div class="text-[11px] text-slate-600">${r.designation}${r.company ? `, ${r.company}` : ''}</div>
-            <div class="text-[10px] font-mono text-emerald-800">${r.contact}</div>
+          <div class="cv-exec-side-item">
+            <b>${r.name}</b>
+            <div>${r.designation}${r.company ? ', ' + r.company : ''}</div>
+            <div style="font-family: monospace; font-size: 10px; color: #047857;">${r.contact}</div>
           </div>
         `).join('')}
       </div>
@@ -239,53 +245,49 @@ function renderExecutiveTemplate(d) {
   ` : '';
 
   const expItems = (d.experience || []).map(e => `
-    <div class="relative pl-4 border-l-2 border-emerald-600 space-y-1 pb-3">
-      <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-emerald-600"></div>
-      <div class="flex justify-between items-baseline">
-        <h4 class="font-bold text-slate-900 text-xs">${e.role}</h4>
-        <span class="text-[11px] font-semibold text-emerald-800 font-mono">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
+    <div class="cv-exec-timeline-item">
+      <div class="cv-exec-timeline-dot"></div>
+      <div class="cv-exec-timeline-header">
+        <span class="cv-exec-role">${e.role}</span>
+        <span class="cv-exec-date-badge">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
       </div>
-      <div class="text-xs text-slate-600 font-medium">${e.company}</div>
-      ${e.description ? `<div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line mt-1">${e.description}</div>` : ''}
+      <div class="cv-exec-company">${e.company}</div>
+      ${e.description ? `<div style="font-size:12px; color:#334155; margin-top:4px; line-height:1.5;">${e.description}</div>` : ''}
     </div>
   `).join('');
 
   const eduItems = (d.education || []).map(e => {
     const instName = (e.institution === "Other / Overseas University" && e.customInstitution) ? e.customInstitution : e.institution;
     return `
-      <div class="text-xs space-y-0.5">
-        <div class="flex justify-between items-baseline font-bold text-slate-900">
-          <span>${e.degree || e.level}</span>
-          <span class="text-[11px] font-mono font-semibold text-emerald-800">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
+      <div style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; font-weight:700;">
+          <span style="color:#0f172a;">${e.degree || e.level}</span>
+          <span class="cv-exec-date-badge">${formatDateRange(e.fromDate, e.toDate, e.isCurrent)}</span>
         </div>
-        <div class="text-slate-600">${instName} ${e.grade ? `· <span class="text-slate-800 font-medium">${e.grade}</span>` : ''}</div>
+        <div style="color:#475569; font-size:12px;">${instName} ${e.grade ? '· ' + e.grade : ''}</div>
       </div>
     `;
   }).join('');
 
   return `
-    <div class="grid grid-cols-12 gap-6 font-sans">
-      <!-- Left Column (4 cols) -->
-      <div class="col-span-4 bg-slate-50/70 p-4 rounded-sm border border-slate-200 space-y-5">
+    <div class="cv-exec-layout">
+      <!-- Left Column Sidebar -->
+      <div class="cv-exec-sidebar">
         ${photoHtml}
-        
-        <div class="space-y-2 text-xs">
-          <h3 class="font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-700 pb-1">Contact</h3>
-          <div class="space-y-1 text-slate-700">
-            <div><b>Phone:</b> <span class="font-mono">${d.phone || '—'}</span></div>
-            <div><b>Email:</b> <span class="break-all">${d.email || '—'}</span></div>
-            <div><b>Address:</b> ${d.address || '—'}</div>
-          </div>
+
+        <div class="cv-exec-side-section">
+          <h3 class="cv-exec-side-heading">Contact</h3>
+          <div class="cv-exec-side-item"><b>Phone:</b> <span class="font-mono">${d.phone || '—'}</span></div>
+          <div class="cv-exec-side-item"><b>Email:</b> <span style="word-break:break-all;">${d.email || '—'}</span></div>
+          <div class="cv-exec-side-item"><b>Address:</b> <span>${d.address || '—'}</span></div>
         </div>
 
-        <div class="space-y-2 text-xs">
-          <h3 class="font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-700 pb-1">Demographics</h3>
-          <div class="space-y-1 text-slate-700">
-            <div><b>National ID:</b> <span class="font-mono font-bold">${d.nationalId || '—'}</span></div>
-            <div><b>DOB:</b> ${d.dob || '—'}</div>
-            <div><b>Sex:</b> ${d.sex || 'Male'}</div>
-            <div><b>Nationality:</b> ${d.nationality || 'Maldivian'}</div>
-          </div>
+        <div class="cv-exec-side-section">
+          <h3 class="cv-exec-side-heading">Demographics</h3>
+          <div class="cv-exec-side-item"><b>National ID:</b> <span class="font-mono" style="font-weight:700;">${d.nationalId || '—'}</span></div>
+          <div class="cv-exec-side-item"><b>DOB:</b> <span>${d.dob || '—'}</span></div>
+          <div class="cv-exec-side-item"><b>Sex:</b> <span>${d.sex || 'Male'}</span></div>
+          <div class="cv-exec-side-item"><b>Nationality:</b> <span>${d.nationality || 'Maldivian'}</span></div>
         </div>
 
         ${skillsHtml}
@@ -293,55 +295,50 @@ function renderExecutiveTemplate(d) {
         ${refHtml}
       </div>
 
-      <!-- Right Column (8 cols) -->
-      <div class="col-span-8 space-y-5">
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-emerald-950 uppercase">${d.fullName || 'Candidate Name'}</h1>
-          <div class="text-xs font-semibold uppercase tracking-wider text-emerald-800 mt-0.5">
-            ${(d.experience && d.experience[0] && d.experience[0].role) ? d.experience[0].role : 'Professional Executive'}
-          </div>
+      <!-- Right Column Main Content -->
+      <div class="cv-exec-main">
+        <div class="cv-exec-main-header">
+          <h1 class="cv-exec-name">${d.fullName || 'Candidate Name'}</h1>
+          <div class="cv-exec-title">${(d.experience && d.experience[0] && d.experience[0].role) ? d.experience[0].role : 'Executive Professional'}</div>
         </div>
 
         ${d.summary ? `
-          <div class="space-y-1.5">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-700 pb-1">Executive Summary</h2>
-            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${d.summary}</p>
-          </div>
+          <div class="cv-exec-summary">${d.summary}</div>
         ` : ''}
 
         ${expItems ? `
-          <div class="space-y-3">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-700 pb-1">Professional Experience</h2>
-            <div class="space-y-2">${expItems}</div>
+          <div>
+            <h2 class="cv-exec-heading">Professional Experience</h2>
+            <div class="cv-exec-timeline">${expItems}</div>
           </div>
         ` : ''}
 
         ${eduItems ? `
-          <div class="space-y-2.5">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-700 pb-1">Education &amp; Credentials</h2>
-            <div class="space-y-2">${eduItems}</div>
+          <div style="margin-top:1.25rem;">
+            <h2 class="cv-exec-heading">Education &amp; Qualifications</h2>
+            <div>${eduItems}</div>
           </div>
         ` : ''}
 
         ${((d.certifications && d.certifications.length > 0) || d.training) ? `
-          <div class="space-y-2">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-700 pb-1">Licensures &amp; Training</h2>
-            <div class="text-xs text-slate-700 space-y-1">
-              ${(d.certifications || []).map(c => `<div>• <b>${c.title}</b> ${c.issuer ? `(${c.issuer})` : ''} ${c.year ? `· ${c.year}` : ''}</div>`).join('')}
-              ${d.training ? `<div class="whitespace-pre-line">${d.training}</div>` : ''}
+          <div style="margin-top:1.25rem;">
+            <h2 class="cv-exec-heading">Licensures &amp; Training</h2>
+            <div style="font-size:12px; color:#334155; line-height:1.6;">
+              ${(d.certifications || []).map(c => `<div>• <b>${c.title}</b> ${c.issuer ? '(' + c.issuer + ')' : ''} ${c.year ? '· ' + c.year : ''}</div>`).join('')}
+              ${d.training ? `<div>${d.training}</div>` : ''}
             </div>
           </div>
         ` : ''}
 
         ${(d.portfolio && d.portfolio.length > 0) ? `
-          <div class="space-y-2">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-emerald-700 pb-1">Projects &amp; Portfolio</h2>
-            <div class="space-y-2">
+          <div style="margin-top:1.25rem;">
+            <h2 class="cv-exec-heading">Projects &amp; Portfolio</h2>
+            <div>
               ${d.portfolio.map(p => `
-                <div class="text-xs">
-                  <div class="font-bold text-slate-900">${p.title} ${p.role ? `<span class="font-normal text-slate-600">(${p.role})</span>` : ''}</div>
-                  ${p.url ? `<a href="${p.url}" target="_blank" class="text-emerald-700 underline text-[11px]">${p.url}</a>` : ''}
-                  ${p.description ? `<p class="text-slate-700 text-[11px] mt-0.5">${p.description}</p>` : ''}
+                <div style="margin-bottom:8px; font-size:12px;">
+                  <b>${p.title}</b> ${p.role ? '(' + p.role + ')' : ''}
+                  ${p.url ? `<div><a href="${p.url}" target="_blank" style="color:#047857; text-decoration:underline;">${p.url}</a></div>` : ''}
+                  ${p.description ? `<p style="color:#475569; margin:2px 0 0 0;">${p.description}</p>` : ''}
                 </div>
               `).join('')}
             </div>

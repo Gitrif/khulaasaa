@@ -1839,3 +1839,499 @@ body {
   border-color: var(--ink) !important;
   box-shadow: 0 0 0 1px var(--ink) !important;
 }
+
+/* ==========================================================================
+   CV CREATOR 4 DISTINCT TEMPLATE STYLES (100% Vanilla CSS)
+   ========================================================================== */
+
+/* Universal CV Paper Sheet */
+.cv-paper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-sizing: border-box !important;
+  min-height: 842px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  word-break: break-word;
+}
+
+/* CV Template Style Picker Buttons */
+.cv-tmpl-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1.5px solid var(--hairline);
+  border-radius: 6px;
+  background: #ffffff;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  box-sizing: border-box;
+}
+.cv-tmpl-btn:hover {
+  border-color: var(--slate);
+  background: var(--paper-soft);
+}
+.cv-tmpl-btn.active {
+  border: 2px solid var(--lagoon) !important;
+  background: #ecfdf5 !important;
+  box-shadow: 0 0 0 1px var(--lagoon);
+}
+
+/* --------------------------------------------------------------------------
+   THEME 1: STANDARD MALDIVIAN CIVIL SERVICE TEMPLATE (.cv-theme-standard)
+   -------------------------------------------------------------------------- */
+.cv-theme-standard {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #1e293b;
+  font-size: 13px;
+}
+.cv-theme-standard .cv-std-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+.cv-theme-standard .cv-std-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
+  line-height: 1.15;
+}
+.cv-theme-standard .cv-std-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+.cv-theme-standard .cv-std-photo {
+  width: 96px;
+  height: 116px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.cv-theme-standard .cv-std-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cv-theme-standard .cv-std-demographics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 1rem 0;
+  font-size: 12px;
+  color: #1e293b;
+}
+.cv-theme-standard .cv-std-demographics span.sep {
+  color: #cbd5e1;
+}
+.cv-theme-standard .cv-std-section {
+  margin-top: 1.25rem;
+}
+.cv-theme-standard .cv-std-heading {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f172a;
+  border-bottom: 2px solid #334155;
+  padding-bottom: 4px;
+  margin: 0 0 10px 0;
+}
+.cv-theme-standard .cv-std-item {
+  margin-bottom: 12px;
+}
+.cv-theme-standard .cv-std-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+}
+.cv-theme-standard .cv-std-date {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  color: #475569;
+}
+.cv-theme-standard .cv-std-desc {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.55;
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 2px solid #e2e8f0;
+}
+.cv-theme-standard .cv-std-badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.cv-theme-standard .cv-std-badge {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   THEME 2: EXECUTIVE MODERN 2-COLUMN TEMPLATE (.cv-theme-executive)
+   -------------------------------------------------------------------------- */
+.cv-theme-executive {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #0f172a;
+  font-size: 13px;
+}
+.cv-theme-executive .cv-exec-layout {
+  display: flex;
+  gap: 1.75rem;
+  align-items: stretch;
+}
+.cv-theme-executive .cv-exec-sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+.cv-theme-executive .cv-exec-photo {
+  width: 104px;
+  height: 124px;
+  margin: 0 auto 1.25rem auto;
+  border: 2px solid #059669;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+.cv-theme-executive .cv-exec-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cv-theme-executive .cv-exec-side-section {
+  margin-bottom: 1.25rem;
+}
+.cv-theme-executive .cv-exec-side-heading {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #064e3b;
+  border-bottom: 1.5px solid #059669;
+  padding-bottom: 3px;
+  margin: 0 0 8px 0;
+}
+.cv-theme-executive .cv-exec-side-item {
+  font-size: 11.5px;
+  color: #334155;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.cv-theme-executive .cv-exec-side-item b {
+  color: #0f172a;
+}
+.cv-theme-executive .cv-exec-skill-badge {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin: 2px;
+}
+.cv-theme-executive .cv-exec-main {
+  flex: 1;
+  min-width: 0;
+}
+.cv-theme-executive .cv-exec-main-header {
+  border-bottom: 3px solid #059669;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.cv-theme-executive .cv-exec-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #064e3b;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.1;
+}
+.cv-theme-executive .cv-exec-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 4px;
+}
+.cv-theme-executive .cv-exec-summary {
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  background: #fdfdfd;
+  border-left: 3px solid #059669;
+  padding: 8px 12px;
+}
+.cv-theme-executive .cv-exec-heading {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #064e3b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin: 1.25rem 0 0.75rem 0;
+}
+.cv-theme-executive .cv-exec-timeline {
+  position: relative;
+  padding-left: 14px;
+  border-left: 2px solid #059669;
+  margin-left: 6px;
+}
+.cv-theme-executive .cv-exec-timeline-item {
+  position: relative;
+  margin-bottom: 14px;
+}
+.cv-theme-executive .cv-exec-timeline-dot {
+  position: absolute;
+  left: -19px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #059669;
+  border: 2px solid #ffffff;
+}
+.cv-theme-executive .cv-exec-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cv-theme-executive .cv-exec-role {
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+}
+.cv-theme-executive .cv-exec-company {
+  color: #059669;
+  font-weight: 600;
+  font-size: 12px;
+}
+.cv-theme-executive .cv-exec-date-badge {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   THEME 3: CREATIVE MODERN TIMELINE TEMPLATE (.cv-theme-modern)
+   -------------------------------------------------------------------------- */
+.cv-theme-modern {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #0f172a;
+  font-size: 13px;
+}
+.cv-theme-modern .cv-mod-header {
+  border-bottom: 4px solid #4338ca;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+.cv-theme-modern .cv-mod-name {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1e1b4b;
+  letter-spacing: -0.03em;
+  margin: 0;
+  line-height: 1.1;
+}
+.cv-theme-modern .cv-mod-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4338ca;
+  margin-top: 6px;
+}
+.cv-theme-modern .cv-mod-demographics {
+  font-size: 11px;
+  color: #64748b;
+  font-family: ui-monospace, monospace;
+  margin-top: 4px;
+}
+.cv-theme-modern .cv-mod-photo {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid #4338ca;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.15);
+}
+.cv-theme-modern .cv-mod-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cv-theme-modern .cv-mod-section {
+  margin-top: 1.25rem;
+}
+.cv-theme-modern .cv-mod-heading {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #312e81;
+  margin: 0 0 8px 0;
+}
+.cv-theme-modern .cv-mod-card {
+  background: #fafafa;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.cv-theme-modern .cv-mod-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cv-theme-modern .cv-mod-card-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+}
+.cv-theme-modern .cv-mod-card-subtitle {
+  color: #4338ca;
+  font-weight: 500;
+}
+.cv-theme-modern .cv-mod-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+}
+.cv-theme-modern .cv-mod-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cv-theme-modern .cv-mod-chip {
+  background: #eef2ff;
+  color: #312e81;
+  border: 1px solid #c7d2fe;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.cv-theme-modern .cv-mod-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   THEME 4: TECHNICAL ATS TEMPLATE (.cv-theme-technical)
+   -------------------------------------------------------------------------- */
+.cv-theme-technical {
+  font-family: ui-monospace, "Cascadia Code", "Courier New", Consolas, monospace;
+  color: #0f172a;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.cv-theme-technical .cv-tech-header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+.cv-theme-technical .cv-tech-name {
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+.cv-theme-technical .cv-tech-meta {
+  font-size: 11px;
+  color: #334155;
+  margin-top: 3px;
+}
+.cv-theme-technical .cv-tech-section {
+  margin-top: 1rem;
+}
+.cv-theme-technical .cv-tech-heading {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  border-bottom: 1.5px solid #94a3b8;
+  padding-bottom: 2px;
+  margin: 0 0 6px 0;
+}
+.cv-theme-technical .cv-tech-item {
+  margin-bottom: 8px;
+}
+.cv-theme-technical .cv-tech-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+}
+.cv-theme-technical .cv-tech-desc {
+  padding-left: 8px;
+  border-left: 1.5px solid #cbd5e1;
+  margin-top: 3px;
+  color: #334155;
+}

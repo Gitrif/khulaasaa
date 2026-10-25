@@ -372,7 +372,7 @@ function toggleMobileCvPreview() {
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <!-- Template 1: Standard Maldivian (Free) -->
-          <button type="button" onclick="selectTemplate('standard')" id="btn-tmpl-standard" class="p-2.5 border-2 rounded text-left transition flex flex-col justify-between border-lagoon bg-emerald-50/50 cursor-pointer">
+          <button type="button" onclick="selectTemplate('standard')" id="btn-tmpl-standard" class="cv-tmpl-btn active">
             <div>
               <div class="text-xs font-bold text-ink">Standard</div>
               <div class="text-[10px] text-slate leading-tight">Official Maldives</div>
@@ -381,7 +381,7 @@ function toggleMobileCvPreview() {
           </button>
 
           <!-- Template 2: Executive Modern (Pro) -->
-          <button type="button" onclick="selectTemplate('executive')" id="btn-tmpl-executive" class="p-2.5 border rounded text-left transition flex flex-col justify-between border-hairline hover:border-slate bg-paper-soft/40 relative cursor-pointer">
+          <button type="button" onclick="selectTemplate('executive')" id="btn-tmpl-executive" class="cv-tmpl-btn">
             <span class="absolute -top-1.5 -right-1.5 px-1 bg-amber-500 text-white text-[9px] font-bold rounded">PRO</span>
             <div>
               <div class="text-xs font-bold text-ink">Executive</div>
@@ -391,7 +391,7 @@ function toggleMobileCvPreview() {
           </button>
 
           <!-- Template 3: Creative Modern (Pro) -->
-          <button type="button" onclick="selectTemplate('modern')" id="btn-tmpl-modern" class="p-2.5 border rounded text-left transition flex flex-col justify-between border-hairline hover:border-slate bg-paper-soft/40 relative cursor-pointer">
+          <button type="button" onclick="selectTemplate('modern')" id="btn-tmpl-modern" class="cv-tmpl-btn">
             <span class="absolute -top-1.5 -right-1.5 px-1 bg-amber-500 text-white text-[9px] font-bold rounded">PRO</span>
             <div>
               <div class="text-xs font-bold text-ink">Modern</div>
@@ -401,7 +401,7 @@ function toggleMobileCvPreview() {
           </button>
 
           <!-- Template 4: Technical ATS (Pro) -->
-          <button type="button" onclick="selectTemplate('technical')" id="btn-tmpl-technical" class="p-2.5 border rounded text-left transition flex flex-col justify-between border-hairline hover:border-slate bg-paper-soft/40 relative cursor-pointer">
+          <button type="button" onclick="selectTemplate('technical')" id="btn-tmpl-technical" class="cv-tmpl-btn">
             <span class="absolute -top-1.5 -right-1.5 px-1 bg-amber-500 text-white text-[9px] font-bold rounded">PRO</span>
             <div>
               <div class="text-xs font-bold text-ink">Technical</div>
@@ -781,11 +781,30 @@ function toggleMobileCvPreview() {
     max-width: 210mm !important;
     min-height: 297mm !important;
     margin: 0 !important;
-    padding: 16mm 18mm !important;
+    padding: 14mm 16mm !important;
     box-sizing: border-box !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
+  }
+
+  .cv-theme-executive .cv-exec-sidebar {
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .cv-theme-executive .cv-exec-timeline-dot {
+    background: #059669 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .cv-theme-modern .cv-mod-badge {
+    background: #e0e7ff !important;
+    color: #3730a3 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .cv-theme-modern .cv-mod-chip {
+    background: #eef2ff !important;
+    color: #312e81 !important;
+    -webkit-print-color-adjust: exact !important;
   }
 }
 </style>

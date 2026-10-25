@@ -268,45 +268,7 @@ async function sendTestViberAlert() {
     alert("Connection error sending test Viber alert");
   }
 }
-</script>
 
-<!-- Floating CV Action Bar (Always visible above the bottom navigation bar) -->
-<div id="cvFloatingActionsBar" class="cv-floating-actions print:hidden">
-  <div class="cv-floating-actions-inner">
-    <!-- Status on Left -->
-    <div class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span id="saveStatusBar" class="text-xs font-semibold text-ink">Ready</span>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="flex items-center gap-2">
-      <button type="button" onclick="saveCvToServer()" class="cv-action-btn bg-white border border-hairline text-ink hover:bg-cream" title="Save CV to your account">
-        <svg class="w-3.5 h-3.5 fill-current text-lagoon" viewBox="0 0 20 20"><path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l6-6a1 1 0 00-1.414-1.414L11 12.586l-3.293-3.293z"/><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7.414A2 2 0 0016.414 6L14 3.586A2 2 0 0012.586 3H5z"/></svg>
-        <span>Save</span>
-      </button>
-
-      <button type="button" id="btnDownloadCvBar" onclick="downloadCvPdf()" class="cv-action-btn bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs" title="Download Standard A4 PDF">
-        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-        <span>Download A4 PDF</span>
-      </button>
-
-      <button type="button" onclick="printCv()" class="cv-action-btn bg-ink text-white hover:bg-ink-soft hidden sm:inline-flex" title="Print clean">
-        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/></svg>
-        <span>Print</span>
-      </button>
-
-      <!-- Mobile Preview Toggle -->
-      <button type="button" onclick="toggleMobileCvPreview()" id="btnToggleMobilePreview" class="cv-action-btn lg:hidden bg-paper-soft border border-hairline text-ink hover:bg-paper">
-        <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-        <span id="txtToggleMobilePreview">Preview</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-
-<script>
 let currentCvPage = 1;
 const totalCvPages = 5;
 
