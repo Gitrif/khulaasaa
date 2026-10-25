@@ -394,11 +394,6 @@ def obituaries_page(
 
 
 @router.get("/hooks85", response_class=HTMLResponse)
-def hooks85_page(request: Request):
-    """Hooks85 official business software landing page."""
-    return templates.TemplateResponse("hooks85.html", {"request": request})
-
-
 @router.get("/subscription", response_class=HTMLResponse)
 def subscription_page(
     request: Request,
@@ -431,7 +426,7 @@ def subscription_page(
     hooks85_url = os.environ.get("HOOKS85_URL", "https://app.hooks85.com").rstrip("/")
 
     return templates.TemplateResponse(
-        "subscription.html",
+        "hooks85.html",
         {
             "request": request,
             "bid": bid_data,

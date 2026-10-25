@@ -109,8 +109,33 @@ class TestHooks85AdsAndSubscription(unittest.TestCase):
         self.assertEqual(home.status_code, 200)
         self.assertIn('href="/advertise"', home.text)
         self.assertIn('href="/about"', home.text)
+        self.assertIn('href="/compliance"', home.text)
+        self.assertIn('href="/compliance#legality"', home.text)
+        self.assertIn('href="/compliance#removal"', home.text)
+        self.assertIn('href="/about#standards"', home.text)
+        self.assertIn('href="/jobs/cv"', home.text)
         self.assertIn('href="/feed.xml"', home.text)
         self.assertIn('editorial@khulaasaa.tech', home.text)
+        # Check that hooks85 links in footer and ads open in new window
+        self.assertIn('href="/subscription" target="_blank" rel="noopener noreferrer"', home.text)
+        self.assertIn('target="_blank" rel="noopener noreferrer"', home.text)
+
+    def test_all_footer_destination_pages_return_200(self):
+        destinations = [
+            "/",
+            "/bids",
+            "/jobs",
+            "/jobs/cv",
+            "/feed.xml",
+            "/advertise",
+            "/about",
+            "/compliance",
+            "/subscription",
+            "/hooks85",
+        ]
+        for dest in destinations:
+            res = client.get(dest)
+            self.assertEqual(res.status_code, 200, f"Expected 200 for destination: {dest}")
 
 
 if __name__ == "__main__":

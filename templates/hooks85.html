@@ -60,6 +60,33 @@ body {
 .partner-topbar a:hover {
   text-decoration: underline;
 }
+.tender-fast-track {
+  background: #0b5d57;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.tender-fast-track header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.tender-fast-track .badge-tag {
+  background: rgba(228, 87, 46, 0.2);
+  color: #ff9d7d;
+  border: 1px solid rgba(228, 87, 46, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
 .wrap { max-width: 1080px; margin: 0 auto; }
 h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
 h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 700; }
@@ -160,6 +187,29 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
 </div>
 
 <div class="wrap">
+  {% if success_msg %}
+  <div style="background:#e3f0ec;border:1px solid #0b5d57;border-radius:6px;padding:16px 20px;margin-top:20px;color:#06201c;">
+    <strong style="color:#0b5d57;font-size:1.05rem;">Subscription Request Received!</strong>
+    <p style="margin-top:4px;font-size:0.95rem;">{{ success_msg }}</p>
+  </div>
+  {% endif %}
+
+  {% if bid %}
+  <div class="tender-fast-track">
+    <header>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="badge-tag">Tender Fast-Track Preparation</span>
+        <span style="font-size:12px;opacity:0.9;">Ref: {{ bid.reference_number or bid.notice_id or bid.id }}</span>
+      </div>
+      <a href="/bids/prepare?notice_id={{ bid.notice_id or bid.id }}" class="btn" style="background:#ffffff;color:#0b5d57;padding:6px 14px;font-size:12px;">Quick Draft Letter &rarr;</a>
+    </header>
+    <h3 style="font-size:1.15rem;font-weight:700;margin-bottom:6px;">{{ bid.title_en or bid.title }}</h3>
+    <p style="font-size:0.88rem;opacity:0.9;">
+      Authority: <strong>{{ bid.agency_name_en or bid.agency or 'Public Authority' }}</strong> &middot; Subscribe to <strong>hooks85 Tender &amp; Contractor ERP</strong> to unlock automated BOQ margin analysis, MIRA progress invoices, and full tender bid generation.
+    </p>
+  </div>
+  {% endif %}
+
   <nav>
     <a class="logo" href="#top">Hooks<b>85</b></a>
     <div class="links">
@@ -172,8 +222,8 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
 
   <div class="hero" id="top">
     <div>
-      <p class="eyebrow">Business software for the Maldives</p>
-      <h1 style="margin-top:12px">Hooks85 POS &amp; Business ERP: Run your whole business from one account.</h1>
+      <p class="eyebrow">hooks85 POS &amp; Business ERP &middot; Business software for the Maldives</p>
+      <h1 style="margin-top:12px">Run your whole business from one account.</h1>
       <p class="lead">Guest houses, garages, restaurants, shipping and more. Sales, purchasing, HR, BOQs and bill parsing, with MIRA GST rules built in and one sign-in for the whole team.</p>
       <div class="cta">
         <a class="btn" href="#signup">Start free</a>
@@ -203,10 +253,10 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
   <div class="mods">
     <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bed"/></svg></span><h3>Guest houses &amp; hotels</h3><p>Bookings, passport check-in, housekeeping, TGST and Green Tax on every room night.</p></div>
     <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-car"/></svg></span><h3>Garages &amp; workshops</h3><p>Job cards, parts and labour quotes, vehicle history and invoices the customer can sign on screen.</p></div>
-    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fork"/></svg></span><h3>Restaurants &amp; cafés</h3><p>Table and counter POS, split bills, kitchen tickets and a nightly cash count.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fork"/></svg></span><h3>Restaurants &amp; caf&eacute;s</h3><p>Table and counter POS, split bills, kitchen tickets and a nightly cash count.</p></div>
     <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ship"/></svg></span><h3>Shipping &amp; logistics</h3><p>Consignments, delivery notes, supplier bills and customer statements in one trail.</p></div>
     <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-store"/></svg></span><h3>Retail &amp; wholesale</h3><p>Barcode sales, stock levels, supplier orders and GST-ready tax invoices.</p></div>
-    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-hard"/></svg></span><h3>Contractors &amp; projects</h3><p>Price from a BOQ, track supplier bills against each job and bill by stage.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-hard"/></svg></span><h3>Contractors &amp; projects</h3><p>Price from a BOQ, track supplier bills against each job and bill by stage with Tender &amp; Contractor ERP tools.</p></div>
   </div>
 </section></div></div>
 
@@ -235,7 +285,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
     <p>Each app has its own address and its own plan, so a café can run the POS on a free plan and sales on a paid one.</p>
   </div>
   <div class="mods">
-    <div class="mod"><span class="tag">Live in beta</span><h3>POS</h3><p>Ring up sales, split bills, close the day with a cash count. Works on a phone or a till.</p><span class="url">pos.hooksbm.org</span></div>
+    <div class="mod"><span class="tag">Live in beta</span><h3>Cloud Point of Sale (POS)</h3><p>Ring up sales, split bills, close the day with a cash count. Works offline on a phone or a till.</p><span class="url">pos.hooksbm.org</span></div>
     <div class="mod"><span class="tag">Live in beta</span><h3>Sales</h3><p>Quotation to order, delivery note, tax invoice, credit note and receipt, sent as a PDF on WhatsApp or email.</p><span class="url">sales.hooksbm.org</span></div>
     <div class="mod"><span class="tag">Live in beta</span><h3>PMS</h3><p>Bookings, check-in with passport scan, housekeeping, TGST and Green Tax on every room night.</p><span class="url">pms.hooksbm.org</span></div>
     <div class="mod"><span class="tag">Coming soon</span><h3>Purchasing</h3><p>Raise purchase orders, receive stock and match supplier bills.</p><span class="url">purchasing.hooksbm.org</span></div>
@@ -257,8 +307,8 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
     <div class="head"><p class="eyebrow">Pricing</p><h2>Start free. Pay when you grow.</h2></div>
     <div class="plans">
       <div class="plan"><h3>Free</h3><div class="price">MVR 0 <span>/ month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>One app of your choice</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>1 outlet, 2 staff</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Records always readable</li></ul><a class="btn alt" href="#signup">Start free</a></div>
-      <div class="plan pop"><span class="badge">Most popular</span><h3>Starter</h3><div class="price">MVR 350 <span>/ app / month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Up to 5 staff</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>PDF documents with your letterhead</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>WhatsApp and email sending</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Bill parsing: 30 a month</li></ul><a class="btn" href="#signup">Request Starter</a></div>
-      <div class="plan"><h3>Business</h3><div class="price">MVR 900 <span>/ app / month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Unlimited staff and outlets</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>HR, BOQs and document parsing</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Roles per app</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Priority support</li></ul><a class="btn alt" href="#signup">Request Business</a></div>
+      <div class="plan pop"><span class="badge">Most popular</span><h3>Starter</h3><div class="price">MVR 350 <span>/ app / month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Cloud Point of Sale (POS)</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Up to 5 staff</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>PDF documents with your letterhead</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>WhatsApp and email sending</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Bill parsing: 30 a month</li></ul><a class="btn" href="#signup">Request Starter</a></div>
+      <div class="plan"><h3>Tender &amp; Contractor ERP</h3><div class="price">MVR 1,299 <span>/ month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Unlimited staff and outlets</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Tender &amp; Contractor ERP suite</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>HR, BOQs and document parsing</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Roles per app</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Priority support</li></ul><a class="btn alt" href="#signup">Request ERP</a></div>
       <div class="plan"><h3>Enterprise</h3><div class="price">Custom <span></span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Multiple businesses and branches</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Setup and data import</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Custom documents and integrations</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Dedicated contact</li></ul><a class="btn alt" href="#signup">Talk to us</a></div>
     </div>
     <p class="note">Example packages and prices for this preview. Final plans will be set before launch. Pay by BML or bank transfer.</p>
@@ -273,16 +323,18 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
       <p>We will set up your account and approve your first app during the beta. Prefer to ask a question first? Leave a note and we will reply.</p>
     </div>
     <form id="lead" method="POST" action="/subscription/inquire">
-      <input type="hidden" name="plan_tier" value="starter">
+      <input type="hidden" name="plan_tier" value="{{ plan_preset or 'tender_erp' }}">
+      {% if bid %}<input type="hidden" name="notice_id" value="{{ bid.notice_id or bid.id }}">{% endif %}
       <label for="name">Your name<input id="name" name="contact_name" required autocomplete="name"></label>
       <label for="biz">Business name<input id="biz" name="company_name" required autocomplete="organization"></label>
       <label for="phone">Phone or email<input id="phone" name="phone" required autocomplete="tel"></label>
       <label for="app">Interested in
         <select id="app" name="modules">
-          <option value="POS">POS</option>
-          <option value="Sales">Sales</option>
-          <option value="PMS">PMS</option>
-          <option value="More than one">More than one</option>
+          <option value="pos_checkout">Cloud Point of Sale (POS)</option>
+          <option value="tender_boq">Tender &amp; Contractor ERP</option>
+          <option value="mira_invoicing">MIRA GST Invoicing</option>
+          <option value="pms">PMS Hotel Bookings</option>
+          <option value="all">Complete Suite</option>
         </select>
       </label>
       <button class="btn" type="submit">Request access</button>
@@ -297,7 +349,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var
 
 <script>
 document.getElementById('lead').addEventListener('submit', function(e) {
-  // Allow native submission or show confirmation if requested via JS
+  // Let the form submit natively to /subscription/inquire
 });
 </script>
 
