@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thaana:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/static/logos/khulaasaa.svg">
   <link rel="alternate" type="application/rss+xml" title="Khulaasaa RSS Feed" href="/feed.xml">
   <meta name="description" content="Verified chronological news aggregation, timeline tracking, Gazette procurement, and Maldivian career intelligence.">
   <meta property="og:site_name" content="Khulaasaa">
@@ -221,9 +222,9 @@
     <!-- Top App Bar: Brand + Search + Actions (Single Line) -->
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
       <!-- Brand -->
-      <a href="/" class="brand-link shrink-0" title="Khulaasaa MV — Home">
+      <a href="/" class="brand-link shrink-0" title="Khulaasaa — Home">
+        <span class="brand-mark" aria-label="Khulaasaa">ކ</span>
         <span class="brand-title">Khulaasaa</span>
-        <span class="brand-badge">MV</span>
       </a>
 
       <!-- Integrated Search Input with Inside Icon & Matching Corner Style -->
@@ -291,9 +292,9 @@
       
       <!-- Top Brand Summary Banner -->
       <div class="footer-brand-banner">
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2">
+          <span class="brand-mark sm" aria-hidden="true">ކ</span>
           <span class="font-serif-display font-bold text-lg text-ink tracking-tight">Khulaasaa</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-ink text-white">MV</span>
           <span class="text-xs text-slate ml-2 hidden sm:inline">Consolidated Maldivian News, Gazette Procurement, Careers &amp; Apartment Rentals</span>
         </div>
         <div class="text-[11px] text-slate-500">
@@ -350,7 +351,7 @@
       <!-- Bottom Sub-Footer Bar -->
       <div class="pt-6 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate">
         <div>
-          &copy; 2026 Khulaasaa MV. All rights reserved. Zero full-text republishing policy.
+          &copy; 2026 Khulaasaa. All rights reserved. Zero full-text republishing policy.
         </div>
         <div class="flex items-center gap-4">
           <a href="/about#standards" class="hover:text-ink hover:underline">Editorial Ethics</a>
@@ -396,9 +397,12 @@
 
       <!-- VIEW 1: SIGN IN / REGISTER (UNAUTHENTICATED) -->
       <div id="modalLoggedOutView" class="space-y-4">
-        <div>
-          <h3 id="modalAuthTitle" class="font-serif-display text-xl font-bold text-ink">Sign In to Khulaasaa</h3>
-          <p id="modalAuthSubtitle" class="text-xs text-slate mt-1">Access saved CVs, company bids, and real-time Telegram &amp; Viber alerts.</p>
+        <div class="flex items-center gap-2.5">
+          <span class="brand-mark" aria-hidden="true">ކ</span>
+          <div>
+            <h3 id="modalAuthTitle" class="font-serif-display text-xl font-bold text-ink">Sign In to Khulaasaa</h3>
+            <p id="modalAuthSubtitle" class="text-xs text-slate mt-0.5">Access saved CVs, company bids, and real-time Telegram &amp; Viber alerts.</p>
+          </div>
         </div>
 
         <!-- 1-Click Fast Connect Buttons (Telegram & Viber) -->

@@ -99,7 +99,7 @@ class TestHooks85AdsAndSubscription(unittest.TestCase):
     def test_advertise_page_and_footer_links(self):
         res = client.get("/advertise")
         self.assertEqual(res.status_code, 200)
-        self.assertIn("Advertise on Khulaasaa MV", res.text)
+        self.assertIn("Advertise on Khulaasaa", res.text)
         self.assertIn("advertise@khulaasaa.tech", res.text)
         self.assertIn("Header Leaderboard Banner", res.text)
         self.assertIn("In-Feed Native Sponsor Card", res.text)

@@ -218,7 +218,7 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                     "• Precision Business Keyword Alerts (solar, catering, audit, etc.)\n"
                     "• High-priority instant push delivery\n\n"
                     "How to Activate Pro (MVR 50 / month):\n"
-                    "1. Transfer MVR 50 to BML: 7730000123456 (Khulaasaa MV)\n"
+                    "1. Transfer MVR 50 to BML: 7730000123456 (Khulaasaa)\n"
                     f"2. Mention your Viber ID in remark: {user_id}\n"
                     f"3. Send the transfer slip to support or activate at: {base_url}/pro?viber_id={user_id}"
                 )

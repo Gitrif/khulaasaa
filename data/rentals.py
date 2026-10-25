@@ -1,5 +1,5 @@
 """
-Rentals & Tenancy Contract Repository for Khulaasaa MV.
+Rentals & Tenancy Contract Repository for Khulaasaa.
 Consolidated Maldivian Apartment Listings and Residential Tenancy Suite.
 Strictly under 500 lines. Zero emojis.
 """

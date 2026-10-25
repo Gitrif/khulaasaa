@@ -1,5 +1,5 @@
 """
-Rentals & Tenancy Contract Web Router for Khulaasaa MV.
+Rentals & Tenancy Contract Web Router for Khulaasaa.
 Consolidated Maldivian Apartment Listings & Hooks85 Tenancy Contract Management.
 Strictly under 500 lines. Zero emojis.
 """

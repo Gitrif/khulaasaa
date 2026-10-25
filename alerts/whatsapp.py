@@ -15,15 +15,15 @@ def format_whatsapp_bid(bid: dict[str, Any], base_url: str = "https://khulaasaa.
     url = bid.get("source_url") or f"{base_url}/bids"
 
     msg = (
-        f"📋 *KHULAASAA PRO TENDER ALERT*\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🏢 *Agency:* {agency}\n"
-        f"📌 *Notice:* {title}\n"
-        f"🔢 *Ref:* {ref}\n"
-        f"⏰ *Deadline:* {deadline}\n"
-        f"🔗 *Details:* {url}\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Verified via Khulaasaa MV Intelligence"
+        f"*KHULAASAA PRO TENDER ALERT*\n"
+        f"--------------------\n"
+        f"Agency: {agency}\n"
+        f"Notice: {title}\n"
+        f"Ref: {ref}\n"
+        f"Deadline: {deadline}\n"
+        f"Details: {url}\n"
+        f"--------------------\n"
+        f"Verified via Khulaasaa Intelligence"
     )
     return msg
 

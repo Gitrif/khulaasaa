@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 VIBER_API_BASE = "https://chatapi.viber.com/pa"
 
 DEFAULT_VIBER_BOT_TOKEN = os.environ.get("VIBER_BOT_TOKEN", "")
-DEFAULT_VIBER_BOT_NAME = os.environ.get("VIBER_BOT_NAME", "Khulaasaa MV")
+DEFAULT_VIBER_BOT_NAME = os.environ.get("VIBER_BOT_NAME", "Khulaasaa")
 DEFAULT_VIBER_BOT_AVATAR = os.environ.get(
     "VIBER_BOT_AVATAR", "https://khulaasaa.tech/static/logos/khulaasaa.png"
 )

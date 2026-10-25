@@ -38,7 +38,7 @@ def format_pro_tier_message(is_paid: bool, chat_id: str = "") -> tuple[str, dict
             "• <b>Keyword Subscriptions:</b> Follow specific islands, councils, or projects\n"
             "• <b>Instant Prioritized Delivery:</b> Bypasses batched delivery queues\n\n"
             "<b>Payment & Activation:</b>\n"
-            "Transfer <b>MVR 50</b> to BML Account: <code>7730000123456</code> (Khulaasaa MV)\n"
+            "Transfer <b>MVR 50</b> to BML Account: <code>7730000123456</code> (Khulaasaa)\n"
             f"Reference: <code>PRO-{chat_id or 'SUB'}</code>\n\n"
             "<i>Your account will be activated immediately upon receipt!</i>"
         )
