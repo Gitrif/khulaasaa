@@ -84,29 +84,46 @@
       <!-- Left 2 Cols: Details -->
       <div class="md:col-span-2 space-y-6">
         
-        <!-- Key Specifications Grid -->
+        <!-- Key Specifications Grid (Exact Agoda / Booking style in a single row) -->
         <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate mb-2.5">Key Specifications</h2>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-paper-soft/50 p-3 rounded-lg border border-hairline text-center text-xs">
-            <div class="p-2 bg-white rounded border border-hairline/60">
-              <span class="text-[10px] text-slate block uppercase">Bedrooms</span>
-              <strong class="text-base text-ink font-bold">{{ rental.bedrooms }} BHK</strong>
-              <span class="text-[10px] text-slate block font-medium">{% if rental.bedrooms == 1 %}Studio{% else %}{{ rental.bedrooms }} Rooms{% endif %}</span>
+          <div style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; width:100%; background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:8px; padding:0.85rem 0.5rem; text-align:center;">
+            <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
+                <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17V8a2 2 0 012-2h14a2 2 0 012 2v9m-18 0v2m18-2v2M3 13h18M7 9a1 1 0 011-1h2a1 1 0 011 1v2H7V9zm6 0a1 1 0 011-1h2a1 1 0 011 1v2h-4V9z"/></svg>
+                <span>{{ rental.bedrooms }}</span>
+              </div>
+              <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Bedrooms</span>
             </div>
-            <div class="p-2 bg-white rounded border border-hairline/60">
-              <span class="text-[10px] text-slate block uppercase">Toilets</span>
-              <strong class="text-base text-ink font-bold">{{ rental.total_toilets or rental.bathrooms or 1 }} Total</strong>
-              <span class="text-[10px] text-slate block font-medium">{{ rental.attached_toilets or 1 }} Attached</span>
+
+            <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
+
+            <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
+                <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16a1 1 0 011 1v3a5 5 0 01-5 5H8a5 5 0 01-5-5v-3a1 1 0 011-1zm3 9v2m10-2v2M7 12V6a2 2 0 012-2h1a2 2 0 012 2v1"/></svg>
+                <span>{{ rental.attached_toilets or rental.bathrooms or 1 }}</span>
+              </div>
+              <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Bathroom</span>
             </div>
-            <div class="p-2 bg-white rounded border border-hairline/60">
-              <span class="text-[10px] text-slate block uppercase">Floor Area</span>
-              <strong class="text-base text-ink font-bold">{% if rental.sqft_size %}{{ rental.sqft_size }} sqft{% else %}Standard{% endif %}</strong>
-              <span class="text-[10px] text-slate block font-medium">sqft area</span>
+
+            <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
+
+            <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
+                <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3h10v6H7V3zm-2 6h14v3a6 6 0 01-6 6H11a6 6 0 01-6-6V9zm4 9v3m6-3v3"/></svg>
+                <span>{{ rental.total_toilets or rental.bathrooms or 1 }}</span>
+              </div>
+              <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Toilets</span>
             </div>
-            <div class="p-2 bg-white rounded border border-hairline/60">
-              <span class="text-[10px] text-slate block uppercase">Floor Level</span>
-              <strong class="text-base text-ink font-bold">Floor {{ rental.floor_num or rental.floor or 'G' }}</strong>
-              <span class="text-[10px] text-slate block font-medium">{% if rental.lift %}With Lift{% else %}Walk-up{% endif %}</span>
+
+            <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
+
+            <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px; white-space:nowrap;">
+                <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="7" y="5" width="14" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10M3 7l-2 2m2-2l2 2M3 17l-2-2m2 2l2-2"/><circle cx="10" cy="8" r="0.75" fill="currentColor"/><circle cx="18" cy="8" r="0.75" fill="currentColor"/><circle cx="10" cy="16" r="0.75" fill="currentColor"/><circle cx="18" cy="16" r="0.75" fill="currentColor"/></svg>
+                <span>{% if rental.sqft_size %}{{ rental.sqft_size }} sqft{% else %}Standard{% endif %}</span>
+              </div>
+              <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Floor Area</span>
             </div>
           </div>
         </div>

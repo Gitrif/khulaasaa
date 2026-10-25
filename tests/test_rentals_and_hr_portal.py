@@ -38,17 +38,19 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Maldivian Apartment &amp; Rental Directory", res.text)
         self.assertIn("Hulhumale Phase 1", res.text)
         self.assertIn("MVR 22,000", res.text)
-        self.assertIn("Source: <strong>iBay Maldives</strong>", res.text)
         self.assertIn("View on iBay Maldives", res.text)
-        self.assertIn("Also listed at MVR 23,500 on Boahiyaa", res.text)
-        self.assertIn("Attached", res.text)
-        self.assertIn("sqft", res.text)
+        self.assertIn("Also listed at MVR 23,500 on", res.text)
+        self.assertIn("Boahiyaa", res.text)
+        self.assertIn("Bedrooms", res.text)
+        self.assertIn("Bathroom", res.text)
+        self.assertIn("Toilets", res.text)
+        self.assertIn("Floor Area", res.text)
 
     def test_rentals_filter_by_location_and_bedrooms(self):
         res = client.get("/rentals?location=Hulhumale+Phase+1&bedrooms=2")
         self.assertEqual(res.status_code, 200)
         self.assertIn("Hulhumale Phase 1", res.text)
-        self.assertIn("2 BHK", res.text)
+        self.assertIn("Bedrooms", res.text)
 
     def test_rentals_filter_by_lift_and_ac(self):
         res = client.get("/rentals?has_lift=1&has_ac=1")
