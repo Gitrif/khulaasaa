@@ -78,7 +78,9 @@ def test_bids_language_modes_and_milestones():
     assert res_dv.status_code == 200
 
 
-def test_telegram_api_subscribe_and_list():
+def test_telegram_api_subscribe_and_list(monkeypatch):
+    from unittest.mock import MagicMock
+    monkeypatch.setattr("routers.webhooks.send_telegram_message", MagicMock(return_value=(True, "ok")))
     payload = {
         "chat_id": "test_chat_888",
         "name": "Procurement Lead",
@@ -126,14 +128,14 @@ def test_bids_prepare_renders_with_valid_bid():
     res = client.get("/bids/prepare?notice_id=127322")
     assert res.status_code == 200
     assert "Bid Preparation Suite" in res.text
+    assert "hooks85" in res.text
     assert "Letters &amp; Correspondence" in res.text
     assert "Company Profile" in res.text
-    # Check Coming Soon sections
     assert "Proposal &amp; Methodology" in res.text
     assert "Quotation &amp; Pricing" in res.text
     assert "BOQ Spreadsheet" in res.text
     assert "Billing &amp; Invoices" in res.text
-    assert "Coming Soon" in res.text
+    assert "hooks85DownloadModal" in res.text
 
 
 def test_bids_cards_include_prepare_links():
