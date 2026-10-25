@@ -1,5 +1,5 @@
-// Server injected profile if available
-const SERVER_PROFILE = {{ (profile if profile else None)|tojson }};
+// Server injected profile if available from window
+const SERVER_PROFILE = typeof window !== 'undefined' ? (window.companyState || window.SERVER_PROFILE || null) : null;
 
 // Initial Profile State
 let companyProfile = SERVER_PROFILE || {

@@ -19,6 +19,34 @@
     {% include "_ad_leaderboard.html" %}
   </div>
 
+  <!-- Single-Row Horizontal Quick Filters & Actions -->
+  <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-1 text-xs mb-3.5">
+    <div class="flex items-center gap-1.5 shrink-0">
+      <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Discipline:</span>
+      <a href="/jobs{% if search_query %}?q={{ search_query }}{% endif %}" 
+         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if not active_discipline else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
+        All
+      </a>
+      {% for d in disciplines %}
+      <a href="?discipline={{ d }}{% if search_query %}&q={{ search_query }}{% endif %}"
+         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if active_discipline == d else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
+        {{ d }}
+      </a>
+      {% endfor %}
+
+      {% if active_discipline or search_query %}
+      <a href="/jobs" class="text-xs text-rose-600 hover:underline shrink-0 ml-1.5">
+        Reset
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Quick Action: Create CV -->
+    <a href="/jobs/cv" class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 transition shadow-2xs flex items-center gap-1.5 shrink-0 whitespace-nowrap" title="Build your Maldivian Standard CV">
+      <span>CV Creator &rarr;</span>
+    </a>
+  </div>
+
   <!-- Job Vacancies Grid / List -->
   <div id="jobs-container">
     {% include "components/jobs_stream.html" %}

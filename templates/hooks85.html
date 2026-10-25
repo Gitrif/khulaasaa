@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>hooks85 POS &amp; Business ERP — Modern Retail, Invoicing &amp; Maldivian Suite</title>
+<meta name="description" content="Business software for the Maldives. Guest houses, garages, restaurants, shipping, retail, and contractors. Sales, purchasing, HR, BOQs, and bill parsing with built-in MIRA GST compliance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: single-column marketing page; split hero with a sample tax invoice, module grid, three plan cards, sign-up band */
+:root {
+  --bg: #f6f8f7; --surface: #ffffff; --fg: #10231f; --muted: #51655f; --line: #d9e2de;
+  --brand: #0b5d57; --brand-fg: #ffffff; --accent: #e4572e; --tint: #e3f0ec;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1715; --surface: #13221f; --fg: #e8f1ee; --muted: #9bb0aa; --line: #243733;
+    --brand: #5fc4b8; --brand-fg: #06201c; --accent: #ff7d54; --tint: #16302b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1715; --surface: #13221f; --fg: #e8f1ee; --muted: #9bb0aa; --line: #243733;
+  --brand: #5fc4b8; --brand-fg: #06201c; --accent: #ff7d54; --tint: #16302b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 var(--body);
+  margin: 0;
+  padding: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.partner-topbar {
+  background: #10222E;
+  color: #E2E8F0;
+  font-size: 12px;
+  font-family: var(--body);
+  padding: 8px 16px;
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #2A3E4C;
+}
+.partner-topbar a {
+  color: #5FC4B8;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.partner-topbar a:hover {
+  text-decoration: underline;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 700; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.2rem); font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
+.logo { font-family: var(--display); font-weight: 700; font-size: 1.35rem; text-decoration: none; }
+.logo b { color: var(--accent); }
+nav .links { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+nav .links a { text-decoration: none; color: var(--muted); font-weight: 500; font-size: .95rem; }
+.btn { display: inline-block; background: var(--brand); color: var(--brand-fg); padding: 12px 22px; border-radius: 6px; font-weight: 600; text-decoration: none; border: 0; font: 600 1rem var(--body); cursor: pointer; }
+.btn.alt { background: transparent; color: var(--fg); border: 1.5px solid var(--line); }
+.btn:hover { filter: brightness(1.08); }
+nav .btn { padding: 8px 16px; color: var(--brand-fg) !important; font-size: .9rem; }
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; padding-block: 56px 72px; }
+.hero p.lead { font-size: 1.15rem; color: var(--muted); margin-top: 20px; max-width: 34em; }
+.hero .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.hero small { display: block; margin-top: 14px; color: var(--muted); }
+.inv { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; font-size: .88rem; box-shadow: 0 18px 40px -24px rgba(11, 60, 55, .45); min-width: 0; }
+.inv header { display: flex; justify-content: space-between; gap: 12px; border-bottom: 2px solid var(--brand); padding-bottom: 12px; margin-bottom: 12px; }
+.inv header strong { font-family: var(--display); font-size: 1.05rem; }
+.inv table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.inv td { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.inv td:last-child { text-align: right; }
+.inv tr.tot td { border: 0; font-weight: 700; padding-top: 10px; }
+.stamp { display: inline-block; margin-top: 14px; border: 2px solid var(--accent); color: var(--accent); padding: 2px 10px; border-radius: 4px; font-weight: 700; font-size: .78rem; letter-spacing: .1em; transform: rotate(-3deg); }
+.ico { width: 46px; height: 46px; border-radius: 6px; background: var(--tint); color: var(--brand); display: grid; place-items: center; margin-bottom: 6px; }
+.ico svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.band .ico { background: var(--bg); }
+.plan ul { list-style: none; padding: 0; }
+.plan li { display: flex; gap: 8px; align-items: flex-start; }
+.plan li svg { flex: none; width: 18px; height: 18px; margin-top: 3px; fill: none; stroke: var(--brand); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.plan { position: relative; }
+.badge { position: absolute; top: -12px; left: 20px; background: var(--accent); color: #fff; font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; }
+.plans { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.plan .btn { text-align: center; margin-top: auto; }
+section { padding-block: 64px; }
+.band { background: var(--tint); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+.head { max-width: 40em; margin-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+.head p { color: var(--muted); }
+.mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.mod { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mod p { color: var(--muted); font-size: .95rem; }
+.mod .tag { font-size: .75rem; font-weight: 600; color: var(--brand); letter-spacing: .06em; text-transform: uppercase; }
+.mod .url { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: auto; padding-top: 6px; }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; }
+.how div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.how p { color: var(--muted); font-size: .95rem; }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 24px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.plan.pop { border: 2px solid var(--brand); }
+.price { font-family: var(--display); font-size: 2rem; font-weight: 700; }
+.price span { font-size: .9rem; color: var(--muted); font-family: var(--body); font-weight: 400; }
+.plan ul { margin: 0; padding-left: 1.1em; color: var(--muted); font-size: .95rem; display: flex; flex-direction: column; gap: 4px; }
+.note { margin-top: 16px; color: var(--muted); font-size: .9rem; }
+.signup { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+form { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: .9rem; }
+input, select { font: 400 1rem var(--body); padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); width: 100%; }
+.ok { color: var(--brand); font-weight: 600; font-size: 0.95rem; }
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--muted); font-size: .88rem; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 820px) {
+  .hero, .signup { grid-template-columns: 1fr; }
+  .hero { padding-block: 32px 48px; }
+  section { padding-block: 48px; }
+  nav .links a.hide { display: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 19V6M3 14h18v5M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.8"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24"><path d="M5 16l1.5-5a2 2 0 0 1 1.9-1.4h7.2a2 2 0 0 1 1.9 1.4L19 16M3 16h18v3H3zM7 19v1.5M17 19v1.5"/><circle cx="7.5" cy="16" r=".6"/><circle cx="16.5" cy="16" r=".6"/></symbol>
+<symbol id="i-fork" viewBox="0 0 24 24"><path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1.4-3 4-3 7h3"/></symbol>
+<symbol id="i-ship" viewBox="0 0 24 24"><path d="M3 17l1.5 3h15L21 17zM6 17v-6h12v6M9 11V7h6v4M12 3v4"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9l1-5h14l1 5a2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1-5 0zM5 11.5V20h14v-8.5M10 20v-5h4v5"/></symbol>
+<symbol id="i-hard" viewBox="0 0 24 24"><path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 7v4M9 8.5l1 2M15 8.5l-1 2"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-5 4 3 6-8M15 6h4v4"/></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2.5l2 11h10l2-8H7"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5a3 3 0 0 1 0 6M18 14.5c2 .7 3 2.6 3 5.5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6zM8.5 12l2.5 2.5 4.5-5"/></symbol>
+<symbol id="i-ruler" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 9h18M3 15h18M9 3v18M7 12h.01M13 6h.01M13 18h.01M17 12h.01"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-2.5-1.5L13 21l-2-1.5L9 21l-2.5-1.5L6 21zM9 8h6M9 12h6M9 16h3"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M8.5 13h7M8.5 17h4"/></symbol>
+<symbol id="i-pct" viewBox="0 0 24 24"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5L12 12l9-4.5M12 12v9"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+</defs></svg>
+
+<div class="partner-topbar">
+  <span>Featured on Khulaasaa MV Enterprise Network</span>
+  <a href="/">&larr; Back to Khulaasaa Live Wire</a>
+</div>
+
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#top">Hooks<b>85</b></a>
+    <div class="links">
+      <a class="hide" href="#verticals">Industries</a>
+      <a class="hide" href="#functions">Functions</a>
+      <a class="hide" href="#plans">Plans</a>
+      <a class="btn" href="#signup">Get started</a>
+    </div>
+  </nav>
+
+  <div class="hero" id="top">
+    <div>
+      <p class="eyebrow">Business software for the Maldives</p>
+      <h1 style="margin-top:12px">Hooks85 POS &amp; Business ERP: Run your whole business from one account.</h1>
+      <p class="lead">Guest houses, garages, restaurants, shipping and more. Sales, purchasing, HR, BOQs and bill parsing, with MIRA GST rules built in and one sign-in for the whole team.</p>
+      <div class="cta">
+        <a class="btn" href="#signup">Start free</a>
+        <a class="btn alt" href="#verticals">See industries</a>
+      </div>
+      <small>Free plans cost nothing. No card needed to start.</small>
+    </div>
+    <div class="inv" aria-label="Sample tax invoice">
+      <header><div><strong>Tax invoice</strong><br>INV-000124</div><div style="text-align:right">Sample Trading Pvt Ltd<br>TIN 1234567GST501</div></header>
+      <table>
+        <tr><td>Reef snorkel set &times; 4</td><td>MVR 2,400.00</td></tr>
+        <tr><td>Island delivery</td><td>MVR 350.00</td></tr>
+        <tr><td>GST 8%</td><td>MVR 220.00</td></tr>
+        <tr class="tot"><td>Total</td><td>MVR 2,970.00</td></tr>
+      </table>
+      <span class="stamp">PAID &middot; BML</span>
+    </div>
+  </div>
+</div>
+
+<div class="band" id="verticals"><div class="wrap"><section>
+  <div class="head">
+    <p class="eyebrow">Built for your trade</p>
+    <h2>One platform, set up for the way your business works.</h2>
+    <p>Pick your vertical and start with the screens, documents and tax rules that fit it.</p>
+  </div>
+  <div class="mods">
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bed"/></svg></span><h3>Guest houses &amp; hotels</h3><p>Bookings, passport check-in, housekeeping, TGST and Green Tax on every room night.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-car"/></svg></span><h3>Garages &amp; workshops</h3><p>Job cards, parts and labour quotes, vehicle history and invoices the customer can sign on screen.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fork"/></svg></span><h3>Restaurants &amp; cafés</h3><p>Table and counter POS, split bills, kitchen tickets and a nightly cash count.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ship"/></svg></span><h3>Shipping &amp; logistics</h3><p>Consignments, delivery notes, supplier bills and customer statements in one trail.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-store"/></svg></span><h3>Retail &amp; wholesale</h3><p>Barcode sales, stock levels, supplier orders and GST-ready tax invoices.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-hard"/></svg></span><h3>Contractors &amp; projects</h3><p>Price from a BOQ, track supplier bills against each job and bill by stage.</p></div>
+  </div>
+</section></div></div>
+
+<div class="wrap" id="functions"><section>
+  <div class="head">
+    <p class="eyebrow">What it does</p>
+    <h2>Every function your back office needs.</h2>
+    <p>Turn on only the functions you use. Each one is its own app with its own plan, so you never pay for more than you need.</p>
+  </div>
+  <div class="mods">
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"/></svg></span><h3>Sales</h3><p>Quotation, order, delivery note, tax invoice, credit note and receipt, sent as PDF on WhatsApp or email.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cart"/></svg></span><h3>Purchasing</h3><p>Purchase orders, goods received and supplier bills matched to what you ordered.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-users"/></svg></span><h3>HR &amp; payroll</h3><p>Staff records, roles, leave and payslips for every outlet.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield"/></svg></span><h3>Admin &amp; access</h3><p>Roles per app, approvals, audit trail and one sign-in for the whole team.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ruler"/></svg></span><h3>BOQs</h3><p>Build a bill of quantities, price it from your item list and turn it into a quotation.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-receipt"/></svg></span><h3>Bill parsing</h3><p>Photograph a supplier bill. Hooks85 reads the lines, totals and GST and files it.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-doc"/></svg></span><h3>Document parsing</h3><p>Pull data from POs, delivery notes and statements and match them to your records.</p></div>
+    <div class="mod"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pct"/></svg></span><h3>MIRA GST rules</h3><p>Tax invoice checks, 3-day rules and credit or debit note limits built in.</p></div>
+  </div>
+</section></div>
+
+<div class="wrap"><section>
+  <div class="head">
+    <p class="eyebrow">The apps</p>
+    <h2>Pick the apps you need. Add more later.</h2>
+    <p>Each app has its own address and its own plan, so a café can run the POS on a free plan and sales on a paid one.</p>
+  </div>
+  <div class="mods">
+    <div class="mod"><span class="tag">Live in beta</span><h3>POS</h3><p>Ring up sales, split bills, close the day with a cash count. Works on a phone or a till.</p><span class="url">pos.hooksbm.org</span></div>
+    <div class="mod"><span class="tag">Live in beta</span><h3>Sales</h3><p>Quotation to order, delivery note, tax invoice, credit note and receipt, sent as a PDF on WhatsApp or email.</p><span class="url">sales.hooksbm.org</span></div>
+    <div class="mod"><span class="tag">Live in beta</span><h3>PMS</h3><p>Bookings, check-in with passport scan, housekeeping, TGST and Green Tax on every room night.</p><span class="url">pms.hooksbm.org</span></div>
+    <div class="mod"><span class="tag">Coming soon</span><h3>Purchasing</h3><p>Raise purchase orders, receive stock and match supplier bills.</p><span class="url">purchasing.hooksbm.org</span></div>
+  </div>
+</section></div>
+
+<div class="wrap">
+  <section>
+    <div class="head"><p class="eyebrow">How it works</p><h2>One account, then one plan per app.</h2></div>
+    <div class="how">
+      <div><h3>1. Sign in once</h3><p>Use Google, your phone number or email and a password.</p></div>
+      <div><h3>2. Add your business</h3><p>Invite staff and give each person a role in each app.</p></div>
+      <div><h3>3. Choose a plan</h3><p>Start on a free plan. We approve requests by hand during the beta.</p></div>
+      <div><h3>4. Pay by BML or transfer</h3><p>Paid plans start after your first payment is confirmed.</p></div>
+    </div>
+  </section>
+
+  <section id="plans" style="padding-top:0">
+    <div class="head"><p class="eyebrow">Pricing</p><h2>Start free. Pay when you grow.</h2></div>
+    <div class="plans">
+      <div class="plan"><h3>Free</h3><div class="price">MVR 0 <span>/ month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>One app of your choice</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>1 outlet, 2 staff</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Records always readable</li></ul><a class="btn alt" href="#signup">Start free</a></div>
+      <div class="plan pop"><span class="badge">Most popular</span><h3>Starter</h3><div class="price">MVR 350 <span>/ app / month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Up to 5 staff</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>PDF documents with your letterhead</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>WhatsApp and email sending</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Bill parsing: 30 a month</li></ul><a class="btn" href="#signup">Request Starter</a></div>
+      <div class="plan"><h3>Business</h3><div class="price">MVR 900 <span>/ app / month</span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Unlimited staff and outlets</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>HR, BOQs and document parsing</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Roles per app</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Priority support</li></ul><a class="btn alt" href="#signup">Request Business</a></div>
+      <div class="plan"><h3>Enterprise</h3><div class="price">Custom <span></span></div><ul><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Multiple businesses and branches</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Setup and data import</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Custom documents and integrations</li><li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>Dedicated contact</li></ul><a class="btn alt" href="#signup">Talk to us</a></div>
+    </div>
+    <p class="note">Example packages and prices for this preview. Final plans will be set before launch. Pay by BML or bank transfer.</p>
+  </section>
+</div>
+
+<div class="band"><div class="wrap"><section id="signup">
+  <div class="signup">
+    <div class="head" style="margin:0">
+      <p class="eyebrow">Get started</p>
+      <h2>Tell us about your business.</h2>
+      <p>We will set up your account and approve your first app during the beta. Prefer to ask a question first? Leave a note and we will reply.</p>
+    </div>
+    <form id="lead" method="POST" action="/subscription/inquire">
+      <input type="hidden" name="plan_tier" value="starter">
+      <label for="name">Your name<input id="name" name="contact_name" required autocomplete="name"></label>
+      <label for="biz">Business name<input id="biz" name="company_name" required autocomplete="organization"></label>
+      <label for="phone">Phone or email<input id="phone" name="phone" required autocomplete="tel"></label>
+      <label for="app">Interested in
+        <select id="app" name="modules">
+          <option value="POS">POS</option>
+          <option value="Sales">Sales</option>
+          <option value="PMS">PMS</option>
+          <option value="More than one">More than one</option>
+        </select>
+      </label>
+      <button class="btn" type="submit">Request access</button>
+      <p id="msg" class="ok" role="status" hidden>Thanks! Your request has been registered.</p>
+    </form>
+  </div>
+</section></div></div>
+
+<div class="wrap">
+  <footer><span>&copy; 2026 Hooks85. Male', Maldives.</span><span>hooksbm.org &middot; Partner Platform</span></footer>
+</div>
+
+<script>
+document.getElementById('lead').addEventListener('submit', function(e) {
+  // Allow native submission or show confirmation if requested via JS
+});
+</script>
+
+</body>
+</html>

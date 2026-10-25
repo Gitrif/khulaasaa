@@ -2,8 +2,8 @@
   {% set current_ad = active_ads[loop.index0 % active_ads|length] if loop is defined else active_ads[0] %}
   <article class="story-card ad-card bg-white border border-hairline rounded-md p-4 sm:p-5 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
     <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-hairline/60">
-      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#0b5d57] bg-[#e3f0ec] px-2 py-0.5 rounded border border-[#0b5d57]/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#0b5d57]"></span>
         Sponsored &bull; {{ current_ad.sponsor_name }}
       </span>
       <span class="text-[10px] text-slate uppercase tracking-wider font-semibold">Official Business Platform</span>
@@ -15,7 +15,7 @@
     </div>
     <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-2 border-t border-hairline/60 flex-wrap">
       {% if current_ad.link_url %}
-      <a href="{{ current_ad.link_url }}" class="source-action-btn" title="Explore {{ current_ad.sponsor_name }}">
+      <a href="{{ current_ad.link_url }}" class="source-action-btn" style="background:#0b5d57;color:#ffffff;border-color:#0b5d57;" title="Explore {{ current_ad.sponsor_name }}">
         <span class="source-btn-text">Explore {{ current_ad.sponsor_name }} &rarr;</span>
       </a>
       {% endif %}
@@ -25,22 +25,22 @@
 {% else %}
   <article class="story-card ad-card bg-white border border-hairline rounded-md p-4 sm:p-5 mb-3.5 shadow-2xs w-full box-border" style="box-sizing: border-box; max-width: 100%;">
     <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-hairline/60">
-      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-        Sponsored &bull; hooks85 POS
+      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#0b5d57] bg-[#e3f0ec] px-2 py-0.5 rounded border border-[#0b5d57]/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#0b5d57]"></span>
+        Sponsored &bull; Hooks<b style="color:#e4572e;">85</b>
       </span>
-      <span class="text-[10px] text-slate uppercase tracking-wider font-semibold">Official Business Platform</span>
+      <span class="text-[10px] text-slate uppercase tracking-wider font-semibold">MIRA GST &bull; POS &bull; BOQ Software</span>
     </div>
     <div class="py-1">
       <div class="font-sans text-xs sm:text-sm text-ink leading-relaxed">
-        <strong>Modern Cloud Point of Sale &amp; Maldivian Retail ERP:</strong> Offline-ready billing, barcode scanning, thermal receipt printing, and MIRA GST compliance for local shops, marts &amp; contractors.
+        <strong>Run your whole business from one account:</strong> Guest houses, garages, restaurants, shipping, retail &amp; contractors. Sales, purchasing, HR, BOQs and bill parsing with built-in MIRA GST tax invoice compliance.
       </div>
     </div>
     <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-2 border-t border-hairline/60 flex-wrap">
-      <a href="/subscription?ref=infeed" class="source-action-btn" title="Explore hooks85 POS">
-        <span class="source-btn-text">Explore hooks85 &rarr;</span>
+      <a href="/hooks85?ref=infeed" class="source-action-btn" style="background:#0b5d57;color:#ffffff;border-color:#0b5d57;" title="Explore Hooks85 Business Software">
+        <span class="source-btn-text">Explore Hooks85 &rarr;</span>
       </a>
-      <span class="text-[11px] text-slate-400">hooks85 Business Network</span>
+      <span class="text-[11px] text-slate-400">hooksbm.org &middot; Partner Platform</span>
     </div>
   </article>
 {% endif %}
