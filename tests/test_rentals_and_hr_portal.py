@@ -71,10 +71,16 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Standard Maldivian Lease Framework", res.text)
         self.assertIn("Monthly Rent Ledger &amp; Receipts", res.text)
         self.assertIn("Download Official Tenancy Agreement", res.text)
-        # Check Dhivehi contract text presence
+        # Check English public area maintenance & deposit deficit clause
+        self.assertIn("Public Area Maintenance &amp; Tenant Interior Upkeep", res.text)
+        self.assertIn("stairwell, corridor, and entrance lighting", res.text)
+        self.assertIn("debt owed to the Landlord", res.text)
+        # Check Dhivehi contract text and public area maintenance presence
         self.assertIn("ކުއްޔަށް ދިނުމާއި ހިފުމުގެ އެއްބަސްވުން", res.text)
         self.assertIn("ކުއްޔަށްދޭ ފަރާތް", res.text)
-        self.assertIn("ސެކިއުރިޓީ ޑިޕޮޒިޓާއި އުނިކުރުން", res.text)
+        self.assertIn("ޢާންމު ސަރަޙައްދު ބެލެހެއްޓުމާއި އެޕާޓްމަންޓް ސާފުތާހިރުކޮށް ބެލެހެއްޓުން", res.text)
+        self.assertIn("ސިޑިބަރިތަކާއި ކޮރިޑޯތަކުގެ ބޮކިތައް", res.text)
+        self.assertIn("ސާބިތު ދަރަންޏެކެވެ", res.text)
 
     def test_rental_contract_builder_with_rental_id(self):
         with get_db() as conn:
