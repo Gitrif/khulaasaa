@@ -8,22 +8,26 @@ services:
     container_name: khulaasaa_web
     restart: always
     command: uvicorn app:app --host 0.0.0.0 --port 8000
+    expose:
+      - "8000"
     env_file:
       - path: .env
-        required: true
+        required: false
     networks:
       - traefik
     labels:
       - "traefik.enable=true"
-      # Public website & WWW routing
-      - "traefik.http.routers.khulaasaa.rule=Host(`khulaasaa.tech`) || Host(`www.khulaasaa.tech`)"
-      - "traefik.http.routers.khulaasaa.entrypoints=websecure"
-      - "traefik.http.routers.khulaasaa.tls.certresolver=letsencrypt"
-      
-      # Dedicated API Subdomain routing
-      - "traefik.http.routers.khulaasaa-api.rule=Host(`api.khulaasaa.tech`)"
-      - "traefik.http.routers.khulaasaa-api.entrypoints=websecure"
-      - "traefik.http.routers.khulaasaa-api.tls.certresolver=letsencrypt"
+      # HTTP Router (Port 80)
+      - "traefik.http.routers.khulaasaa-http.rule=Host(`khulaasaa.tech`) || Host(`www.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa-http.entrypoints=web"
+      - "traefik.http.routers.khulaasaa-http.service=khulaasaa"
+
+      # HTTPS Router (Port 443 with TLS)
+      - "traefik.http.routers.khulaasaa-https.rule=Host(`khulaasaa.tech`) || Host(`www.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa-https.entrypoints=websecure"
+      - "traefik.http.routers.khulaasaa-https.tls=true"
+      - "traefik.http.routers.khulaasaa-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.khulaasaa-https.service=khulaasaa"
 
       # Target application port inside the container
       - "traefik.http.services.khulaasaa.loadbalancer.server.port=8000"
