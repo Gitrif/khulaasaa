@@ -35,11 +35,17 @@ def get_sqlite_conn(db_path: Path) -> sqlite3.Connection:
 
 
 def get_supabase_conn(db_url: str) -> Any:
-    # Ensure sslmode=require for cloud Supabase if not specified
-    if "supabase." in db_url and "sslmode" not in db_url:
-        sep = "&" if "?" in db_url else "?"
-        db_url = f"{db_url}{sep}sslmode=require"
-    return psycopg2.connect(db_url, cursor_factory=psycopg2.extras.DictCursor)
+    import urllib.parse
+    parsed = urllib.parse.urlparse(db_url)
+    qs = urllib.parse.parse_qs(parsed.query)
+    qs.pop("pgbouncer", None)
+    if "supabase." in parsed.netloc and "sslmode" not in qs:
+        qs["sslmode"] = ["require"]
+    clean_query = urllib.parse.urlencode(qs, doseq=True)
+    clean_url = urllib.parse.urlunparse((
+        parsed.scheme, parsed.netloc, parsed.path, parsed.params, clean_query, parsed.fragment
+    ))
+    return psycopg2.connect(clean_url, cursor_factory=psycopg2.extras.DictCursor)
 
 
 def migrate_entities(sqlite_conn: sqlite3.Connection, pg_conn: Any) -> int:

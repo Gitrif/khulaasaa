@@ -25,16 +25,30 @@ _POOL: Optional[ThreadedConnectionPool] = None
 
 
 def get_postgres_url() -> Optional[str]:
-    """Retrieve the PostgreSQL / Supabase connection URL from environment."""
+    """Retrieve and sanitize PostgreSQL / Supabase connection URL from environment."""
     url = os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")
     if not url:
         return None
     
+    # Strip query parameters unsupported by libpq/psycopg2 (e.g. pgbouncer=true from Prisma/Supabase UI)
+    import urllib.parse
+    parsed = urllib.parse.urlparse(url)
+    qs = urllib.parse.parse_qs(parsed.query)
+    qs.pop("pgbouncer", None)
+
     # Ensure sslmode=require for cloud Supabase if not explicitly configured
-    if "supabase." in url and "sslmode" not in url:
-        sep = "&" if "?" in url else "?"
-        url = f"{url}{sep}sslmode=require"
-    return url
+    if "supabase." in parsed.netloc and "sslmode" not in qs:
+        qs["sslmode"] = ["require"]
+
+    clean_query = urllib.parse.urlencode(qs, doseq=True)
+    return urllib.parse.urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        clean_query,
+        parsed.fragment
+    ))
 
 
 def is_postgres_configured() -> bool:
