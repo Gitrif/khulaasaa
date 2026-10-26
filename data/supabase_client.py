@@ -19,7 +19,14 @@ _SUPABASE_CLIENT: Any = None
 
 def is_supabase_configured() -> bool:
     """Check if Supabase API URL and Key are configured."""
-    return bool(os.environ.get("SUPABASE_URL") and (os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")))
+    has_url = bool(os.environ.get("SUPABASE_URL"))
+    has_key = bool(
+        os.environ.get("SUPABASE_SECRET_KEY")
+        or os.environ.get("SUPABASE_PUBLISHABLE_KEY")
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+        or os.environ.get("SUPABASE_KEY")
+    )
+    return has_url and has_key
 
 
 def get_supabase_client() -> Optional[Any]:
@@ -29,7 +36,13 @@ def get_supabase_client() -> Optional[Any]:
         return _SUPABASE_CLIENT
 
     url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
+    # Modern Supabase API keys: SUPABASE_SECRET_KEY (sb_secret_...) > legacy keys
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY")
+        or os.environ.get("SUPABASE_PUBLISHABLE_KEY")
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+        or os.environ.get("SUPABASE_KEY")
+    )
     if not url or not key:
         return None
 
