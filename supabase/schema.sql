@@ -649,6 +649,26 @@ LEFT JOIN sources s ON r.source_id = s.id
 LEFT JOIN addresses a ON r.address_id = a.id;
 
 -- ---------------------------------------------------------------------
+-- 13. Service Modules & Maintenance State
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS service_modules (
+    module_key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    suspended_message TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO service_modules (module_key, name, description, is_enabled, suspended_message)
+VALUES
+    ('news', 'News & Story Clusters', 'Multi-source news aggregation, verified cluster feeds, and live timeline updates.', 1, 'The Khulaasaa News service is temporarily undergoing scheduled updates. Please check back shortly.'),
+    ('tenders', 'Tenders & Gazette Procurement Portal', 'Official Gazette bid notices, corporate procurement, BOQ preparation, and vendor RFP tools.', 1, 'The Gazette & Corporate Tenders portal is temporarily offline for routine database maintenance. Please check back shortly.'),
+    ('jobs', 'Job Center & Career Portal', 'Verified Maldivian employment listings, HR hiring workspace, candidate CV builder, and job applications.', 1, 'The Khulaasaa Job Center & Employment portal is temporarily suspended for system maintenance. Please check back shortly.'),
+    ('rentals', 'Consolidated Residential Rentals', 'Cross-portal consolidated apartment rentals, tenancy agreements, and Hooks85 residential lease suite.', 1, 'The Khulaasaa Consolidated Residential Rentals service is temporarily offline for scheduled system updates. Please check back shortly.')
+ON CONFLICT (module_key) DO NOTHING;
+
+-- ---------------------------------------------------------------------
 -- 14. Row Level Security (RLS) Policies
 -- ---------------------------------------------------------------------
 ALTER TABLE sources ENABLE ROW LEVEL SECURITY;
@@ -661,6 +681,11 @@ ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rentals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE obituaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sponsored_ads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE service_modules ENABLE ROW LEVEL SECURITY;
+
+-- Anonymous and authenticated read policies
+DROP POLICY IF EXISTS "Public read service_modules" ON service_modules;
+CREATE POLICY "Public read service_modules" ON service_modules FOR SELECT USING (true);
 
 -- Anonymous and authenticated read policies
 DROP POLICY IF EXISTS "Public read sources" ON sources;

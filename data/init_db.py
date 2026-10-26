@@ -32,8 +32,16 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                     with pg_conn._conn.cursor() as cur:
                         cur.execute(schema_path.read_text(encoding="utf-8"))
                     pg_conn.commit()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Error applying Postgres schema: {e}")
+        try:
+            from data.modules import init_modules_table
+            from data.postgres_adapter import get_postgres_db
+            with get_postgres_db() as pg_conn:
+                init_modules_table(pg_conn)
+                pg_conn.commit()
+        except Exception as e:
+            logger.warning(f"Error initializing modules table on Postgres: {e}")
         return
 
     with get_db(db_path) as conn:

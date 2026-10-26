@@ -203,10 +203,17 @@ class PostgresConnectionWrapper:
         self._conn.commit()
 
     def rollback(self) -> None:
-        self._conn.rollback()
+        try:
+            self._conn.rollback()
+        except Exception:
+            pass
 
     def close(self) -> None:
         if self._pool is not None:
+            try:
+                self._conn.rollback()
+            except Exception:
+                pass
             self._pool.putconn(self._conn)
         else:
             self._conn.close()
@@ -217,6 +224,10 @@ def get_postgres_db() -> Generator[PostgresConnectionWrapper, None, None]:
     """Acquire a pooled Postgres/Supabase connection and yield an adapted wrapper."""
     pool = get_connection_pool()
     raw_conn = pool.getconn()
+    try:
+        raw_conn.rollback()
+    except Exception:
+        pass
     conn_wrapper = PostgresConnectionWrapper(raw_conn, pool=pool)
     try:
         yield conn_wrapper
