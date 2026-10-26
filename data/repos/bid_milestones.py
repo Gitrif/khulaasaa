@@ -160,21 +160,22 @@ def purge_expired_bids(conn: sqlite3.Connection, retention_days: int = 30) -> in
     Also removes legacy placeholder notices (notice-%).
     Explicitly preserves news articles and tracked story timelines.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
     cutoff_dt = datetime.now() - timedelta(days=retention_days)
-    cutoff_iso = cutoff_dt.isoformat()
     cutoff_date = cutoff_dt.strftime("%Y-%m-%d")
 
-    cursor = conn.execute(
-        """
-        DELETE FROM bids
-        WHERE (submission_date IS NOT NULL AND (submission_date < ? OR submission_date < ?))
-           OR (submission_date IS NULL AND published_date IS NOT NULL AND (published_date < ? OR published_date < ?))
-           OR notice_id LIKE ?;
-        """,
-        (cutoff_iso, cutoff_date, cutoff_iso, cutoff_date, "notice-%"),
-    )
-    deleted_count = cursor.rowcount
-    return deleted_count
+    try:
+        cursor = conn.execute(
+            """
+            DELETE FROM bids
+            WHERE (submission_date IS NOT NULL AND submission_date < ?)
+               OR (submission_date IS NULL AND published_date IS NOT NULL AND published_date < ?)
+               OR notice_id LIKE ?;
+            """,
+            (cutoff_date, cutoff_date, "notice-%"),
+        )
+        return cursor.rowcount or 0
+    except Exception:
+        return 0
 
 

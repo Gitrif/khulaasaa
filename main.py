@@ -164,7 +164,10 @@ async def lifespan(app: FastAPI):
     init_db(seed_bids=True)
     init_news_cache()
     with get_db() as conn:
-        purge_expired_bids(conn, retention_days=30)
+        try:
+            purge_expired_bids(conn, retention_days=30)
+        except Exception as e:
+            pass
     if not os.environ.get("PYTEST_CURRENT_TEST"):
         trigger_bids_background_sync(force=False)
         start_telegram_bot_polling()
