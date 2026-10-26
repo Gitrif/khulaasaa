@@ -2,6 +2,45 @@
 -- KHULAASAA MALDIVES AGGREGATOR - CANONICAL SEED DATA FOR SUPABASE
 -- =====================================================================
 
+-- ---------------------------------------------------------------------
+-- 1. Canonical Sources Registry (Single Source of Truth)
+-- ---------------------------------------------------------------------
+INSERT INTO sources (slug, name, domain, source_type, logo_url) VALUES
+('standard', 'The Standard', 'standard.mv', 'press', '/static/logos/standard.png'),
+('sun', 'Sun Online', 'sun.mv', 'press', '/static/logos/sun.png'),
+('atolltimes', 'Atoll Times', 'atolltimes.mv', 'press', '/static/logos/atolltimes.svg'),
+('dhauru', 'Dhauru', 'dhauru.com', 'press', '/static/logos/dhauru.png'),
+('haftha', 'Haftha', 'haftha.mv', 'press', '/static/logos/haftha.png'),
+('adhadhu', 'Adhadhu', 'adhadhu.com', 'press', '/static/logos/adhadhu.png'),
+('psm', 'PSM News', 'psmnews.mv', 'official', '/static/logos/psm.png'),
+('mvcrisis', 'MV Crisis', 't.me/MvCrisis', 'wire', '/static/logos/mvcrisis.svg'),
+('mihaaru', 'Mihaaru', 'mihaaru.com', 'press', '/static/logos/mihaaru.png'),
+('cnm', 'CNM', 'cnm.mv', 'press', '/static/logos/cnm.png'),
+('edition', 'The Edition', 'edition.mv', 'press', '/static/logos/edition.png'),
+('avas', 'AVAS', 'avas.mv', 'press', '/static/logos/avas.png'),
+('mira', 'MIRA', 'mira.gov.mv', 'official', '/static/logos/mira.png'),
+('miadhu', 'Miadhu', 'miadhu.mv', 'press', '/static/logos/miadhu.png'),
+('voice', 'Voice', 'voice.mv', 'press', '/static/logos/voice.png'),
+('gazette', 'Government Gazette', 'gazette.gov.mv', 'official', '/static/logos/gazette.svg'),
+('macl', 'Maldives Airports Company Limited', 'macl.aero', 'portal', '/static/logos/macl.svg'),
+('hdc', 'Housing Development Corporation', 'hdc.mv', 'portal', '/static/logos/hdc.svg'),
+('mwsc', 'Male'' Water & Sewerage Company', 'mwsc.com.mv', 'portal', '/static/logos/mwsc.svg'),
+('stelco', 'State Electric Company Limited', 'stelco.com.mv', 'portal', '/static/logos/stelco.svg'),
+('sto', 'State Trading Organization Plc', 'sto.mv', 'portal', '/static/logos/sto.svg'),
+('jobcenter', 'JobCenter Maldives', 'jobcenter.mv', 'official', '/static/logos/jobcenter.svg'),
+('ibay', 'iBay Maldives', 'ibay.com.mv', 'marketplace', '/static/logos/ibay.png'),
+('boahiyaa', 'Boahiyaa Real Estate', 'boahiyaa.com', 'marketplace', '/static/logos/boahiyaa.png'),
+('direct', 'Direct Owner / Landlord', NULL, 'marketplace', '/static/logos/direct.svg'),
+('kashunamaadhu', 'KashunamaadhuMV', 't.me/KashunamaadhuMV', 'wire', '/static/logos/kashunamaadhu.svg')
+ON CONFLICT (slug) DO UPDATE SET
+    name = EXCLUDED.name,
+    domain = EXCLUDED.domain,
+    source_type = EXCLUDED.source_type,
+    logo_url = EXCLUDED.logo_url;
+
+-- ---------------------------------------------------------------------
+-- 2. Entities Dictionary (SOEs, Ministries, Councils, Hospitals)
+-- ---------------------------------------------------------------------
 INSERT INTO entities (slug, name_en, name_dv, entity_type, location, website) VALUES
 ('housing-development-corporation', 'Housing Development Corporation', 'ހައުސިންގ ޑިވެލޮޕްމަންޓް ކޯޕަރޭޝަން', 'SOE', 'Hulhumale''', 'https://hdc.com.mv'),
 ('state-trading-organization', 'State Trading Organization Plc', 'ސްޓޭޓް ޓްރޭޑިންގ އޯގަނައިޒޭޝަން', 'SOE', 'Male''', 'https://sto.mv'),

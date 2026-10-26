@@ -234,6 +234,7 @@ ISLAND_NAMES: dict[str, str] = {
     "ރިނބުދޫ": "Rinbudhoo",
     "ހުޅުދެލި": "Hulhudheli",
     "ކުޑަހުވަދޫ": "Kudahuvadhoo",
+    "މާއެނބޫދޫ": "Maaenboodhoo",
     # Thaa (Th)
     "ބުރުނީ": "Buruni",
     "ވިލުފުށި": "Vilufushi",

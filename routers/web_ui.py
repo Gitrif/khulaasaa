@@ -43,6 +43,7 @@ from services.news_service import enrich_event, get_live_news
 from services.jobs_service import enrich_job
 from services.tenders_service import trigger_bids_background_sync
 from alerts.telegram import get_telegram_credentials
+from data.modules import is_service_module_enabled, get_service_module
 
 from routers.web_bids import router as web_bids_router
 from routers.web_jobs import router as web_jobs_router
@@ -63,6 +64,13 @@ def public_feed(
     sort: Optional[str] = "latest",
 ):
     """Aggregate public news feed."""
+    with get_db() as conn:
+        if not is_service_module_enabled(conn, "news"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "news"), "current_user": get_current_user(request)},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
     use_live = (source != "mock")
     raw_events = [enrich_event(e) for e in get_live_news(force_refresh=(refresh == "1"))] if use_live else [enrich_event(e) for e in DEFAULT_EVENTS]
     if not raw_events and use_live:
@@ -217,10 +225,33 @@ def story_detail(request: Request, story_id: str):
     seen_sources = set()
     for art in raw_sub_articles:
         s_keys = art.get("sources") or []
-        s_key = s_keys[0] if s_keys else "press"
-        source_obj = SOURCES.get(s_key, {"id": s_key, "name": s_key.title(), "initial": s_key[:1].upper(), "kind": "press", "logo": None})
+        s_key = s_keys[0] if s_keys else ""
+        art_id = str(art.get("id") or "")
+        art_url = art.get("url") or (story.get("source_links", {}).get(s_key) if story.get("source_links") and s_key else story.get("url", ""))
+
+        if not s_key or s_key not in SOURCES or not SOURCES[s_key].get("logo"):
+            # Attempt to resolve from article ID prefix or URL domain
+            matched_key = None
+            for candidate_key, sobj in SOURCES.items():
+                if art_id.startswith(f"{candidate_key}-") or (art_url and sobj.get("domain") and sobj["domain"] in art_url):
+                    matched_key = candidate_key
+                    break
+            if matched_key:
+                s_key = matched_key
+
+        if not s_key:
+            s_key = "press"
+
+        source_obj = dict(SOURCES.get(s_key, {
+            "id": s_key,
+            "name": s_key.title(),
+            "initial": s_key[:1].upper(),
+            "kind": "press",
+            "logo": "/static/logos/press.svg"
+        }))
+        if not source_obj.get("logo"):
+            source_obj["logo"] = f"/static/logos/{s_key}.png" if os.path.exists(f"static/logos/{s_key}.png") else "/static/logos/press.svg"
         headline = art.get("headline", story.get("headline", ""))
-        art_url = art.get("url") or (story.get("source_links", {}).get(s_key) if story.get("source_links") else story.get("url", ""))
         time_display = art.get("time_ago") or art.get("published_raw") or story.get("time_ago") or "Recent"
         summary = art.get("summary", "")
         is_dv = is_dhivehi(headline) or art.get("is_dhivehi", False)

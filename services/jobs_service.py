@@ -117,17 +117,39 @@ def enrich_job(job: dict[str, Any]) -> dict[str, Any]:
     j = dict(job)
 
     # Employer naming & branding
-    agency = j.get("agency_name_en") or j.get("agency") or "Maldivian Employer"
+    agency_en = j.get("agency_name_en")
+    agency_raw = j.get("agency") or ""
+    if not agency_en or agency_en in ["Government Authority", "Government Agency", "Maldivian Employer", "from ،", "،"]:
+        if agency_raw:
+            from scrapers.translator import translate_agency
+            agency_en = translate_agency(agency_raw)
+    agency = agency_en or agency_raw or "Maldivian Employer"
     j["employer_name"] = agency
     j["employer_logo"] = get_employer_logo(agency)
     j["employer_initials"] = get_employer_initials(agency)
 
     # Clean designation and Thaana check
-    j["designation"] = j.get("title_en") or j.get("title") or "Position Open"
+    title_en = j.get("title_en")
+    title_raw = j.get("title") or ""
+    if not title_en or title_en in ["Administrator", "Officer"] and "ކޯޓު" in title_raw:
+        from scrapers.jobs import translate_job_title
+        title_en = translate_job_title(title_raw)
+    j["designation"] = title_en or title_raw or "Position Open"
 
     # Clean location & Remuneration
     j["location_clean"] = j.get("location") or "Male'"
     salary = j.get("salary_raw")
+    if salary == "Civil Service Remuneration Matrix" and j.get("notice_id", "").isdigit():
+        try:
+            from scrapers.jobs_enricher import enrich_gazette_job_notice
+            enr = enrich_gazette_job_notice(j["notice_id"])
+            if enr.get("salary_raw") and enr["salary_raw"] != "Pay not listed":
+                salary = enr["salary_raw"]
+                j["salary_raw"] = salary
+            if enr.get("location"):
+                j["location_clean"] = enr["location"]
+        except Exception:
+            pass
     j["has_salary"] = bool(salary and salary.strip() and salary.strip().lower() != "none")
     j["remuneration_clean"] = salary.strip() if j["has_salary"] else None
 

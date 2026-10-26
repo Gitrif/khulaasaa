@@ -138,20 +138,35 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
     elif not raw_src and n_id_str.isdigit():
         raw_src = f"https://gazette.gov.mv/iulaan/{n_id_str}"
 
+    from data.repos.sources import resolve_or_create_source
+    s_ident = (new_sources[0] if new_sources else None) or bid.get("source_url") or "gazette"
+    source_id = bid.get("source_id") or resolve_or_create_source(
+        conn, s_ident, source_type="official" if "gazette" in str(s_ident) else "portal"
+    )
+
+    from core.time_utils import parse_datetime_components
+    pub_raw_val = bid.get("published_date") or bid.get("published_iso")
+    pub_at, post_d, post_t = parse_datetime_components(pub_raw_val)
+    sub_raw_val = bid.get("submission_date") or bid.get("deadline_iso")
+    sub_at, _, _ = parse_datetime_components(sub_raw_val) if sub_raw_val else (None, None, None)
+
     cursor = conn.execute(
         """
         INSERT INTO bids (
-            notice_id, entity_id, reference_number, title, title_en, gazette_type,
-            discipline, procurement_nature, published_date, submission_date, submission_location,
+            notice_id, source_id, entity_id, reference_number, title, title_en, gazette_type,
+            discipline, procurement_nature, published_date, posted_date, posted_time, published_at,
+            submission_date, submission_deadline, submission_location,
             info_date, info_location, source_url, sources, document_urls, raw_details,
             updated_at
         ) VALUES (
-            :notice_id, :entity_id, :reference_number, :title, :title_en, :gazette_type,
-            :discipline, :procurement_nature, :published_date, :submission_date, :submission_location,
+            :notice_id, :source_id, :entity_id, :reference_number, :title, :title_en, :gazette_type,
+            :discipline, :procurement_nature, :published_date, :posted_date, :posted_time, :published_at,
+            :submission_date, :submission_deadline, :submission_location,
             :info_date, :info_location, :source_url, :sources, :document_urls, :raw_details,
             CURRENT_TIMESTAMP
         )
         ON CONFLICT(notice_id) DO UPDATE SET
+            source_id = COALESCE(excluded.source_id, bids.source_id),
             entity_id = excluded.entity_id,
             reference_number = COALESCE(excluded.reference_number, bids.reference_number),
             title = excluded.title,
@@ -160,7 +175,11 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
             discipline = excluded.discipline,
             procurement_nature = excluded.procurement_nature,
             published_date = COALESCE(excluded.published_date, bids.published_date),
+            posted_date = COALESCE(excluded.posted_date, bids.posted_date),
+            posted_time = COALESCE(excluded.posted_time, bids.posted_time),
+            published_at = COALESCE(excluded.published_at, bids.published_at),
             submission_date = COALESCE(excluded.submission_date, bids.submission_date),
+            submission_deadline = COALESCE(excluded.submission_deadline, bids.submission_deadline),
             submission_location = COALESCE(excluded.submission_location, bids.submission_location),
             info_date = COALESCE(excluded.info_date, bids.info_date),
             info_location = COALESCE(excluded.info_location, bids.info_location),
@@ -173,6 +192,7 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
         """,
         {
             "notice_id": str(bid["notice_id"]),
+            "source_id": source_id,
             "entity_id": entity_id,
             "reference_number": ref_raw,
             "title": title,
@@ -180,8 +200,12 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
             "gazette_type": bid.get("gazette_type", "Bid"),
             "discipline": bid.get("discipline", "Other"),
             "procurement_nature": nature or "Supply",
-            "published_date": bid.get("published_date") or bid.get("published_iso"),
-            "submission_date": bid.get("submission_date") or bid.get("deadline_iso"),
+            "published_date": pub_raw_val,
+            "posted_date": post_d,
+            "posted_time": post_t,
+            "published_at": pub_at,
+            "submission_date": sub_raw_val,
+            "submission_deadline": sub_at,
             "submission_location": sub_loc,
             "info_date": bid.get("info_date"),
             "info_location": info_loc,

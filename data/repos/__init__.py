@@ -48,6 +48,31 @@ from data.repos.ads import (
     toggle_sponsored_ad,
     delete_sponsored_ad,
 )
+from data.repos.sources import (
+    get_source_by_slug,
+    get_source_by_id,
+    list_sources,
+    resolve_or_create_source,
+)
+from data.repos.addresses import (
+    get_address_by_id,
+    resolve_or_create_address,
+)
+from data.repos.people import (
+    get_person_by_id,
+    get_person_by_nid,
+    resolve_or_create_person,
+)
+from data.repos.reference import (
+    DAYS_DATA,
+    MONTHS_DATA,
+    HIJRI_MONTHS_DATA,
+    PRAYER_TIMES_DATA,
+    DISTRICTS_DATA,
+    lookup_day,
+    lookup_month,
+    lookup_prayer_time,
+)
 from data.repos.users import (
     hash_password,
     verify_password,
@@ -139,5 +164,22 @@ __all__ = [
     "update_telegram_subscriber_plan",
     "is_viber_subscriber_paid",
     "update_viber_subscriber_plan",
+    "get_source_by_slug",
+    "get_source_by_id",
+    "list_sources",
+    "resolve_or_create_source",
+    "get_address_by_id",
+    "resolve_or_create_address",
+    "get_person_by_id",
+    "get_person_by_nid",
+    "resolve_or_create_person",
+    "DAYS_DATA",
+    "MONTHS_DATA",
+    "HIJRI_MONTHS_DATA",
+    "PRAYER_TIMES_DATA",
+    "DISTRICTS_DATA",
+    "lookup_day",
+    "lookup_month",
+    "lookup_prayer_time",
 ]
 

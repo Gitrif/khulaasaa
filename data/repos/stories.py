@@ -17,8 +17,21 @@ def upsert_article(conn: sqlite3.Connection, article: dict[str, Any]) -> str:
     published_raw = article.get("published_raw") or ""
     published_iso = article.get("published_iso") or ""
     minutes_ago = article.get("minutes_ago") or 0
-    source_key = article.get("source_key") or article.get("source") or "general"
+    sources = article.get("sources") or []
+    source_key = article.get("source_key") or article.get("source") or (sources[0] if sources else "")
     url = article.get("url") or ""
+
+    from data.repos.sources import resolve_or_create_source
+    s_ident = source_key or url or "press"
+    source_id = article.get("source_id") or resolve_or_create_source(conn, s_ident, source_type="press")
+    if not source_key:
+        from data.repos.sources import get_source_by_id
+        sobj = get_source_by_id(conn, source_id)
+        source_key = sobj["slug"] if sobj else "press"
+
+    from core.time_utils import parse_datetime_components
+    pub_at, post_d, post_t = parse_datetime_components(published_iso or published_raw)
+
     section = article.get("section") or "general"
     topic = article.get("topic") or "general"
     tags_json = json.dumps(article.get("tags") or [], ensure_ascii=False)
@@ -26,15 +39,20 @@ def upsert_article(conn: sqlite3.Connection, article: dict[str, Any]) -> str:
     conn.execute(
         """
         INSERT INTO articles (
-            id, headline, summary, published_raw, published_iso, minutes_ago,
+            id, source_id, headline, summary, published_raw, published_iso,
+            posted_date, posted_time, published_at, minutes_ago,
             source_key, url, section, topic, tags
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
+            source_id = COALESCE(excluded.source_id, articles.source_id),
             headline = excluded.headline,
             summary = excluded.summary,
             published_raw = excluded.published_raw,
             published_iso = excluded.published_iso,
+            posted_date = COALESCE(excluded.posted_date, articles.posted_date),
+            posted_time = COALESCE(excluded.posted_time, articles.posted_time),
+            published_at = COALESCE(excluded.published_at, articles.published_at),
             minutes_ago = excluded.minutes_ago,
             source_key = excluded.source_key,
             url = excluded.url,
@@ -43,7 +61,8 @@ def upsert_article(conn: sqlite3.Connection, article: dict[str, Any]) -> str:
             tags = excluded.tags;
         """,
         (
-            art_id, headline, summary, published_raw, published_iso, minutes_ago,
+            art_id, source_id, headline, summary, published_raw, published_iso,
+            post_d, post_t, pub_at, minutes_ago,
             source_key, url, section, topic, tags_json,
         ),
     )

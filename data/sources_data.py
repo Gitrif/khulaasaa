@@ -141,6 +141,41 @@ SOURCES: dict[str, dict[str, Any]] = {
     },
 }
 
+# --- Canonical System-wide Sources Directory ---------------------------------
+INITIAL_SOURCES: list[dict[str, Any]] = [
+    # News & Media Outlets
+    {"slug": "standard", "name": "The Standard", "domain": "standard.mv", "source_type": "press", "logo_url": "/static/logos/standard.png"},
+    {"slug": "sun", "name": "Sun Online", "domain": "sun.mv", "source_type": "press", "logo_url": "/static/logos/sun.png"},
+    {"slug": "atolltimes", "name": "Atoll Times", "domain": "atolltimes.mv", "source_type": "press", "logo_url": "/static/logos/atolltimes.svg"},
+    {"slug": "dhauru", "name": "Dhauru", "domain": "dhauru.com", "source_type": "press", "logo_url": "/static/logos/dhauru.png"},
+    {"slug": "haftha", "name": "Haftha", "domain": "haftha.mv", "source_type": "press", "logo_url": "/static/logos/haftha.png"},
+    {"slug": "adhadhu", "name": "Adhadhu", "domain": "adhadhu.com", "source_type": "press", "logo_url": "/static/logos/adhadhu.png"},
+    {"slug": "psm", "name": "PSM News", "domain": "psmnews.mv", "source_type": "official", "logo_url": "/static/logos/psm.png"},
+    {"slug": "mvcrisis", "name": "MV Crisis", "domain": "t.me/MvCrisis", "source_type": "wire", "logo_url": "/static/logos/mvcrisis.svg"},
+    {"slug": "mihaaru", "name": "Mihaaru", "domain": "mihaaru.com", "source_type": "press", "logo_url": "/static/logos/mihaaru.png"},
+    {"slug": "cnm", "name": "CNM", "domain": "cnm.mv", "source_type": "press", "logo_url": "/static/logos/cnm.png"},
+    {"slug": "edition", "name": "The Edition", "domain": "edition.mv", "source_type": "press", "logo_url": "/static/logos/edition.png"},
+    {"slug": "avas", "name": "AVAS", "domain": "avas.mv", "source_type": "press", "logo_url": "/static/logos/avas.png"},
+    {"slug": "mira", "name": "MIRA", "domain": "mira.gov.mv", "source_type": "official", "logo_url": "/static/logos/mira.png"},
+    {"slug": "miadhu", "name": "Miadhu", "domain": "miadhu.mv", "source_type": "press", "logo_url": "/static/logos/miadhu.png"},
+    {"slug": "voice", "name": "Voice", "domain": "voice.mv", "source_type": "press", "logo_url": "/static/logos/voice.png"},
+    # Government Gazette & Public Portals
+    {"slug": "gazette", "name": "Government Gazette", "domain": "gazette.gov.mv", "source_type": "official", "logo_url": "/static/logos/gazette.svg"},
+    {"slug": "macl", "name": "Maldives Airports Company Limited", "domain": "macl.aero", "source_type": "portal", "logo_url": "/static/logos/macl.svg"},
+    {"slug": "hdc", "name": "Housing Development Corporation", "domain": "hdc.mv", "source_type": "portal", "logo_url": "/static/logos/hdc.svg"},
+    {"slug": "mwsc", "name": "Male' Water & Sewerage Company", "domain": "mwsc.com.mv", "source_type": "portal", "logo_url": "/static/logos/mwsc.svg"},
+    {"slug": "stelco", "name": "State Electric Company Limited", "domain": "stelco.com.mv", "source_type": "portal", "logo_url": "/static/logos/stelco.svg"},
+    {"slug": "sto", "name": "State Trading Organization Plc", "domain": "sto.mv", "source_type": "portal", "logo_url": "/static/logos/sto.svg"},
+    # Employment Portals
+    {"slug": "jobcenter", "name": "JobCenter Maldives", "domain": "jobcenter.mv", "source_type": "official", "logo_url": "/static/logos/jobcenter.svg"},
+    # Classifieds & Real Estate Marketplaces
+    {"slug": "ibay", "name": "iBay Maldives", "domain": "ibay.com.mv", "source_type": "marketplace", "logo_url": "/static/logos/ibay.png"},
+    {"slug": "boahiyaa", "name": "Boahiyaa Real Estate", "domain": "boahiyaa.com", "source_type": "marketplace", "logo_url": "/static/logos/boahiyaa.png"},
+    {"slug": "direct", "name": "Direct Owner / Landlord", "domain": None, "source_type": "marketplace", "logo_url": "/static/logos/direct.svg"},
+    # Obituaries / Janaza Channels
+    {"slug": "kashunamaadhu", "name": "KashunamaadhuMV", "domain": "t.me/KashunamaadhuMV", "source_type": "wire", "logo_url": "/static/logos/kashunamaadhu.svg"},
+]
+
 # --- National Running Stories (Multi-Milestone Editorial Tracks) -------------
 TIMELINE_TAGS: dict[str, dict[str, str]] = {
     "traffic-reform": {

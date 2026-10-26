@@ -21,6 +21,7 @@ from data.database import (
 from data.mock_events import JOBS
 from scrapers.jobs import JOB_DISCIPLINES
 from services.jobs_service import enrich_job
+from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -31,6 +32,12 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
     """Jobs directory and employment hub."""
     user = get_current_user(request)
     with get_db() as conn:
+        if not is_service_module_enabled(conn, "jobs"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         db_jobs = query_jobs(conn, discipline=discipline, search=q)
         all_disciplines = get_job_disciplines(conn)
 

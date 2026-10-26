@@ -93,10 +93,10 @@ def test_cluster_prefers_english_over_latin_dhivehi():
     assert c["source_links"]["atolltimes"] == "https://atolltimes.mv/post/news/henveiru-fire"
 
 
-def test_cluster_transliterates_standalone_latin_article():
+def test_cluster_preserves_standalone_latin_article_as_is():
     """
-    When an article only exists in Latin Dhivehi, Khulaasaa auto-transliterates
-    the headline into Thaana so it renders cleanly with RTL styling.
+    When an article is in Latin Dhivehi, Khulaasaa strictly preserves the original
+    Latin headline and text without phonetic Thaana transliteration.
     """
     articles = [
         {
@@ -115,10 +115,9 @@ def test_cluster_transliterates_standalone_latin_article():
     assert len(clusters) == 1
     c = clusters[0]
 
-    assert c.get("is_latin_transliterated") is True
-    assert c.get("is_dhivehi") is True
-    assert "މީހުންނަށް" in c["headline"]
-    assert c.get("latin_original") == "5 meehunnah aniyaavi accident: Haalu serious vi ekaku ventilator gai"
+    assert c.get("is_latin_transliterated") is False
+    assert c.get("is_dhivehi") is False
+    assert c["headline"] == "5 meehunnah aniyaavi accident: Haalu serious vi ekaku ventilator gai"
 
 
 # --- 4. Narrative Collections & Timelines ------------------------------------

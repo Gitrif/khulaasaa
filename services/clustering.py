@@ -8,7 +8,7 @@ import re
 from typing import Any
 
 from core.time_utils import format_relative_time
-from scrapers.transliterate import is_latin_dhivehi, transliterate_latin_to_thaana
+from scrapers.transliterate import is_latin_dhivehi
 from scrapers.translator import is_dhivehi, translate_dhivehi_title
 
 KNOWN_STORY_CLUSTERS = [
@@ -391,9 +391,9 @@ def cluster_articles(raw_articles: list[dict[str, Any]]) -> list[dict[str, Any]]
             raw_h = base_art.get("headline", "")
             if is_latin_dhivehi(raw_h):
                 orig_latin = raw_h
-                headline = transliterate_latin_to_thaana(raw_h)
-                summary = transliterate_latin_to_thaana(base_art.get("summary", ""))
-                is_translit = True
+                headline = raw_h
+                summary = base_art.get("summary", "")
+                is_translit = False
             else:
                 headline = translate_dhivehi_title(raw_h)
                 summary = base_art.get("summary", "")
@@ -448,11 +448,8 @@ def cluster_articles(raw_articles: list[dict[str, Any]]) -> list[dict[str, Any]]
         if is_latin_dhivehi(h):
             art_copy["is_latin"] = True
             art_copy["latin_original"] = h
-            art_copy["headline"] = transliterate_latin_to_thaana(h)
-            art_copy["is_dhivehi"] = True
-            art_copy["is_latin_transliterated"] = True
-            if art_copy.get("summary") and is_latin_dhivehi(art_copy["summary"]):
-                art_copy["summary"] = transliterate_latin_to_thaana(art_copy["summary"])
+            art_copy["is_dhivehi"] = False
+            art_copy["is_latin_transliterated"] = False
 
         clustered_feed.append(art_copy)
 

@@ -197,6 +197,9 @@ def classify_job_discipline(title: str, agency: str = "", body: str = "") -> str
 
 
 JOB_TITLE_PHRASE_TRANSLATIONS: list[tuple[str, str]] = [
+    ("ކޯޓު އެޑްމިނިސްޓްރޭޓަރ", "Court Administrator"),
+    ("ކޯޓު އެޑްމިނިސްޓްރޭޓަރު", "Court Administrator"),
+    ("ކޯޓު", "Court"),
     ("ވަޒީފާގެ ފުރުޞަތު -", "Job Vacancy -"),
     ("ވަޒީފާގެ ފުރުސަތު -", "Job Vacancy -"),
     ("ވަޒީފާގެ ފުރުޞަތު", "Job Vacancy:"),
@@ -352,6 +355,12 @@ def fetch_gazette_job_vacancies(pages: int = 1, session: Optional[requests.Sessi
                 })
         except Exception as exc:
             logger.error(f"Failed to fetch gazette jobs page {page}: {exc}")
+
+    try:
+        from scrapers.jobs_enricher import batch_enrich_gazette_jobs
+        jobs = batch_enrich_gazette_jobs(jobs)
+    except Exception as exc:
+        logger.warning(f"Error enriching gazette jobs: {exc}")
 
     return jobs
 

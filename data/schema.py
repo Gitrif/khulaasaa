@@ -7,6 +7,118 @@ Database schema SQL and DDL definitions for Khulaasaa.
 # ---------------------------------------------------------------------
 
 SCHEMA_SQL = """
+-- 1. Canonical Sources Registry (Single Source of Truth for Portals, Media, and Marketplaces)
+CREATE TABLE IF NOT EXISTS sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    domain TEXT,
+    source_type TEXT NOT NULL DEFAULT 'press', -- 'press', 'official', 'wire', 'portal', 'marketplace'
+    logo_url TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Canonical Atolls & Islands Directory
+CREATE TABLE IF NOT EXISTS atolls (
+    code TEXT PRIMARY KEY,
+    name_en TEXT NOT NULL,
+    name_dv TEXT NOT NULL,
+    traditional_name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS islands (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    atoll_code TEXT REFERENCES atolls(code) ON DELETE CASCADE,
+    name_en TEXT NOT NULL,
+    name_dv TEXT,
+    is_inhabited INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reference Tables: Days of the Week
+CREATE TABLE IF NOT EXISTS ref_days (
+    day_number INTEGER PRIMARY KEY, -- 1=Sunday, 2=Monday, ..., 7=Saturday
+    code TEXT UNIQUE NOT NULL,       -- 'SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'
+    name_en TEXT UNIQUE NOT NULL,   -- 'Sunday', 'Monday', ...
+    name_dv TEXT UNIQUE NOT NULL,   -- 'އާދީއްތަ', 'ހޯމަ', ...
+    is_weekend INTEGER NOT NULL DEFAULT 0 -- 1 for Friday and Saturday
+);
+
+-- Reference Tables: Gregorian Months
+CREATE TABLE IF NOT EXISTS ref_months (
+    month_number INTEGER PRIMARY KEY, -- 1 to 12
+    code TEXT UNIQUE NOT NULL,        -- 'JAN', 'FEB', ...
+    name_en TEXT UNIQUE NOT NULL,    -- 'January', 'February', ...
+    name_dv TEXT UNIQUE NOT NULL,    -- 'ޖެނުއަރީ', 'ފެބްރުއަރީ', ...
+    abbr_en TEXT UNIQUE NOT NULL,    -- 'Jan', 'Feb', ...
+    days_count INTEGER NOT NULL      -- 31, 28, 31, 30, ...
+);
+
+-- Reference Tables: Islamic Hijri Months
+CREATE TABLE IF NOT EXISTS ref_hijri_months (
+    month_number INTEGER PRIMARY KEY, -- 1 to 12
+    name_en TEXT UNIQUE NOT NULL,    -- 'Muharram', 'Safar', ...
+    name_dv TEXT UNIQUE NOT NULL,    -- 'މުޙައްރަމް', 'ޞަފަރު', ...
+    name_ar TEXT NOT NULL            -- 'محرم', 'صفر', ...
+);
+
+-- Reference Tables: Prayer Times / Janaza Times
+CREATE TABLE IF NOT EXISTS ref_prayer_times (
+    id INTEGER PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,       -- 'fajr', 'dhuhr', 'asr', 'maghrib', 'isha'
+    name_en TEXT NOT NULL,           -- 'Fajr', 'Dhuhr', ...
+    name_dv TEXT NOT NULL,           -- 'ފަތިސް', 'މެންދުރު', ...
+    sort_order INTEGER NOT NULL
+);
+
+-- Reference Tables: Maldivian Districts / Wards
+CREATE TABLE IF NOT EXISTS ref_districts (
+    code TEXT PRIMARY KEY,           -- 'H', 'G', 'M', 'MA', 'V', 'H1', 'H2'
+    name_en TEXT NOT NULL,           -- 'Henveiru', 'Galolhu', ...
+    name_dv TEXT NOT NULL,           -- 'ހެންވޭރު', 'ގަލޮޅު', ...
+    island_name_en TEXT NOT NULL DEFAULT 'Male'
+);
+
+-- 3. Canonical Addresses Registry (Single Source of Truth for Maldivian Geography)
+CREATE TABLE IF NOT EXISTS addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    country_code TEXT NOT NULL DEFAULT 'MDV',
+    atoll_code TEXT,
+    atoll_name_en TEXT,
+    atoll_name_dv TEXT,
+    island_name_en TEXT,
+    island_name_dv TEXT,
+    district TEXT,
+    road TEXT,
+    building_name TEXT,
+    floor TEXT,
+    unit TEXT,
+    postal_code TEXT,
+    latitude REAL,
+    longitude REAL,
+    formatted_address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Canonical People Registry (Single Source of Truth for Individuals)
+CREATE TABLE IF NOT EXISTS people (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nid_number TEXT UNIQUE,
+    full_name_en TEXT NOT NULL,
+    full_name_dv TEXT,
+    gender TEXT,
+    phone TEXT,
+    email TEXT,
+    permanent_address_id INTEGER REFERENCES addresses(id) ON DELETE SET NULL,
+    current_address_id INTEGER REFERENCES addresses(id) ON DELETE SET NULL,
+    date_of_birth TEXT,
+    date_of_death TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Entities Dictionary (Ministries, SOEs, Councils, Companies, Institutions)
 CREATE TABLE IF NOT EXISTS entities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT UNIQUE NOT NULL,
@@ -21,6 +133,7 @@ CREATE TABLE IF NOT EXISTS entities (
 CREATE TABLE IF NOT EXISTS bids (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     notice_id TEXT UNIQUE NOT NULL,
+    source_id INTEGER REFERENCES sources(id) ON DELETE SET NULL,
     entity_id INTEGER REFERENCES entities(id) ON DELETE SET NULL,
     reference_number TEXT,
     title TEXT NOT NULL,
@@ -29,7 +142,11 @@ CREATE TABLE IF NOT EXISTS bids (
     discipline TEXT NOT NULL DEFAULT 'Other',
     procurement_nature TEXT NOT NULL DEFAULT 'Supply', -- 'Service', 'Supply', 'Lease'
     published_date TEXT,
+    posted_date TEXT,
+    posted_time TEXT,
+    published_at TIMESTAMP,
     submission_date TEXT,
+    submission_deadline TIMESTAMP,
     submission_location TEXT,
     info_date TEXT,
     info_location TEXT,
@@ -76,10 +193,14 @@ CREATE TABLE IF NOT EXISTS sent_alerts (
 
 CREATE TABLE IF NOT EXISTS articles (
     id TEXT PRIMARY KEY,
+    source_id INTEGER REFERENCES sources(id) ON DELETE SET NULL,
     headline TEXT NOT NULL,
     summary TEXT,
     published_raw TEXT,
     published_iso TEXT,
+    posted_date TEXT,
+    posted_time TEXT,
+    published_at TIMESTAMP,
     minutes_ago INTEGER DEFAULT 60,
     source_key TEXT NOT NULL,
     url TEXT,
@@ -123,6 +244,9 @@ CREATE INDEX IF NOT EXISTS idx_hooks85_sub_phone ON hooks85_subscriptions(phone)
 CREATE TABLE IF NOT EXISTS obituaries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT UNIQUE NOT NULL,
+    source_id INTEGER REFERENCES sources(id) ON DELETE SET NULL,
+    person_id INTEGER REFERENCES people(id) ON DELETE SET NULL,
+    residence_address_id INTEGER REFERENCES addresses(id) ON DELETE SET NULL,
     name_dv TEXT NOT NULL,
     name_en TEXT,
     address_dv TEXT,
@@ -133,7 +257,9 @@ CREATE TABLE IF NOT EXISTS obituaries (
     prayer_time_dv TEXT,
     prayer_time_en TEXT,
     funeral_date TEXT,
+    funeral_time TEXT,
     death_date TEXT,
+    funeral_datetime TIMESTAMP,
     photo_url TEXT,
     contact_numbers TEXT,
     source_channel TEXT DEFAULT 'KashunamaadhuMV',
@@ -186,6 +312,8 @@ CREATE TABLE IF NOT EXISTS user_cvs (
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     notice_id TEXT UNIQUE,
+    source_id INTEGER REFERENCES sources(id) ON DELETE SET NULL,
+    entity_id INTEGER REFERENCES entities(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
     title_en TEXT,
     agency TEXT NOT NULL,
@@ -194,7 +322,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     location TEXT DEFAULT "Male'",
     salary_raw TEXT,
     deadline_iso TEXT,
+    deadline_at TIMESTAMP,
     published_date TEXT,
+    posted_date TEXT,
+    posted_time TEXT,
     source_url TEXT,
     source_portal TEXT DEFAULT 'gazette.gov.mv',
     requirements TEXT,

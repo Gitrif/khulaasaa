@@ -13,6 +13,7 @@ from scrapers.news.base import NEWS_SOURCES_CONFIG
 from scrapers.news.rss import fetch_rss_posts
 from scrapers.news.wp_rest import fetch_wp_rest_posts
 from scrapers.news.telegram import fetch_telegram_posts
+from scrapers.news.mvcrisis import fetch_mvcrisis_posts
 from scrapers.news.mihaaru import fetch_mihaaru_posts
 from scrapers.news.miadhu import fetch_miadhu_posts
 
@@ -25,12 +26,14 @@ def fetch_source_articles(source_cfg: dict[str, Any]) -> list[dict[str, Any]]:
     s_type = source_cfg["type"]
     s_url = source_cfg["url"]
 
-    if s_type == "wp_rest":
+    if s_key == "mvcrisis" or s_type == "mvcrisis":
+        return fetch_mvcrisis_posts(s_key, s_url)
+    elif s_type == "wp_rest":
         return fetch_wp_rest_posts(s_key, s_url)
     elif s_type == "rss":
         return fetch_rss_posts(s_key, s_url)
     elif s_type == "telegram":
-        return fetch_telegram_posts(s_key, s_url)
+        return fetch_mvcrisis_posts(s_key, s_url)
     elif s_type == "html_mihaaru":
         return fetch_mihaaru_posts(s_key, s_url)
     elif s_type == "html_miadhu":

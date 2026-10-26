@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from core.deps import get_current_user, templates
 from data.database import get_db, list_sponsored_ads
 from data.rentals import list_rentals, get_rental_by_id, save_rental_contract
+from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,6 +40,12 @@ def rentals_directory_view(
     user = get_current_user(request)
     active_ads = []
     with get_db() as conn:
+        if not is_service_module_enabled(conn, "rentals"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         rentals_list = list_rentals(
             conn,
             location=location,
@@ -107,6 +114,12 @@ def rental_detail_view(request: Request, rental_id: int):
     """Detailed view of an aggregated rental listing with contact and contract CTA."""
     user = get_current_user(request)
     with get_db() as conn:
+        if not is_service_module_enabled(conn, "rentals"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         rental_item = get_rental_by_id(conn, rental_id)
 
     if not rental_item:

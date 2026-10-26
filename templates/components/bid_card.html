@@ -11,8 +11,8 @@
         {{ b.discipline }}
       </span>
 
-      <!-- Cross-published repetition badge -->
-      {% if b.is_cross_listed %}
+      <!-- Cross-published repetition badge (Omit if gazette is the primary source) -->
+      {% if b.is_cross_listed and not ('gazette' in (b.sources|join(' ')|lower)) %}
       <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;" title="Published across {{ b.sources|join(', ') }}">
         <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         Cross-published ({{ b.sources|length }} sources)
@@ -79,18 +79,30 @@
   <div class="card-sources-line flex items-center justify-between gap-2 mt-2 pt-1.5 border-t border-hairline/60 flex-wrap">
     {# Clickable Source Buttons with Logos linking directly to official tender notice #}
     <div class="card-sources flex items-center gap-2 flex-wrap">
-      {% set bid_sources = b.sources if (b.sources and b.sources|length > 0) else ['gazette.gov.mv'] %}
-      {% for s in bid_sources %}
-        {% set s_str = s|string|lower %}
-        {% set s_name = 'Gazette.mv' if 'gazette' in s_str else s %}
-        {% set s_logo = '/static/logos/hdc.svg' if 'hdc' in s_str else ('/static/logos/sto.svg' if 'sto' in s_str else ('/static/logos/stelco.svg' if 'stelco' in s_str else ('/static/logos/mwsc.svg' if 'mwsc' in s_str else ('/static/logos/macl.svg' if 'macl' in s_str else '/static/logos/gazette.svg')))) %}
-        {% set s_label = 'View on Gazette.mv →' if 'gazette' in s_str else ('View on HDC Portal →' if 'hdc' in s_str else ('View on STO Tenders →' if 'sto' in s_str else ('View on STELCO Portal →' if 'stelco' in s_str else ('View on MWSC Portal →' if 'mwsc' in s_str else ('View on MACL Portal →' if 'macl' in s_str else 'View on ' ~ s_name ~ ' →'))))) %}
+      {% set all_s = (b.sources|join(' ')|lower) if b.sources else '' %}
+      {% if 'gazette' in all_s or not b.sources or b.sources|length == 0 %}
+        {# If source is Gazette + other, show ONLY Gazette as official authority #}
+        {% set s_name = 'Gazette.mv' %}
+        {% set s_logo = '/static/logos/gazette.svg' %}
+        {% set s_label = 'View on Gazette.mv →' %}
         <a href="{{ b.source_url or '#' }}" target="_blank" rel="noopener noreferrer"
-           class="source-action-btn" onclick="event.stopPropagation()" title="Open official tender notice on {{ s_name }}">
+           class="source-action-btn" onclick="event.stopPropagation()" title="Open official tender notice on Gazette.mv">
           <img src="{{ s_logo }}" alt="{{ s_name }}" class="source-btn-icon" onerror="this.style.display='none'">
           <span class="source-btn-text">{{ s_label }}</span>
         </a>
-      {% endfor %}
+      {% else %}
+        {% for s in b.sources %}
+          {% set s_str = s|string|lower %}
+          {% set s_name = s %}
+          {% set s_logo = '/static/logos/hdc.svg' if 'hdc' in s_str else ('/static/logos/sto.svg' if 'sto' in s_str else ('/static/logos/stelco.svg' if 'stelco' in s_str else ('/static/logos/mwsc.svg' if 'mwsc' in s_str else ('/static/logos/macl.svg' if 'macl' in s_str else '/static/logos/gazette.svg')))) %}
+          {% set s_label = 'View on HDC Portal →' if 'hdc' in s_str else ('View on STO Tenders →' if 'sto' in s_str else ('View on STELCO Portal →' if 'stelco' in s_str else ('View on MWSC Portal →' if 'mwsc' in s_str else ('View on MACL Portal →' if 'macl' in s_str else 'View on ' ~ s_name ~ ' →')))) %}
+          <a href="{{ b.source_url or '#' }}" target="_blank" rel="noopener noreferrer"
+             class="source-action-btn" onclick="event.stopPropagation()" title="Open official tender notice on {{ s_name }}">
+            <img src="{{ s_logo }}" alt="{{ s_name }}" class="source-btn-icon" onerror="this.style.display='none'">
+            <span class="source-btn-text">{{ s_label }}</span>
+          </a>
+        {% endfor %}
+      {% endif %}
     </div>
 
     <div class="flex items-center gap-2 flex-wrap">

@@ -1,0 +1,32 @@
+name: khulaasaa
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khulaasaa_web
+    restart: always
+    env_file:
+      - path: .env
+        required: true
+    networks:
+      - web-gateway
+    labels:
+      - "traefik.enable=true"
+      # Public website & WWW routing
+      - "traefik.http.routers.khulaasaa.rule=Host(`khulaasaa.tech`) || Host(`www.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa.entrypoints=websecure"
+      - "traefik.http.routers.khulaasaa.tls.certresolver=letsencrypt"
+      
+      # Dedicated API Subdomain routing
+      - "traefik.http.routers.khulaasaa-api.rule=Host(`api.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa-api.entrypoints=websecure"
+      - "traefik.http.routers.khulaasaa-api.tls.certresolver=letsencrypt"
+
+      # Target application port inside the container
+      - "traefik.http.services.khulaasaa.loadbalancer.server.port=8000"
+
+networks:
+  web-gateway:
+    external: true

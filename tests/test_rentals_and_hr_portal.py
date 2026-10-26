@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 os.environ["TELEGRAM_BOT_TOKEN"] = ""
+os.environ["PYTEST_CURRENT_TEST"] = "1"
 
 from main import app
 from data.connection import get_db
@@ -43,7 +44,6 @@ class TestRentalsAndHrPortal(unittest.TestCase):
         self.assertIn("Boahiyaa", res.text)
         self.assertIn("Bedrooms", res.text)
         self.assertIn("Bathrooms", res.text)
-        self.assertIn("Floor Level", res.text)
         self.assertIn("Floor Area", res.text)
 
     def test_rentals_filter_by_location_and_bedrooms(self):

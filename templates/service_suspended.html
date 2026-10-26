@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Service Temporarily Suspended &middot; {{ module.name if module else 'Khulaasaa' }}{% endblock %}
+
+{% block content %}
+<main class="max-w-2xl mx-auto px-4 py-16 text-ink">
+  <div class="bg-white border border-hairline rounded-2xl p-8 sm:p-10 shadow-xs text-center">
+    <!-- Maintenance Shield SVG Icon -->
+    <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 mx-auto flex items-center justify-center mb-5 shadow-2xs">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200 mb-3">
+      <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+      <span>Service Temporarily Suspended</span>
+    </div>
+
+    <h1 class="font-serif-display text-2xl sm:text-3xl font-bold text-ink mb-2">
+      {{ module.name if module else 'Service Unavailable' }}
+    </h1>
+
+    <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed mb-6">
+      {{ module.suspended_message if (module and module.suspended_message) else 'This service is temporarily offline for scheduled system maintenance and database updates. We are working to restore normal operations as swiftly as possible.' }}
+    </p>
+
+    <!-- Operational Services Quick Links -->
+    <div class="bg-paper-soft border border-hairline rounded-xl p-4 mb-6 text-left">
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate mb-2.5">
+        Explore Other Active Khulaasaa Portals:
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <a href="/" class="p-2.5 bg-white border border-hairline rounded-lg hover:border-[#0b5d57] hover:text-[#0b5d57] font-semibold transition flex items-center justify-between">
+          <span>Live News Wire</span>
+          <span class="text-slate-400">&rarr;</span>
+        </a>
+        <a href="/bids" class="p-2.5 bg-white border border-hairline rounded-lg hover:border-[#0b5d57] hover:text-[#0b5d57] font-semibold transition flex items-center justify-between">
+          <span>Gazette &amp; Bids</span>
+          <span class="text-slate-400">&rarr;</span>
+        </a>
+        <a href="/jobs" class="p-2.5 bg-white border border-hairline rounded-lg hover:border-[#0b5d57] hover:text-[#0b5d57] font-semibold transition flex items-center justify-between">
+          <span>Job Center &amp; Careers</span>
+          <span class="text-slate-400">&rarr;</span>
+        </a>
+        <a href="/rentals" class="p-2.5 bg-white border border-hairline rounded-lg hover:border-[#0b5d57] hover:text-[#0b5d57] font-semibold transition flex items-center justify-between">
+          <span>Consolidated Rentals</span>
+          <span class="text-slate-400">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Return to Home CTA -->
+    <div class="flex items-center justify-center gap-3">
+      <a href="/" class="px-5 py-2.5 rounded-lg bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition shadow-xs">
+        &larr; Back to Khulaasaa Home
+      </a>
+      <a href="mailto:support@khulaasaa.mv" class="px-4 py-2.5 rounded-lg bg-white border border-hairline text-slate-700 hover:text-ink font-semibold text-xs transition">
+        Contact Support
+      </a>
+    </div>
+  </div>
+</main>
+{% endblock %}

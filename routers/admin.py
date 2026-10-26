@@ -37,6 +37,7 @@ from data.stories import (
 )
 from alerts.telegram import dispatch_sponsored_broadcast
 from alerts.viber import dispatch_viber_sponsored_broadcast, set_viber_webhook
+from data.modules import list_service_modules, get_service_module, update_service_module_status
 
 router = APIRouter()
 
@@ -460,3 +461,32 @@ def admin_set_viber_webhook(
         url="/admin/sources?msg=" + urllib.parse.quote_plus(msg),
         status_code=status.HTTP_303_SEE_OTHER,
     )
+
+
+@router.get("/admin/modules", response_class=HTMLResponse)
+def admin_modules_view(request: Request, editor: str = Depends(require_editor), success: Optional[str] = None):
+    with get_db() as conn:
+        modules = list_service_modules(conn)
+    return templates.TemplateResponse(
+        "admin_modules.html",
+        {"request": request, "editor": editor, "modules": modules, "success_msg": success},
+    )
+
+
+@router.post("/admin/modules/{module_key}/toggle")
+def admin_toggle_module(module_key: str, action: str = Form(...), editor: str = Depends(require_editor)):
+    is_en = (action == "enable")
+    with get_db() as conn:
+        update_service_module_status(conn, module_key, is_en)
+    msg = f"Module '{module_key}' is now {'ONLINE' if is_en else 'SUSPENDED (OFFLINE)'}."
+    return RedirectResponse(f"/admin/modules?success={urllib.parse.quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/admin/modules/{module_key}/message")
+def admin_update_module_message(module_key: str, suspended_message: str = Form(...), editor: str = Depends(require_editor)):
+    with get_db() as conn:
+        mod = get_service_module(conn, module_key)
+        if mod:
+            update_service_module_status(conn, module_key, bool(mod.get("is_enabled", 1)), suspended_message)
+    msg = f"Updated suspension notice for '{module_key}'."
+    return RedirectResponse(f"/admin/modules?success={urllib.parse.quote(msg)}", status_code=status.HTTP_303_SEE_OTHER)

@@ -42,7 +42,21 @@ def _run_bids_sync() -> None:
             pass
 
         if notices:
+            # Query local DB for already enriched notices to avoid redundant external HTTP requests
+            already_enriched: set[str] = set()
+            try:
+                with get_db() as conn:
+                    rows = conn.execute(
+                        "SELECT notice_id FROM bids WHERE submission_location IS NOT NULL AND reference_number IS NOT NULL;"
+                    ).fetchall()
+                    already_enriched = {r[0] for r in rows if r[0]}
+            except Exception:
+                pass
+
             def _enrich_notice(n):
+                # Skip external HTTP request if this notice was already enriched in database
+                if n.notice_id in already_enriched:
+                    return n
                 if not n.submission_location or not n.reference_number:
                     try:
                         detailed = fetch_notice(n.notice_id)
@@ -64,11 +78,14 @@ def _run_bids_sync() -> None:
                         pass
                 return n
 
-            try:
-                with ThreadPoolExecutor(max_workers=6) as executor:
-                    notices = list(executor.map(_enrich_notice, notices))
-            except Exception:
-                pass
+            # Only run thread pool if there are notices that actually need network enrichment
+            to_enrich = [n for n in notices if n.notice_id not in already_enriched]
+            if to_enrich:
+                try:
+                    with ThreadPoolExecutor(max_workers=5) as executor:
+                        list(executor.map(_enrich_notice, to_enrich))
+                except Exception:
+                    pass
 
         new_records = []
         for n in notices:

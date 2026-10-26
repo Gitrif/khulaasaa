@@ -97,22 +97,42 @@ def upsert_scraped_obituary(conn: sqlite3.Connection, text: str, link: Optional[
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     geo = extract_atoll_and_island(parsed.get("address_dv"), parsed.get("address_en"), parsed.get("funeral_mosque_dv"), parsed.get("funeral_mosque_en"))
 
+    from data.repos.sources import resolve_or_create_source
+    from data.repos.people import resolve_or_create_person
+    from data.repos.addresses import resolve_or_create_address
+
+    source_id = resolve_or_create_source(conn, "kashunamaadhu", name="KashunamaadhuMV", source_type="wire")
+    addr_text = parsed.get("address_en") or parsed.get("address_dv") or f"{geo.get('island_name')}, {geo.get('atoll_code')}"
+    res_addr_id = resolve_or_create_address(conn, addr_text, atoll_code=geo.get("atoll_code"), island_name_en=geo.get("island_name"))
+    person_id = resolve_or_create_person(
+        conn,
+        full_name_en=parsed.get("name_en") or parsed.get("name_dv") or "Marhoom",
+        full_name_dv=parsed.get("name_dv"),
+        date_of_death=today_str,
+        permanent_address_id=res_addr_id,
+    )
+
     cursor = conn.execute(
         """
         INSERT INTO obituaries (
-            slug, name_dv, name_en, address_dv, address_en, age,
+            slug, source_id, person_id, residence_address_id, name_dv, name_en, address_dv, address_en, age,
             funeral_mosque_dv, funeral_mosque_en, prayer_time_dv, prayer_time_en,
-            funeral_date, death_date, photo_url, contact_numbers, source_channel, announcement_type,
+            funeral_date, funeral_time, death_date, funeral_datetime, photo_url, contact_numbers, source_channel, announcement_type,
             atoll_code, atoll_name_dv, island_name, region_group, sort_order
         )
-        VALUES (:slug, :name_dv, :name_en, :address_dv, :address_en, :age,
+        VALUES (:slug, :source_id, :person_id, :residence_address_id, :name_dv, :name_en, :address_dv, :address_en, :age,
             :funeral_mosque_dv, :funeral_mosque_en, :prayer_time_dv, :prayer_time_en,
-            :funeral_date, :death_date, :photo_url, :contact_numbers, :source_channel, :announcement_type,
+            :funeral_date, :funeral_time, :death_date, :funeral_datetime, :photo_url, :contact_numbers, :source_channel, :announcement_type,
             :atoll_code, :atoll_name_dv, :island_name, :region_group, :sort_order)
         ON CONFLICT(slug) DO UPDATE SET
+            source_id = COALESCE(excluded.source_id, obituaries.source_id),
+            person_id = COALESCE(excluded.person_id, obituaries.person_id),
+            residence_address_id = COALESCE(excluded.residence_address_id, obituaries.residence_address_id),
             name_dv = excluded.name_dv,
             funeral_mosque_dv = excluded.funeral_mosque_dv,
             prayer_time_dv = excluded.prayer_time_dv,
+            funeral_time = COALESCE(excluded.funeral_time, obituaries.funeral_time),
+            funeral_datetime = COALESCE(excluded.funeral_datetime, obituaries.funeral_datetime),
             contact_numbers = excluded.contact_numbers,
             atoll_code = excluded.atoll_code,
             atoll_name_dv = excluded.atoll_name_dv,
@@ -123,6 +143,9 @@ def upsert_scraped_obituary(conn: sqlite3.Connection, text: str, link: Optional[
         """,
         {
             "slug": slug,
+            "source_id": source_id,
+            "person_id": person_id,
+            "residence_address_id": res_addr_id,
             "name_dv": parsed["name_dv"],
             "name_en": parsed["name_en"],
             "address_dv": parsed["address_dv"],
@@ -133,7 +156,9 @@ def upsert_scraped_obituary(conn: sqlite3.Connection, text: str, link: Optional[
             "prayer_time_dv": parsed["prayer_time_dv"],
             "prayer_time_en": parsed["prayer_time_en"],
             "funeral_date": today_str,
+            "funeral_time": parsed.get("prayer_time_en") or parsed.get("prayer_time_dv"),
             "death_date": today_str,
+            "funeral_datetime": f"{today_str}T16:00:00",
             "photo_url": None,
             "contact_numbers": parsed["contact_numbers"],
             "source_channel": "KashunamaadhuMV",

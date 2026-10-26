@@ -30,6 +30,9 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS rentals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id INTEGER REFERENCES sources(id) ON DELETE SET NULL,
+            address_id INTEGER REFERENCES addresses(id) ON DELETE SET NULL,
+            landlord_person_id INTEGER REFERENCES people(id) ON DELETE SET NULL,
             title TEXT NOT NULL,
             location TEXT NOT NULL,
             district TEXT,
@@ -45,7 +48,7 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
             total_toilets INTEGER NOT NULL DEFAULT 1,
             sqft_size INTEGER,
             lift INTEGER DEFAULT 1,
-            kitchen_type TEXT DEFAULT 'Separate Kitchen',
+            kitchen_type TEXT DEFAULT 'Sitting Room / Kitchen',
             living_dining_type TEXT DEFAULT 'Sitting & Dining Area',
             ac_details TEXT,
             water_heaters_count INTEGER DEFAULT 1,
@@ -59,6 +62,8 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
             advance_months INTEGER DEFAULT 0,
             late_fine_mvr_per_day INTEGER DEFAULT 100,
             available_date TEXT,
+            posted_date TEXT,
+            posted_time TEXT,
             source_name TEXT NOT NULL,
             source_url TEXT,
             secondary_sources TEXT,
@@ -67,7 +72,7 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
             is_direct INTEGER DEFAULT 0,
             photo_count INTEGER DEFAULT 8,
             image_url TEXT,
-            parking_type TEXT DEFAULT '1x Motorbike Parking Included',
+            parking_type TEXT DEFAULT 'No In-Building Parking (Street Parking Only)',
             contact_name TEXT,
             contact_phone TEXT,
             contact_email TEXT,
@@ -84,7 +89,7 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
     cols_to_check = [
         ("road", "TEXT"), ("plot_building", "TEXT"), ("building_total_floors", "INTEGER DEFAULT 1"),
         ("floor_num", "INTEGER DEFAULT 1"), ("apartment_unit", "TEXT"), ("attached_toilets", "INTEGER DEFAULT 1"),
-        ("total_toilets", "INTEGER DEFAULT 1"), ("sqft_size", "INTEGER"), ("kitchen_type", "TEXT DEFAULT 'Separate Kitchen'"),
+        ("total_toilets", "INTEGER DEFAULT 1"), ("sqft_size", "INTEGER"), ("kitchen_type", "TEXT DEFAULT 'Sitting Room / Kitchen'"),
         ("living_dining_type", "TEXT DEFAULT 'Sitting & Dining Area'"), ("ac_details", "TEXT"),
         ("water_heaters_count", "INTEGER DEFAULT 1"), ("furnished_items", "TEXT"),
         ("is_serviced", "INTEGER DEFAULT 0"), ("garbage_management", "TEXT DEFAULT 'WAMCO Included'"),
@@ -93,7 +98,12 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
         ("contact_whatsapp", "TEXT"), ("building_facilities", "TEXT"), ("is_leased", "INTEGER DEFAULT 0"),
         ("is_direct", "INTEGER DEFAULT 0"), ("secondary_rent_mvr", "INTEGER"),
         ("secondary_rent_source", "TEXT"), ("photo_count", "INTEGER DEFAULT 8"),
-        ("image_url", "TEXT"), ("parking_type", "TEXT DEFAULT '1x Motorbike Parking Included'")
+        ("image_url", "TEXT"), ("parking_type", "TEXT DEFAULT '1x Motorbike Parking Included'"),
+        ("source_id", "INTEGER REFERENCES sources(id)"),
+        ("address_id", "INTEGER REFERENCES addresses(id)"),
+        ("landlord_person_id", "INTEGER REFERENCES people(id)"),
+        ("posted_date", "TEXT"),
+        ("posted_time", "TEXT")
     ]
     for c, ctype in cols_to_check:
         _ensure_column(conn, "rentals", c, ctype)
@@ -202,8 +212,15 @@ def list_rentals(
     cur = conn.execute(query, tuple(params))
     rows = cur.fetchall()
     results = []
+
+    # Calculate building unit density across the active database
+    bld_cur = conn.execute("SELECT plot_building, COUNT(*) FROM rentals WHERE is_active = 1 AND is_leased = 0 GROUP BY plot_building;")
+    bld_counts = {row[0]: row[1] for row in bld_cur.fetchall() if row[0]}
+
     for r in rows:
         d = dict(r)
+        d["bathrooms"] = d.get("attached_toilets") or d.get("bedrooms") or 1
+        d["building_units_count"] = bld_counts.get(d.get("plot_building"), 1)
         d["amenities_list"] = _parse_json_or_csv(d.get("amenities"))
         d["furnished_items_list"] = _parse_json_or_csv(d.get("furnished_items"))
         d["building_facilities_list"] = _parse_json_or_csv(d.get("building_facilities"))
@@ -234,6 +251,7 @@ def get_rental_by_id(conn: sqlite3.Connection, rental_id: int) -> Optional[dict[
     if not row:
         return None
     d = dict(row)
+    d["bathrooms"] = d.get("attached_toilets") or d.get("bedrooms") or 1
     d["amenities_list"] = _parse_json_or_csv(d.get("amenities"))
     d["furnished_items_list"] = _parse_json_or_csv(d.get("furnished_items"))
     d["building_facilities_list"] = _parse_json_or_csv(d.get("building_facilities"))

@@ -28,18 +28,32 @@ def resolve_or_create_entity(conn: sqlite3.Connection, raw_name: str) -> int:
     if row:
         return row["id"]
 
-    # 2. Known abbreviations / keywords matching
+    # 2. Known abbreviations / keywords matching (Check SOEs and State Agencies first before geographical councils)
     low = clean_name.lower()
-    if "housing development corporation" in low or "hdc" in low:
+    if "housing development corporation" in low or "hdc" in low or "ހައުސިންގ ޑިވެލޮޕްމަންޓް" in clean_name or "އެޗްޑީސީ" in clean_name:
         target_slug = "housing-development-corporation"
-    elif "water and sewerage" in low or "mwsc" in low:
+    elif "water and sewerage" in low or "mwsc" in low or "އެމްޑަބްލިއުއެސްސީ" in clean_name or "ވޯޓަރ އެންޑް ސެވަރޭޖް" in clean_name:
         target_slug = "male-water-and-sewerage-company"
-    elif "state trading" in low or "sto" in low:
+    elif "state trading" in low or "sto" in low or "ސްޓޭޓް ޓްރޭޑިންގ" in clean_name or "އެސްޓީއޯ" in clean_name or "އެސް.ޓީ.އޯ" in clean_name:
         target_slug = "state-trading-organization"
-    elif "stelco" in low or "state electric" in low:
+    elif "stelco" in low or "state electric" in low or "ސްޓެލްކޯ" in clean_name:
         target_slug = "state-electric-company"
     elif "fenaka" in low or "ފެނަކަ" in clean_name:
         target_slug = "fenaka-corporation"
+    elif "customs" in low or "ކަސްޓަމްސް" in clean_name:
+        target_slug = "maldives-customs-service"
+    elif "fuel supplies" in low or "fsm" in low or "ފިއުލް ސަޕްލައިސް" in clean_name or "އެފްއެސްއެމް" in clean_name:
+        target_slug = "fuel-supplies-maldives"
+    elif "post" in low or "ޕޯސްޓް" in clean_name:
+        target_slug = "maldives-post"
+    elif "polytechnic" in low or "ޕޮލިޓެކްނިކް" in clean_name:
+        target_slug = "maldives-polytechnic"
+    elif "police" in low or "ފުލުހުން" in clean_name or "ޕޮލިސް" in clean_name:
+        target_slug = "maldives-police-service"
+    elif "mndf" in low or "ސިފައިން" in clean_name or "ޑިފެންސް ފޯސް" in clean_name:
+        target_slug = "maldives-national-defence-force"
+    elif "mira" in low or "މީރާ" in clean_name or "އިންލަންޑް ރެވެނިއު" in clean_name:
+        target_slug = "mira"
     elif "finance" in low and ("ministry" in low or "މިނިސްޓްރީ" in clean_name):
         target_slug = "ministry-of-finance"
     elif "tourism" in low and ("ministry" in low or "މިނިސްޓްރީ" in clean_name):
@@ -68,14 +82,6 @@ def resolve_or_create_entity(conn: sqlite3.Connection, raw_name: str) -> int:
         target_slug = "council-fulidhoo"
     elif "timarafushi" in low or "ތިމަރަފުށީ" in clean_name:
         target_slug = "council-timarafushi"
-    elif "polytechnic" in low or "ޕޮލިޓެކްނިކް" in clean_name:
-        target_slug = "maldives-polytechnic"
-    elif "customs" in low or "ކަސްޓަމްސް" in clean_name:
-        target_slug = "maldives-customs-service"
-    elif "post" in low or "ޕޯސްޓް" in clean_name:
-        target_slug = "maldives-post"
-    elif "fuel supplies" in low or "fsm" in low:
-        target_slug = "fuel-supplies-maldives"
     else:
         target_slug = None
 

@@ -5,104 +5,137 @@
 {% block content %}
 <main class="max-w-6xl mx-auto px-4 py-6 text-ink">
 
-  <!-- Consolidation Header Banner -->
-  <div class="bg-paper-soft border border-hairline rounded-lg p-4 sm:p-5 mb-5 shadow-2xs">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-lagoon bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-            <span class="brand-mark sm" aria-hidden="true">ކ</span>
-            <span>Khulaasaa Consolidation</span>
-          </span>
-          <span class="text-xs text-slate">&middot; Verified Apartment Wire</span>
-        </div>
-        <h1 class="font-serif-display text-xl sm:text-2xl font-bold text-ink m-0">
-          Maldivian Apartment &amp; Rental Directory
-        </h1>
-        <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
-          Consolidating public apartment listings across Mal&eacute;, Hulhumal&eacute; Phase 1, Phase 2, and Villimal&eacute; with verified building specifications, room inventory, and original platform attribution. Khulaasaa is an aggregator; contact numbers and direct negotiations remain with the original listing platforms.
-        </p>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <a href="#owner-listing-cta" class="px-3.5 py-2 rounded bg-ink hover:bg-slate-800 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
-          <span>List Property Free &rarr;</span>
-        </a>
-      </div>
+  <!-- Page Heading & Subheading (Below App Bar) -->
+  <div class="mb-4">
+    <div class="flex items-center gap-2 mb-1 flex-wrap">
+      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-lagoon bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+        <span class="brand-mark sm" aria-hidden="true">ކ</span>
+        <span>Khulaasaa Consolidation</span>
+      </span>
+      <span class="text-xs text-slate">&middot; Verified Apartment Wire</span>
     </div>
+    <h1 class="font-serif-display text-xl sm:text-2xl font-bold text-ink m-0">
+      Maldivian Apartment &amp; Rental Directory
+    </h1>
+    <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
+      Consolidating public apartment listings across Mal&eacute;, Hulhumal&eacute; Phase 1, Phase 2, and Villimal&eacute; with verified building specifications, room inventory, and original platform attribution.
+    </p>
   </div>
 
-  <!-- Owner Direct Listing Banner -->
-  <div id="owner-listing-cta" class="bg-gradient-to-r from-emerald-50/80 to-teal-50/50 border border-emerald-200 rounded-lg p-4 sm:p-5 mb-5 shadow-2xs">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-700 text-white">Owner Portal</span>
-          <span class="text-xs font-bold text-ink">Are you an apartment owner? Direct Owner Listings are 100% Free</span>
-        </div>
-        <p class="text-xs text-slate-700 max-w-2xl leading-relaxed mb-0">
-          List your rental units directly on Khulaasaa at no cost. Verified direct tenant matching, court-admissible Tenancy Agreements powered by Hooks85, and optional architectural floor plan generation coming soon.
-        </p>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <a href="/rentals/contract" class="px-3.5 py-2 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
-          <span>Draft Tenancy Agreement &rarr;</span>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- In-Feed / Top Ad Placement -->
-  {% if active_ads and active_ads|length > 0 %}
+  <!-- Top Leaderboard Monetization Ad -->
+  <div class="mb-4">
     {% include "_ad_leaderboard.html" %}
-  {% endif %}
+  </div>
 
-  <!-- Unified Real-Time Rental Filter Bar (Island, Ward/Phase, BHK + Features) -->
-  <div class="bg-white border border-hairline rounded-xl p-4 sm:p-5 mb-5 shadow-xs">
-    <!-- Top Row: Location & Room Selectors -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end mb-4">
-      <!-- 1. Island / City (col-span-4) -->
-      <div class="md:col-span-4">
-        <label for="filterIsland" class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
-          Island
-        </label>
-        <select id="filterIsland" onchange="onIslandChange(this.value)" class="w-full h-[36px] px-3 bg-paper-soft/40 border border-hairline rounded-lg text-xs font-semibold text-ink focus:outline-none focus:border-[#0b5d57] transition">
-          <option value="all">All Islands</option>
-          <option value="male">Male' City</option>
-          <option value="hulhumale">Hulhumale'</option>
-          <option value="villimale">Villimale'</option>
-          <option value="other">Other Islands</option>
-        </select>
+  <!-- Collapsible Real-Time Rental Filter Bar (Collapsed by Default) -->
+  <div class="bg-white border border-hairline rounded-xl p-3.5 sm:p-4 mb-5 shadow-xs">
+    <!-- Header with Toggle, Count Badge, and Reset -->
+    <div class="flex items-center justify-between cursor-pointer select-none" onclick="toggleRentalFilterCollapse()">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-[#ecfdf5] border border-[#a7f3d0] flex items-center justify-center text-[#0b5d57] shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold text-ink leading-tight">Filters</h2>
+            <span id="collapsedFilterBadge" style="display:none;" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"></span>
+          </div>
+          <p class="text-[11px] text-slate leading-none mt-0.5">Find your perfect place &middot; <span id="filterToggleLabel" class="text-[#0b5d57] font-semibold">Show filters &darr;</span></p>
+        </div>
       </div>
-
-      <!-- 2. Ward / Phase (Dynamic options based on Island) (col-span-4) -->
-      <div class="md:col-span-4">
-        <label for="filterWard" class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
-          Ward / Phase
-        </label>
-        <select id="filterWard" onchange="onWardChange(this.value)" class="w-full h-[36px] px-3 bg-paper-soft/40 border border-hairline rounded-lg text-xs font-semibold text-ink focus:outline-none focus:border-[#0b5d57] transition">
-          <option value="">All Wards / Phases</option>
-        </select>
-      </div>
-
-      <!-- 3. Bedrooms / BHK Selector (col-span-4) -->
-      <div class="md:col-span-4">
-        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate mb-1">
-          Bedrooms (BHK)
-        </label>
-        <div class="flex items-center gap-1 flex-wrap sm:flex-nowrap">
-          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-bold transition cursor-pointer select-none bg-[#0b5d57] text-white border-[#0b5d57]" data-rooms="0" onclick="setRoomsFilter(0, this)">Any</button>
-          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="1" onclick="setRoomsFilter(1, this)">1</button>
-          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="2" onclick="setRoomsFilter(2, this)">2</button>
-          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="3" onclick="setRoomsFilter(3, this)">3</button>
-          <button type="button" class="bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100" data-rooms="4" onclick="setRoomsFilter(4, this)">4</button>
-          <input type="number" id="filterCustomRooms" min="1" max="10" placeholder="4+" title="Custom room count" oninput="setCustomRooms(this.value)" class="w-12 h-[36px] px-1 text-center text-xs border border-hairline rounded-lg font-bold bg-white text-ink focus:outline-none focus:border-[#0b5d57]">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="event.stopPropagation(); resetAllRentalFilters()" class="text-xs font-semibold text-slate hover:text-[#0b5d57] flex items-center gap-1 transition cursor-pointer px-2 py-1 rounded hover:bg-slate-50">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Reset</span>
+        </button>
+        <div id="filterChevronBtn" class="w-7 h-7 rounded-md bg-paper-soft border border-hairline flex items-center justify-center text-slate transition">
+          <svg id="filterChevronIcon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
         </div>
       </div>
     </div>
 
-    <!-- Divider -->
-    <div class="border-t border-hairline/70 pt-3">
-      <!-- Feature Filter Section with Legend -->
+    <!-- Filter Body (Collapsed by Default) -->
+    <div id="rentalFilterBody" style="display:none;" class="pt-3.5 mt-3 border-t border-hairline/70 space-y-3">
+      <!-- Row 1: Atoll | Island | Ward in SAME ROW even on mobile -->
+      <div style="background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:10px; padding:0.75rem 0.85rem;">
+        <div class="grid grid-cols-3 items-center gap-2">
+          <!-- 1. Atoll -->
+          <div class="min-w-0">
+            <label for="filterAtoll" class="block text-[10px] font-bold uppercase tracking-wider text-slate mb-0.5 truncate">Atoll</label>
+            <select id="filterAtoll" onchange="onAtollChange(this.value)" class="w-full bg-white border border-hairline rounded-md text-[11px] sm:text-xs font-semibold text-ink px-1.5 py-1 focus:outline-none focus:border-[#0b5d57] transition cursor-pointer">
+              <option value="all">All Atolls</option>
+              <option value="k">K. (Kaafu)</option>
+              <option value="s">S. (Addu)</option>
+              <option value="gn">Gn. (Fuvahmulah)</option>
+              <option value="hdh">HDh. Atoll</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- 2. Island -->
+          <div class="min-w-0 border-l border-slate-300 pl-2">
+            <label for="filterIsland" class="block text-[10px] font-bold uppercase tracking-wider text-slate mb-0.5 truncate">Island</label>
+            <select id="filterIsland" onchange="onIslandChange(this.value)" class="w-full bg-white border border-hairline rounded-md text-[11px] sm:text-xs font-semibold text-ink px-1.5 py-1 focus:outline-none focus:border-[#0b5d57] transition cursor-pointer">
+              <option value="all">All Islands</option>
+              <option value="male">Male' City</option>
+              <option value="hulhumale">Hulhumale'</option>
+              <option value="villimale">Villimale'</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- 3. Ward / Phase -->
+          <div class="min-w-0 border-l border-slate-300 pl-2">
+            <label for="filterWard" class="block text-[10px] font-bold uppercase tracking-wider text-slate mb-0.5 truncate">Ward / Phase</label>
+            <select id="filterWard" onchange="onWardChange(this.value)" class="w-full bg-white border border-hairline rounded-md text-[11px] sm:text-xs font-semibold text-ink px-1.5 py-1 focus:outline-none focus:border-[#0b5d57] transition cursor-pointer">
+              <option value="">All Wards</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Bedrooms (BHK) -->
+      <div style="background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:10px; padding:0.75rem 0.85rem;">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate shrink-0">Bedrooms (BHK)</label>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-bold transition cursor-pointer select-none bg-[#0b5d57] text-white border-[#0b5d57]" data-rooms="0" onclick="setRoomsFilter(0, this)">Any</button>
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-white text-slate-700 border-hairline hover:bg-slate-100" data-rooms="1" onclick="setRoomsFilter(1, this)">1</button>
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-white text-slate-700 border-hairline hover:bg-slate-100" data-rooms="2" onclick="setRoomsFilter(2, this)">2</button>
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-white text-slate-700 border-hairline hover:bg-slate-100" data-rooms="3" onclick="setRoomsFilter(3, this)">3</button>
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-white text-slate-700 border-hairline hover:bg-slate-100" data-rooms="4" onclick="setRoomsFilter(4, this)">4</button>
+            <button type="button" class="bhk-btn px-3 h-[32px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-white text-slate-700 border-hairline hover:bg-slate-100" data-rooms="5" onclick="setRoomsFilter(5, this)">4+</button>
+            <input type="number" id="filterCustomRooms" min="1" max="10" placeholder="Custom" title="Custom room count" oninput="setCustomRooms(this.value)" class="w-16 h-[32px] px-1 text-center text-xs border border-hairline rounded-lg font-bold bg-white text-ink focus:outline-none focus:border-[#0b5d57]">
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Price Range (Draggable Slider Line) -->
+      <div style="background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:10px; padding:0.75rem 0.85rem;">
+        <div class="flex items-center justify-between text-xs mb-1.5">
+          <label for="budgetRangeSlider" class="text-[10px] font-bold uppercase tracking-wider text-slate">Price Range (Maximum Budget)</label>
+          <span class="font-bold text-ink text-xs font-mono" id="budgetScrollerValue">Any Rent (Unlimited)</span>
+        </div>
+        <input type="range" id="budgetRangeSlider" min="10000" max="60000" step="1000" value="60000" oninput="updateBudgetSlider(this.value)" class="w-full accent-[#0b5d57] cursor-pointer h-2 bg-slate-200 rounded-lg">
+        <div class="flex items-center justify-between text-[10px] text-slate font-mono mt-1">
+          <span>10k</span>
+          <span>20k</span>
+          <span>30k</span>
+          <span>40k</span>
+          <span>50k</span>
+          <span>60k+ (Any)</span>
+        </div>
+      </div>
+
+      <!-- Rows 4 & 5: Filter By Features (2 Lines: Apartment Features, Building Features) -->
+      <div>
+        {% include "rentals/feature_legend.html" %}
+      </div>
+    </div>
+  </div>
+
+    <!-- Rows 3 & 4: Filter By Features (2 Lines: Apartment Features, Building Features) -->
+    <div>
       {% include "rentals/feature_legend.html" %}
     </div>
   </div>
@@ -128,11 +161,16 @@
     <button type="button" onclick="clearAllFeatureFilters()" class="px-3.5 py-1.5 bg-ink text-white font-semibold text-xs rounded cursor-pointer">Clear Feature Filters</button>
   </div>
 
-  <!-- Listings Grid (Increased Padding and Gap Between Cards) -->
+  <!-- Listings Grid -->
   {% if rentals and rentals|length > 0 %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8" style="display:grid; gap:0.75rem;">
       {% for r in rentals %}
         {% include "rentals/rental_card.html" %}
+        {% if loop.index == 2 or loop.index == 6 %}
+          <div class="col-span-full md:col-span-2 my-1" style="grid-column: 1 / -1; width:100%;">
+            {% include "_ad_infeed.html" %}
+          </div>
+        {% endif %}
       {% endfor %}
     </div>
   {% else %}
@@ -143,21 +181,21 @@
     </div>
   {% endif %}
 
-  <!-- Hooks85 Tenancy Suite Banner -->
+  <!-- Unified Direct Owner Portal & Hooks85 Tenancy Suite Banner -->
   <div class="bg-paper-soft border border-hairline rounded-lg p-5 sm:p-6 mb-8 shadow-xs">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="w-2 h-2 rounded-full bg-[#0b5d57]"></span>
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-700 text-white">Owner Direct &bull; 100% Free</span>
           <span class="font-bold text-ink text-sm sm:text-base">Hooks<b style="color:#e4572e;">85</b> Property &amp; Tenancy Management Suite</span>
         </div>
         <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
-          Landlords and property owners can generate legally binding Maldivian residential tenancy contracts in Dhivehi or English, manage recurring monthly rent payments, track security deposit releases, and issue MIRA-compliant rent receipts automatically.
+          Landlords and property owners can list rental units directly on Khulaasaa at no cost, generate court-admissible Maldivian residential tenancy contracts in Dhivehi or English, manage security deposit receipts, and issue MIRA-compliant rent receipts automatically.
         </p>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-2 shrink-0 flex-wrap">
         <a href="/rentals/contract" class="px-4 py-2 rounded bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-xs">
-          <span>Create Lease Agreement &rarr;</span>
+          <span>Draft Tenancy Agreement &rarr;</span>
         </a>
       </div>
     </div>
@@ -168,39 +206,52 @@
 <script>
 const ISLAND_WARDS = {
   'all': [{ label: 'All Wards / Phases', value: '' }],
-  'male': [
-    { label: 'All Wards', value: '' },
-    { label: 'Henveiru', value: 'henveiru' },
-    { label: 'Galolhu', value: 'galolhu' },
-    { label: 'Machangoalhi', value: 'machangoalhi' },
-    { label: 'Maafannu', value: 'maafannu' }
-  ],
-  'hulhumale': [
-    { label: 'All Phases', value: '' },
-    { label: 'Phase 1', value: 'phase 1' },
-    { label: 'Phase 2', value: 'phase 2' }
-  ],
-  'villimale': [
-    { label: 'All Villimale', value: 'villimale' }
-  ],
-  'other': [
-    { label: 'All Other Islands', value: '' }
-  ]
+  'male': [{ label: 'All Wards', value: '' }, { label: 'Henveiru', value: 'henveiru' }, { label: 'Galolhu', value: 'galolhu' }, { label: 'Machangoalhi', value: 'machangoalhi' }, { label: 'Maafannu', value: 'maafannu' }],
+  'hulhumale': [{ label: 'All Phases', value: '' }, { label: 'Phase 1', value: 'phase 1' }, { label: 'Phase 2', value: 'phase 2' }],
+  'villimale': [{ label: 'All Villimale', value: 'villimale' }],
+  'other': [{ label: 'All Other Islands', value: '' }]
 };
 
+let currentAtoll = 'all';
 let currentIsland = 'all';
 let currentWard = '';
 let currentRooms = 0;
+let currentMaxPrice = 0;
 const activeLegendFeatures = new Set();
+let isRentalFilterExpanded = false;
+
+function toggleRentalFilterCollapse() {
+  isRentalFilterExpanded = !isRentalFilterExpanded;
+  const body = document.getElementById('rentalFilterBody');
+  const lbl = document.getElementById('filterToggleLabel');
+  const chevron = document.getElementById('filterChevronIcon');
+  if (body) body.style.display = isRentalFilterExpanded ? 'block' : 'none';
+  if (lbl) lbl.innerHTML = isRentalFilterExpanded ? 'Hide filters &uarr;' : 'Show filters &darr;';
+  if (chevron) chevron.style.transform = isRentalFilterExpanded ? 'rotate(180deg)' : 'none';
+}
+
+function onAtollChange(atoll) {
+  currentAtoll = atoll;
+  if (atoll === 'k') {
+    onIslandChange('all');
+  } else if (atoll === 's' || atoll === 'gn') {
+    onIslandChange('other');
+  } else {
+    onIslandChange('all');
+  }
+}
 
 function onIslandChange(island) {
   currentIsland = island;
   currentWard = '';
-  const wardSel = document.getElementById('filterWard');
-  if (wardSel) {
+  const el = document.getElementById('filterWard');
+  if (el) {
     const list = ISLAND_WARDS[island] || ISLAND_WARDS['all'];
-    wardSel.innerHTML = list.map(item => `<option value="${item.value}">${item.label}</option>`).join('');
+    el.innerHTML = list.map(item => `<option value="${item.value}">${item.label}</option>`).join('');
+    el.value = '';
   }
+  const islEl = document.getElementById('filterIsland');
+  if (islEl && islEl.value !== island) islEl.value = island;
   applyAllCardFilters();
 }
 
@@ -214,11 +265,10 @@ function setRoomsFilter(rooms, btn) {
   const cust = document.getElementById('filterCustomRooms');
   if (cust) cust.value = '';
   document.querySelectorAll('.bhk-btn').forEach(b => {
-    b.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100';
+    const r = parseInt(b.getAttribute('data-rooms'), 10);
+    const isAct = (r === currentRooms) || (r === 5 && currentRooms >= 5);
+    b.className = 'bhk-btn px-3 h-[32px] rounded-lg border text-xs transition cursor-pointer select-none ' + (isAct ? 'font-bold bg-[#0b5d57] text-white border-[#0b5d57]' : 'font-semibold bg-white text-slate-700 border-hairline hover:bg-slate-100');
   });
-  if (btn) {
-    btn.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-bold transition cursor-pointer select-none bg-[#0b5d57] text-white border-[#0b5d57]';
-  }
   applyAllCardFilters();
 }
 
@@ -227,12 +277,39 @@ function setCustomRooms(val) {
   if (!isNaN(num) && num > 0) {
     currentRooms = num;
     document.querySelectorAll('.bhk-btn').forEach(b => {
-      b.className = 'bhk-btn px-2.5 h-[36px] rounded-lg border text-xs font-semibold transition cursor-pointer select-none bg-paper-soft text-slate-700 border-hairline hover:bg-slate-100';
+      b.className = b.className.replace('bg-[#0b5d57] text-white border-[#0b5d57]', 'bg-white text-slate-700 border-hairline hover:bg-slate-100');
     });
     applyAllCardFilters();
   } else if (!val) {
-    setRoomsFilter(0, document.querySelector('.bhk-btn[data-rooms="0"]'));
+    setRoomsFilter(0);
   }
+}
+
+function updateBudgetSlider(val) {
+  const num = parseInt(val, 10) || 0;
+  const el = document.getElementById('budgetRangeSlider');
+  if (el && el.value != num) el.value = num;
+  const disp = document.getElementById('budgetScrollerValue');
+  const txt = num >= 60000 ? 'Any Rent (Unlimited)' : 'Up to MVR ' + num.toLocaleString() + ' / month';
+  if (disp) disp.innerText = txt;
+  currentMaxPrice = num >= 60000 ? 0 : num;
+  applyAllCardFilters();
+}
+
+function resetAllRentalFilters() {
+  currentAtoll = 'all';
+  currentIsland = 'all';
+  currentWard = '';
+  currentRooms = 0;
+  currentMaxPrice = 0;
+  const atollEl = document.getElementById('filterAtoll');
+  if (atollEl) atollEl.value = 'all';
+  const islEl = document.getElementById('filterIsland');
+  if (islEl) islEl.value = 'all';
+  onIslandChange('all');
+  setRoomsFilter(0);
+  updateBudgetSlider(60000);
+  clearAllFeatureFilters();
 }
 
 function toggleFeatureFilter(feat, btn) {
@@ -297,6 +374,12 @@ function applyAllCardFilters() {
       if (cardRooms !== currentRooms) match = false;
     }
 
+    // Price
+    if (match && currentMaxPrice > 0) {
+      const cardRent = parseInt(card.getAttribute('data-rent') || '0', 10);
+      if (cardRent > currentMaxPrice) match = false;
+    }
+
     // Features
     if (match && activeLegendFeatures.size > 0) {
       for (const f of activeLegendFeatures) {
@@ -320,11 +403,16 @@ function applyAllCardFilters() {
   const nr = document.getElementById('rentalNoResults');
   if (nr) nr.style.display = (vis === 0 && cards.length > 0) ? 'block' : 'none';
 
+  const totalActive = activeLegendFeatures.size + (currentIsland !== 'all' ? 1 : 0) + (currentWard ? 1 : 0) + (currentRooms > 0 ? 1 : 0) + (currentMaxPrice > 0 ? 1 : 0);
   const bg = document.getElementById('activeFeatureCountBadge');
   if (bg) {
-    const totalActive = activeLegendFeatures.size + (currentIsland !== 'all' ? 1 : 0) + (currentWard ? 1 : 0) + (currentRooms > 0 ? 1 : 0);
     bg.style.display = totalActive > 0 ? 'inline-block' : 'none';
     bg.innerText = totalActive + ' active filter' + (totalActive > 1 ? 's' : '');
+  }
+  const cbg = document.getElementById('collapsedFilterBadge');
+  if (cbg) {
+    cbg.style.display = totalActive > 0 ? 'inline-block' : 'none';
+    cbg.innerText = totalActive + ' active filter' + (totalActive > 1 ? 's' : '');
   }
 }
 

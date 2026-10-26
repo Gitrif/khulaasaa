@@ -23,6 +23,7 @@ from data.database import (
 from alerts.telegram import get_telegram_credentials
 from services.tenders_service import trigger_bids_background_sync
 from scrapers.translator import is_dhivehi, translate_dhivehi_title
+from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -44,6 +45,13 @@ def bids(
     source: Optional[str] = "live",
     refresh: Optional[str] = None,
 ):
+    with get_db() as conn:
+        if not is_service_module_enabled(conn, "tenders"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "tenders"), "current_user": get_current_user(request)},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
     use_live = (source != "mock")
     if use_live:
         trigger_bids_background_sync(force=(refresh == "1"))

@@ -241,7 +241,109 @@ def translate_agency(agency: Optional[str]) -> str:
 
     cleaned = clean_dhivehi_markers(agency)
 
-    # 1. Exactly 5 Official Cities in the Maldives:
+    # 1. Major State-Owned Enterprises (SOEs) & Public Companies (Check first, including branch locations)
+    if any(k in cleaned for k in ["ސްޓޭޓް ޓްރޭޑިންގ", "އެސްޓީއޯ", "އެސް.ޓީ.އޯ"]):
+        if any(b in cleaned for b in ["ފުވައްމުލައް", "ފުވައްމުލަކު"]):
+            return "State Trading Organization (Fuvahmulah Branch)"
+        return "State Trading Organization Plc"
+    if any(k in cleaned for k in ["ކަސްޓަމްސް", "މޯލްޑިވްސް ކަސްޓަމްސް"]):
+        return "Maldives Customs Service"
+    if any(k in cleaned for k in ["ހައުސިންގ ޑިވެލޮޕްމަންޓް", "އެޗްޑީސީ", "އެޗް.ޑީ.ސީ"]):
+        return "Housing Development Corporation"
+    if any(k in cleaned for k in ["މާލޭ ވޯޓަރ", "ވޯޓަރ އެންޑް ސެވަރޭޖް", "އެމްޑަބްލިއުއެސްސީ"]):
+        return "Male' Water and Sewerage Company"
+    if any(k in cleaned for k in ["ސްޓެލްކޯ", "ސްޓޭޓް އިލެކްޓްރިކް"]):
+        return "State Electric Company"
+    if any(k in cleaned for k in ["ފެނަކަ"]):
+        return "Fenaka Corporation"
+    if any(k in cleaned for k in ["މޯލްޑިވް ގެސް", "މޯލްޑިވް ގޭސް"]):
+        return "Maldive Gas"
+    if any(k in cleaned for k in ["ފިއުލް ސަޕްލައިސް", "އެފްއެސްއެމް"]):
+        return "Fuel Supplies Maldives"
+    if any(k in cleaned for k in ["މޯލްޑިވްސް ޕޯސްޓް", "ޕޯސްޓް"]):
+        return "Maldives Post"
+    if any(k in cleaned for k in ["ޕޯޓްސް ލިމިޓެޑް", "އެމްޕީއެލް"]):
+        return "Maldives Ports Limited"
+    if any(k in cleaned for k in ["މޯލްޑިވްސް ޓްރާންސްޕޯޓް", "އެމްޓީސީސީ"]):
+        return "Maldives Transport and Contracting Company"
+    if any(k in cleaned for k in ["އައިލެންޑް އޭވިއޭޝަން", "މޯލްޑިވިއަން"]):
+        return "Island Aviation Services"
+    if any(k in cleaned for k in ["އެއާޕޯޓްސް ކޮމްޕެނީ", "އެމްއޭސީއެލް"]):
+        return "Maldives Airports Company"
+    if any(k in cleaned for k in ["ބޭންކް އޮފް މޯލްޑިވްސް", "ބީއެމްއެލް"]):
+        return "Bank of Maldives"
+    if any(k in cleaned for k in ["މިފްކޯ"]):
+        return "MIFCO"
+    if any(k in cleaned for k in ["އާރްޑީސީ", "ރޯޑް ޑިވެލޮޕްމަންޓް"]):
+        return "Road Development Corporation"
+    if any(k in cleaned for k in ["ވެމްކޯ", "ވޭސްޓް މެނޭޖްމަންޓް"]):
+        return "Waste Management Corporation"
+
+    # 2. Law Enforcement, Security, Judiciary & Constitutional Bodies
+    if any(k in cleaned for k in ["ޑިޕާޓްމަންޓް އޮފް ޖުޑިޝަލް އެޑްމިނިސްޓްރޭޝަން", "ޖުޑީޝަލް އެޑްމިނިސްޓްރޭޝަން"]):
+        return "Department of Judicial Administration"
+    if any(k in cleaned for k in ["ޖުޑީޝަލް ސަރވިސް ކޮމިޝަން"]):
+        return "Judicial Service Commission"
+    if any(k in cleaned for k in ["ސުޕްރީމް ކޯޓު"]):
+        return "Supreme Court of the Maldives"
+    if any(k in cleaned for k in ["ހައިކޯޓު", "ހައި ކޯޓު"]):
+        return "High Court of the Maldives"
+    if any(k in cleaned for k in ["ކްރިމިނަލް ކޯޓު"]):
+        return "Criminal Court"
+    if any(k in cleaned for k in ["ސިވިލް ކޯޓު"]):
+        return "Civil Court"
+    if any(k in cleaned for k in ["ފެމިލީ ކޯޓު"]):
+        return "Family Court"
+    if any(k in cleaned for k in ["ޖުވެނައިލް ކޯޓު"]):
+        return "Juvenile Court"
+    if any(k in cleaned for k in ["ޑްރަގް ކޯޓު"]):
+        return "Drug Court"
+    if "މެޖިސްޓްރޭޓް ކޯޓު" in cleaned:
+        t_court = _translate_phrase_elements(cleaned)
+        t_court = clean_residual_thaana(t_court).replace("Magistrate Court", "").strip(" ,-:")
+        return f"{t_court} Magistrate Court" if t_court else "Magistrate Court"
+    if any(k in cleaned for k in ["ރައީސުލްޖުމްހޫރިއްޔާގެ އޮފީސް", "ރައީސް އޮފީސް"]):
+        return "The President's Office"
+    if any(k in cleaned for k in ["ރައްޔިތުންގެ މަޖިލިސް", "މަޖިލީހުގެ އިދާރާ"]):
+        return "People's Majlis Secretariat"
+    if any(k in cleaned for k in ["ލޯކަލް ގަވަރމަންޓް އޮތޯރިޓީ", "އެލްޖީއޭ"]):
+        return "Local Government Authority"
+    if any(k in cleaned for k in ["ނޭޝަނަލް ޑްރަގް އޭޖެންސީ", "އެންޑީއޭ"]):
+        return "National Drug Agency"
+    if any(k in cleaned for k in ["ހެލްތް ޕްރޮޓެކްޝަން އެޖެންސީ", "އެޗްޕީއޭ"]):
+        return "Health Protection Agency"
+    if any(k in cleaned for k in ["ސިވިލް އޭވިއޭޝަން"]):
+        return "Maldives Civil Aviation Authority"
+    if any(k in cleaned for k in ["ޕޮލިސް", "ފުލުހުން"]):
+        return "Maldives Police Service"
+    if any(k in cleaned for k in ["ޑިފެންސް ފޯސް", "ސިފައިން", "އެމްއެންޑީއެފް"]):
+        return "Maldives National Defence Force"
+    if any(k in cleaned for k in ["އިންލަންޑް ރެވެނިއު", "މީރާ"]):
+        return "Maldives Inland Revenue Authority"
+    if any(k in cleaned for k in ["އޮޑިޓަރ ޖެނެރަލް", "އޮޑިޓް އޮފީސް"]):
+        return "Auditor General's Office"
+    if any(k in cleaned for k in ["އިލެކްޝަންސް"]):
+        return "Elections Commission of Maldives"
+    if any(k in cleaned for k in ["އެންޓި ކޮރަޕްޝަން", "އޭސީސީ"]):
+        return "Anti-Corruption Commission"
+    if any(k in cleaned for k in ["ސިވިލް ސަރވިސް ކޮމިޝަން"]):
+        return "Civil Service Commission"
+    if any(k in cleaned for k in ["ޕްރޮސެކިއުޓަރ ޖެނެރަލް", "ޕީޖީ އޮފީސް"]):
+        return "Prosecutor General's Office"
+    if any(k in cleaned for k in ["މޯލްޑިވްސް މަނިޓަރީ", "އެމްއެމްއޭ"]):
+        return "Maldives Monetary Authority"
+    if any(k in cleaned for k in ["އިމިގްރޭޝަން"]):
+        return "Maldives Immigration"
+    if any(k in cleaned for k in ["ކަރެކްޝަނަލް", "ކަރެކްޝަންސް"]):
+        return "Maldives Correctional Service"
+    if any(k in cleaned for k in ["ޕޮލިޓެކްނިކް"]):
+        return "Maldives Polytechnic"
+    if any(k in cleaned for k in ["ޤައުމީ ޔުނިވަރސިޓީ", "އެމްއެންޔޫ"]):
+        return "The Maldives National University"
+    if any(k in cleaned for k in ["އިސްލާމީ ޔުނިވަރސިޓީ", "އައިޔޫއެމް"]):
+        return "Islamic University of Maldives"
+
+    # 3. Exactly 5 Official Cities in the Maldives:
     # Male' City, Addu City, Fuvahmulah City, Kulhudhuffushi City, Thinadhoo City
     if any(k in cleaned for k in ["މާލެ ސިޓީ", "މާލޭ ސިޓީ"]):
         return "Male' City Council"
@@ -254,7 +356,7 @@ def translate_agency(agency: Optional[str]) -> str:
     if any(k in cleaned for k in ["ތިނަދޫ ސިޓީ", "ތިނަދޫ ސިޓީ ކައުންސިލް"]):
         return "Thinadhoo City Council"
 
-    # 2. Island and Atoll Councils
+    # 4. Island and Atoll Councils
     if "ކައުންސިލް" in cleaned:
         translated_location = _translate_phrase_elements(cleaned)
         translated_location = (
@@ -269,19 +371,61 @@ def translate_agency(agency: Optional[str]) -> str:
             return f"Secretariat of the {translated_location} Council"
         return "Local Council Secretariat"
 
-    # 3. Ministries
+    # 5. Government Ministries
     if "މިނިސްޓްރީ" in cleaned:
+        if any(k in cleaned for k in ["އާޓްސް", "ކަލްޗަރ", "ހެރިޓޭޖް"]):
+            return "Ministry of Arts, Culture and Heritage"
+        if any(k in cleaned for k in ["އިންފްރާސްޓްރަކްޗަރ", "ހައުސިންގ", "އަރބަން ޑިވެލޮޕްމަންޓް"]):
+            return "Ministry of Housing, Land and Urban Development"
+        if any(k in cleaned for k in ["ކޮންސްޓްރަކްޝަން"]):
+            return "Ministry of Construction and Infrastructure"
+        if any(k in cleaned for k in ["ފިނޭންސް", "މާލީ"]):
+            return "Ministry of Finance"
+        if any(k in cleaned for k in ["ފޮރިން", "ޚާރިޖީ"]):
+            return "Ministry of Foreign Affairs"
+        if any(k in cleaned for k in ["ހޯމްލޭންޑް", "ދާޚިލީ"]):
+            return "Ministry of Homeland Security and Technology"
+        if any(k in cleaned for k in ["ހަޔަރ އެޑިޔުކޭޝަން"]):
+            return "Ministry of Higher Education, Labour and Skills Development"
+        if any(k in cleaned for k in ["އެޑިޔުކޭޝަން", "ތަޢުލީމީ"]):
+            return "Ministry of Education"
+        if any(k in cleaned for k in ["ހެލްތް"]):
+            return "Ministry of Health"
+        if any(k in cleaned for k in ["އިކޮނޮމިކް", "ވިޔަފާރި"]):
+            return "Ministry of Economic Development and Trade"
+        if any(k in cleaned for k in ["ފިޝަރީޒް", "މަސްވެރިކަމާ"]):
+            return "Ministry of Fisheries and Ocean Resources"
+        if any(k in cleaned for k in ["އިސްލާމިކް", "އިސްލާމީ"]):
+            return "Ministry of Islamic Affairs"
+        if any(k in cleaned for k in ["ޓޫރިޒަމް", "ފަތުރުވެރިކަމާ"]):
+            return "Ministry of Tourism"
+        if any(k in cleaned for k in ["ސޯޝަލް", "އިޖުތިމާޢީ"]):
+            return "Ministry of Social and Family Development"
+        if any(k in cleaned for k in ["ސްޕޯޓްސް", "ކުޅިވަރާ"]):
+            return "Ministry of Sports, Fitness and Recreation"
+        if any(k in cleaned for k in ["ކްލައިމެޓް", "ތިމާވެއްޓާ", "އެންވަޔަރަންމަންޓް"]):
+            return "Ministry of Climate Change, Environment and Energy"
+        if any(k in cleaned for k in ["ޔޫތު", "ޒުވާނުންނާ"]):
+            return "Ministry of Youth Empowerment, Information and Arts"
+        if any(k in cleaned for k in ["ޓްރާންސްޕޯޓް", "ދަތުރުފަތުރާ"]):
+            return "Ministry of Transport and Civil Aviation"
+        if any(k in cleaned for k in ["ސިޓީސް", "ލޯކަލް ގަވަރމަންޓް"]):
+            return "Ministry of Cities, Local Government and Public Works"
+        if any(k in cleaned for k in ["އެގްރިކަލްޗަރ", "ދަނޑުވެރިކަމާ"]):
+            return "Ministry of Agriculture and Animal Welfare"
+        if any(k in cleaned for k in ["ޑިފެންސް"]):
+            return "Ministry of Defence"
         trans = _translate_phrase_elements(cleaned)
         trans = clean_residual_thaana(trans)
         return trans if trans else "Government Ministry"
 
-    # 4. Hospitals / Health Centres
+    # 6. Hospitals / Health Centres
     if "ހޮސްޕިޓަލް" in cleaned or "މަރުކަޒު" in cleaned:
         trans = _translate_phrase_elements(cleaned)
         trans = clean_residual_thaana(trans)
         return trans if trans else "Healthcare Facility"
 
-    # 5. Schools / Institutes
+    # 7. Schools / Institutes
     if "ސްކޫލް" in cleaned or "ސްކޫލުގެ" in cleaned or "މަދްރަސާ" in cleaned or "މަދަރުސާ" in cleaned:
         trans = _translate_phrase_elements(cleaned)
         trans = clean_residual_thaana(trans)
@@ -289,7 +433,9 @@ def translate_agency(agency: Optional[str]) -> str:
 
     trans = _translate_phrase_elements(cleaned)
     trans = clean_residual_thaana(trans)
-    return trans if trans else "Public Authority"
+    if not trans or trans in ["،", ",", "-", "from", "in"]:
+        return agency.strip()
+    return trans
 
 
 def translate_venue(venue: Optional[str]) -> Optional[str]:

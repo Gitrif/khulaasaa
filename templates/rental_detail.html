@@ -84,10 +84,11 @@
       <!-- Left 2 Cols: Details -->
       <div class="md:col-span-2 space-y-6">
         
-        <!-- Key Specifications Grid (Exact Agoda / Booking style in a single row) -->
+        <!-- Key Specifications Grid (Exact Agoda / Booking style: Bedrooms | Bathrooms | Floor Area) -->
         <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate mb-2.5">Key Specifications</h2>
-          <div style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; width:100%; background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:8px; padding:0.85rem 0.5rem; text-align:center;">
+          <div style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; width:100%; background:rgba(244,244,242,0.85); border:1px solid #e2e8f0; border-radius:8px; padding:0.85rem 1rem; text-align:center;">
+            <!-- 1. Bedrooms -->
             <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
               <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
                 <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17V8a2 2 0 012-2h14a2 2 0 012 2v9m-18 0v2m18-2v2M3 13h18M7 9a1 1 0 011-1h2a1 1 0 011 1v2H7V9zm6 0a1 1 0 011-1h2a1 1 0 011 1v2h-4V9z"/></svg>
@@ -98,26 +99,18 @@
 
             <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
 
+            <!-- 2. Bathrooms -->
             <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
               <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
                 <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16a1 1 0 011 1v3a5 5 0 01-5 5H8a5 5 0 01-5-5v-3a1 1 0 011-1zm3 9v2m10-2v2M7 12V6a2 2 0 012-2h1a2 2 0 012 2v1"/></svg>
-                <span>{{ rental.bathrooms or rental.attached_toilets or 1 }}</span>
+                <span>{{ rental.bathrooms or rental.attached_toilets or rental.bedrooms or 1 }}</span>
               </div>
               <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Bathrooms</span>
             </div>
 
             <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
 
-            <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-              <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px;">
-                <svg class="w-5 h-5 text-[#0b5d57] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <span>{{ rental.floor or ('Floor ' ~ (rental.floor_num or 1)) }}</span>
-              </div>
-              <span style="font-size:0.75rem; color:#64748b; font-weight:500;">Floor Level</span>
-            </div>
-
-            <div style="width:1px; height:36px; background:#e2e8f0; flex-shrink:0;"></div>
-
+            <!-- 3. Floor Area -->
             <div style="flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
               {% if rental.sqft_size and rental.sqft_size > 0 %}
                 <div style="display:flex; align-items:center; justify-content:center; gap:5px; font-weight:700; font-size:1.1rem; color:#0b5d57; line-height:1; margin-bottom:3px; white-space:nowrap;">
@@ -142,7 +135,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div class="p-2.5 bg-paper-soft border border-hairline rounded flex items-center justify-between">
               <span class="text-slate">Kitchen Layout:</span>
-              <span class="font-semibold text-ink">{{ rental.kitchen_type or 'Standard Kitchen' }}</span>
+              <span class="font-semibold text-ink">{{ rental.kitchen_type or 'Sitting Room / Kitchen' }}</span>
             </div>
             <div class="p-2.5 bg-paper-soft border border-hairline rounded flex items-center justify-between">
               <span class="text-slate">Living Area:</span>

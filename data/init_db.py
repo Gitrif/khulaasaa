@@ -111,6 +111,82 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception:
             pass
 
+        # Migration: ensure normalized source_id, entity_id, address_id, person_id exist across all tables
+        try:
+            bids_cols = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
+            if bids_cols and "source_id" not in bids_cols:
+                conn.execute("ALTER TABLE bids ADD COLUMN source_id INTEGER REFERENCES sources(id);")
+            if bids_cols and "posted_date" not in bids_cols:
+                conn.execute("ALTER TABLE bids ADD COLUMN posted_date TEXT;")
+            if bids_cols and "posted_time" not in bids_cols:
+                conn.execute("ALTER TABLE bids ADD COLUMN posted_time TEXT;")
+            if bids_cols and "published_at" not in bids_cols:
+                conn.execute("ALTER TABLE bids ADD COLUMN published_at TIMESTAMP;")
+            if bids_cols and "submission_deadline" not in bids_cols:
+                conn.execute("ALTER TABLE bids ADD COLUMN submission_deadline TIMESTAMP;")
+
+            art_cols = [row[1] for row in conn.execute("PRAGMA table_info(articles);").fetchall()]
+            if art_cols and "source_id" not in art_cols:
+                conn.execute("ALTER TABLE articles ADD COLUMN source_id INTEGER REFERENCES sources(id);")
+            if art_cols and "posted_date" not in art_cols:
+                conn.execute("ALTER TABLE articles ADD COLUMN posted_date TEXT;")
+            if art_cols and "posted_time" not in art_cols:
+                conn.execute("ALTER TABLE articles ADD COLUMN posted_time TEXT;")
+            if art_cols and "published_at" not in art_cols:
+                conn.execute("ALTER TABLE articles ADD COLUMN published_at TIMESTAMP;")
+
+            job_cols = [row[1] for row in conn.execute("PRAGMA table_info(jobs);").fetchall()]
+            if job_cols and "source_id" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN source_id INTEGER REFERENCES sources(id);")
+            if job_cols and "entity_id" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN entity_id INTEGER REFERENCES entities(id);")
+            if job_cols and "posted_date" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN posted_date TEXT;")
+            if job_cols and "posted_time" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN posted_time TEXT;")
+            if job_cols and "deadline_at" not in job_cols:
+                conn.execute("ALTER TABLE jobs ADD COLUMN deadline_at TIMESTAMP;")
+
+            ob_cols = [row[1] for row in conn.execute("PRAGMA table_info(obituaries);").fetchall()]
+            if ob_cols and "source_id" not in ob_cols:
+                conn.execute("ALTER TABLE obituaries ADD COLUMN source_id INTEGER REFERENCES sources(id);")
+            if ob_cols and "person_id" not in ob_cols:
+                conn.execute("ALTER TABLE obituaries ADD COLUMN person_id INTEGER REFERENCES people(id);")
+            if ob_cols and "residence_address_id" not in ob_cols:
+                conn.execute("ALTER TABLE obituaries ADD COLUMN residence_address_id INTEGER REFERENCES addresses(id);")
+            if ob_cols and "funeral_time" not in ob_cols:
+                conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_time TEXT;")
+            if ob_cols and "funeral_datetime" not in ob_cols:
+                conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_datetime TIMESTAMP;")
+        except Exception:
+            pass
+
+        # Seed canonical sources directory
+        try:
+            from data.sources_data import INITIAL_SOURCES
+            for s in INITIAL_SOURCES:
+                conn.execute(
+                    """
+                    INSERT INTO sources (slug, name, domain, source_type, logo_url, is_active)
+                    VALUES (?, ?, ?, ?, ?, 1)
+                    ON CONFLICT(slug) DO UPDATE SET
+                        name = excluded.name,
+                        domain = excluded.domain,
+                        source_type = excluded.source_type,
+                        logo_url = excluded.logo_url;
+                    """,
+                    (s["slug"], s["name"], s.get("domain"), s.get("source_type", "press"), s.get("logo_url"))
+                )
+        except Exception as e:
+            logger.warning("Could not seed sources: %s", e)
+
+        # Seed canonical reference tables (Days, Months, Hijri Months, Prayer Times, Districts)
+        try:
+            from data.repos.reference import seed_reference_tables
+            seed_reference_tables(conn)
+        except Exception as e:
+            logger.warning("Could not seed reference tables: %s", e)
+
         # Migration: ensure viber_user_id and alert columns exist on users table
         try:
             u_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
@@ -332,6 +408,13 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
             from data.rentals import init_rentals_schema, seed_initial_rentals
             init_rentals_schema(conn)
             seed_initial_rentals(conn)
+        except Exception:
+            pass
+
+        # Initialize service modules table
+        try:
+            from data.modules import init_modules_table
+            init_modules_table(conn)
         except Exception:
             pass
 
