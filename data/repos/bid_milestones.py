@@ -170,9 +170,9 @@ def purge_expired_bids(conn: sqlite3.Connection, retention_days: int = 30) -> in
         DELETE FROM bids
         WHERE (submission_date IS NOT NULL AND (submission_date < ? OR submission_date < ?))
            OR (submission_date IS NULL AND published_date IS NOT NULL AND (published_date < ? OR published_date < ?))
-           OR notice_id LIKE 'notice-%';
+           OR notice_id LIKE ?;
         """,
-        (cutoff_iso, cutoff_date, cutoff_iso, cutoff_date),
+        (cutoff_iso, cutoff_date, cutoff_iso, cutoff_date, "notice-%"),
     )
     deleted_count = cursor.rowcount
     return deleted_count

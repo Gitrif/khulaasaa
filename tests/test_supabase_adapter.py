@@ -44,6 +44,13 @@ def test_adapt_sql_preserves_question_marks_inside_quotes():
     assert "email = %s" in adapted
 
 
+def test_adapt_sql_escapes_literal_percent_in_strings():
+    sql = "DELETE FROM bids WHERE d < ? OR notice_id LIKE 'notice-%';"
+    adapted = adapt_sql(sql)
+    assert "d < %s" in adapted
+    assert "'notice-%%'" in adapted
+
+
 def test_adapt_sql_insert_or_ignore():
     sql = "INSERT OR IGNORE INTO entities (slug, name_en) VALUES (?, ?);"
     adapted = adapt_sql(sql)

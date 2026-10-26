@@ -108,7 +108,8 @@ def adapt_sql(sql: str) -> str:
 
     s = re.sub(r"(^|[^:])(?::([a-zA-Z_][a-zA-Z0-9_]*))", _repl_named, s)
 
-    # Translate positional ? -> %s outside of single-quoted string literals
+    # Translate positional ? -> %s outside of single-quoted string literals,
+    # and escape literal % inside string literals to %% for psycopg2
     parts: list[str] = []
     in_single_quote = False
     for i, ch in enumerate(s):
@@ -117,6 +118,8 @@ def adapt_sql(sql: str) -> str:
             parts.append(ch)
         elif ch == "?" and not in_single_quote:
             parts.append("%s")
+        elif ch == "%" and in_single_quote:
+            parts.append("%%")
         else:
             parts.append(ch)
     
