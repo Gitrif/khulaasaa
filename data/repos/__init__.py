@@ -73,6 +73,10 @@ from data.repos.reference import (
     lookup_month,
     lookup_prayer_time,
 )
+from data.repos.feedback import (
+    save_user_feedback,
+    list_user_feedback,
+)
 from data.repos.users import (
     hash_password,
     verify_password,

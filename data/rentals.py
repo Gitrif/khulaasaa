@@ -160,6 +160,23 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_rentals_leased ON rentals(is_leased);")
 
 
+def redact_contact_name(name: Optional[str]) -> str:
+    """Mask landlord/lister contact names for public classified privacy."""
+    if not name or not name.strip():
+        return "Verified Lister"
+    clean = name.strip()
+    if clean.lower() in ("direct lister", "lister", "landlord", "owner", "private owner"):
+        return "Verified Lister"
+    words = clean.split()
+    redacted = []
+    for w in words:
+        if len(w) <= 2:
+            redacted.append(w[0] + "*")
+        else:
+            redacted.append(w[0] + "*" * (len(w) - 1))
+    return " ".join(redacted)
+
+
 def list_rentals(
     conn: sqlite3.Connection,
     location: Optional[str] = None,
@@ -219,6 +236,8 @@ def list_rentals(
 
     for r in rows:
         d = dict(r)
+        d["contact_name_raw"] = d.get("contact_name")
+        d["contact_name"] = redact_contact_name(d.get("contact_name"))
         d["bathrooms"] = d.get("attached_toilets") or d.get("bedrooms") or 1
         d["building_units_count"] = bld_counts.get(d.get("plot_building"), 1)
         d["amenities_list"] = _parse_json_or_csv(d.get("amenities"))
@@ -251,6 +270,8 @@ def get_rental_by_id(conn: sqlite3.Connection, rental_id: int) -> Optional[dict[
     if not row:
         return None
     d = dict(row)
+    d["contact_name_raw"] = d.get("contact_name")
+    d["contact_name"] = redact_contact_name(d.get("contact_name"))
     d["bathrooms"] = d.get("attached_toilets") or d.get("bedrooms") or 1
     d["amenities_list"] = _parse_json_or_csv(d.get("amenities"))
     d["furnished_items_list"] = _parse_json_or_csv(d.get("furnished_items"))

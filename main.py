@@ -135,6 +135,7 @@ from alerts.viber import (
 
 from routers.admin import router as admin_router
 from routers.api_ads import router as api_ads_router
+from routers.api_feedback import router as api_feedback_router
 from routers.api_jobs import router as api_jobs_router
 from routers.api_news import router as api_news_router
 from routers.api_rfq import router as api_rfq_router
@@ -205,6 +206,7 @@ app.include_router(api_news_router)
 app.include_router(api_rfq_router)
 app.include_router(api_jobs_router)
 app.include_router(api_ads_router)
+app.include_router(api_feedback_router)
 app.include_router(admin_router)
 app.include_router(webhooks_router)
 
