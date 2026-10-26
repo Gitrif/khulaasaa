@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import html
 import os
+import urllib.parse
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from core.deps import get_current_user, templates
@@ -471,39 +472,25 @@ def subscription_page(
 
 @router.post("/subscription/inquire")
 async def subscription_inquire(request: Request):
-    from fastapi import status
-    import urllib.parse
-
     form = await request.form()
-    company_name = str(form.get("company_name", "")).strip()
-    contact_name = str(form.get("contact_name", "")).strip()
-    phone = str(form.get("phone", "")).strip()
-    email = str(form.get("email", "")).strip()
-    island_atoll = str(form.get("island_atoll", "")).strip()
-    plan_tier = str(form.get("plan_tier", "tender_erp")).strip()
-    modules_list = form.getlist("modules")
-    interested_modules = ", ".join(str(m) for m in modules_list) if modules_list else ""
     notice_id = str(form.get("notice_id", "")).strip()
-    notes = str(form.get("notes", "")).strip()
+    modules_list = form.getlist("modules")
 
     with get_db() as conn:
-        save_hooks85_subscription(
-            conn,
-            {
-                "company_name": company_name,
-                "contact_name": contact_name,
-                "phone": phone,
-                "email": email,
-                "island_atoll": island_atoll,
-                "plan_tier": plan_tier,
-                "interested_modules": interested_modules,
-                "notice_id": notice_id,
-                "notes": notes,
-            },
-        )
+        save_hooks85_subscription(conn, {
+            "company_name": str(form.get("company_name", "")).strip(),
+            "contact_name": str(form.get("contact_name", "")).strip(),
+            "phone": str(form.get("phone", "")).strip(),
+            "email": str(form.get("email", "")).strip(),
+            "island_atoll": str(form.get("island_atoll", "")).strip(),
+            "plan_tier": str(form.get("plan_tier", "tender_erp")).strip(),
+            "interested_modules": ", ".join(str(m) for m in modules_list) if modules_list else "",
+            "notice_id": notice_id,
+            "notes": str(form.get("notes", "")).strip(),
+        })
 
-    redirect_url = f"/subscription?msg={urllib.parse.quote_plus('Thank you! Your hooks85 inquiry has been registered. Our onboarding specialist will contact you directly via Phone/WhatsApp.')}"
+    msg = urllib.parse.quote_plus("Thank you! Your hooks85 inquiry has been registered. Our onboarding specialist will contact you directly via Phone/WhatsApp.")
+    redirect_url = f"/subscription?msg={msg}"
     if notice_id:
-        redirect_url += f"&notice_id={urllib.parse.quote_plus(str(notice_id))}"
-
+        redirect_url += f"&notice_id={urllib.parse.quote_plus(notice_id)}"
     return RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)

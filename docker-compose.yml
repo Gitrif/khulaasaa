@@ -1,45 +1,32 @@
-# Single service for now -- this is still the mock/demo app (see
-# scrapers/README.md and the rest of this project's history: scrapers are
-# written and logic-tested but not yet connected to live data, and there's
-# no real database yet, just data/mock_data.py). Ollama/vLLM, a vector DB,
-# and the scraper containers from the original Phase 3/4 roadmap are NOT
-# in here yet -- add them as separate services when those pieces are
-# actually ready to run, not before.
+name: khulaasaa
 
 services:
   web:
-    build: .
-    ports:
-      - "8300:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khulaasaa_web
+    restart: always
     env_file:
-      # `required: false` (Compose Spec, needs Docker Compose v2.24+) means
-      # this won't hard-fail if you haven't run `cp .env.example .env` yet
-      # -- main.py's own os.environ.get() defaults still apply either way,
-      # and the changeme-password warning still fires in the logs. If your
-      # Compose version is older than v2.24 and this errors, just run
-      # `cp .env.example .env` first and it'll work regardless of version.
       - path: .env
         required: false
-    volumes:
-      - .:/app
-      - ./data:/app/data
-    environment:
-      - KHULAASAA_DB_PATH=/app/data/khulaasaa.db
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
-      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-khulaasaa_bot}
-      - APP_URL=${APP_URL:-https://jump-wind-briefing-collapse.trycloudflare.com}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
-      interval: 30s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
-    # DO NOT set `deploy: replicas: >1` and do not add `--workers` to the
-    # Dockerfile's uvicorn CMD until this is backed by a real database.
-    # data/mock_data.py's PENDING_CLUSTERS/APPROVAL_LOG are plain in-process
-    # Python state -- confirmed by reading the code, not assumed. Two
-    # workers means two independent copies: an admin approval done on one
-    # worker is invisible to requests that land on the other. Single
-    # process only until that's fixed.
+    networks:
+      - web-gateway
+    labels:
+      - "traefik.enable=true"
+      # Public website & WWW routing
+      - "traefik.http.routers.khulaasaa.rule=Host(`khulaasaa.tech`) || Host(`www.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa.entrypoints=websecure"
+      - "traefik.http.routers.khulaasaa.tls.certresolver=letsencrypt"
+      
+      # Dedicated API Subdomain routing
+      - "traefik.http.routers.khulaasaa-api.rule=Host(`api.khulaasaa.tech`)"
+      - "traefik.http.routers.khulaasaa-api.entrypoints=websecure"
+      - "traefik.http.routers.khulaasaa-api.tls.certresolver=letsencrypt"
+
+      # Target application port inside the container
+      - "traefik.http.services.khulaasaa.loadbalancer.server.port=8000"
+
+networks:
+  web-gateway:
+    external: true
