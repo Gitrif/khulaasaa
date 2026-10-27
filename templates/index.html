@@ -315,7 +315,6 @@ function openArticleUrl(url) {
 }
 
 function shareStory(evt, headline, url) {
-  evt.stopPropagation();
   const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
   const shareText = headline + ' — Khulaasaa Dispatch';
   const tgShareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(fullUrl) + '&text=' + encodeURIComponent(shareText);
@@ -333,14 +332,6 @@ function shareStory(evt, headline, url) {
   }
 }
 
-async function toggleFollow(evt, btn){
-  evt.stopPropagation();
-  if (typeof showToast === "function") {
-    showToast("News alerts are coming soon. Real-time Tender and Job alerts are currently active.");
-  } else {
-    alert("News alerts are coming soon. Real-time Tender and Job alerts are currently active.");
-  }
-}
 
 function toggleDetail(card){ card.classList.toggle('open'); }
 

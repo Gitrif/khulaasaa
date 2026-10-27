@@ -75,6 +75,8 @@ def _parse_user_row(row: Any) -> Optional[dict[str, Any]]:
         "phone": d.get("phone"),
         "telegram_chat_id": d.get("telegram_chat_id"),
         "viber_user_id": d.get("viber_user_id"),
+        "telegram_verified": bool(d.get("telegram_verified", 0)),
+        "viber_verified": bool(d.get("viber_verified", 0)),
         "job_alert_categories": safe_json(d.get("job_alert_categories"), ["all"]),
         "job_alert_sources": safe_json(d.get("job_alert_sources"), ["all"]),
         "tender_alert_disciplines": safe_json(d.get("tender_alert_disciplines"), ["All"]),
@@ -92,7 +94,7 @@ def authenticate_user(conn: sqlite3.Connection, email: str, password: str) -> Op
         """
         SELECT id, email, password_hash, full_name, phone, telegram_chat_id, viber_user_id,
                job_alert_categories, job_alert_sources, tender_alert_disciplines, tender_alert_sources,
-               alerts_enabled, is_paid, created_at
+               alerts_enabled, is_paid, telegram_verified, viber_verified, created_at
         FROM users WHERE email = ?;
         """,
         (clean_email,),
@@ -110,7 +112,7 @@ def get_user_by_id(conn: sqlite3.Connection, user_id: int) -> Optional[dict[str,
         """
         SELECT id, email, full_name, phone, telegram_chat_id, viber_user_id,
                job_alert_categories, job_alert_sources, tender_alert_disciplines, tender_alert_sources,
-               alerts_enabled, is_paid, created_at
+               alerts_enabled, is_paid, telegram_verified, viber_verified, created_at
         FROM users WHERE id = ?;
         """,
         (user_id,),
@@ -124,7 +126,7 @@ def get_user_by_email(conn: sqlite3.Connection, email: str) -> Optional[dict[str
         """
         SELECT id, email, full_name, phone, telegram_chat_id, viber_user_id,
                job_alert_categories, job_alert_sources, tender_alert_disciplines, tender_alert_sources,
-               alerts_enabled, is_paid, created_at
+               alerts_enabled, is_paid, telegram_verified, viber_verified, created_at
         FROM users WHERE email = ?;
         """,
         (email.strip().lower(),),
@@ -138,7 +140,7 @@ def get_user_by_telegram_id(conn: sqlite3.Connection, chat_id: str) -> Optional[
         """
         SELECT id, email, full_name, phone, telegram_chat_id, viber_user_id,
                job_alert_categories, job_alert_sources, tender_alert_disciplines, tender_alert_sources,
-               alerts_enabled, is_paid, created_at
+               alerts_enabled, is_paid, telegram_verified, viber_verified, created_at
         FROM users WHERE telegram_chat_id = ?;
         """,
         (str(chat_id).strip(),),
@@ -152,7 +154,7 @@ def get_user_by_viber_id(conn: sqlite3.Connection, viber_id: str) -> Optional[di
         """
         SELECT id, email, full_name, phone, telegram_chat_id, viber_user_id,
                job_alert_categories, job_alert_sources, tender_alert_disciplines, tender_alert_sources,
-               alerts_enabled, is_paid, created_at
+               alerts_enabled, is_paid, telegram_verified, viber_verified, created_at
         FROM users WHERE viber_user_id = ?;
         """,
         (str(viber_id).strip(),),
@@ -288,7 +290,7 @@ def get_user_from_session(conn: sqlite3.Connection, token: str) -> Optional[dict
         """
         SELECT u.id, u.email, u.full_name, u.phone, u.telegram_chat_id, u.viber_user_id,
                u.job_alert_categories, u.job_alert_sources, u.tender_alert_disciplines, u.tender_alert_sources,
-               u.alerts_enabled, u.is_paid, u.created_at
+               u.alerts_enabled, u.is_paid, u.telegram_verified, u.viber_verified, u.created_at
         FROM user_sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.token = ? AND (s.expires_at IS NULL OR s.expires_at > CURRENT_TIMESTAMP);
