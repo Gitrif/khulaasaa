@@ -80,7 +80,8 @@ def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]
         })
         return {"status": "failed", "error": str(exc)}
     finally:
-        _LIVE_JOBS_IS_SYNCING = False
+        with _LIVE_JOBS_LOCK:
+            _LIVE_JOBS_IS_SYNCING = False
 
 
 def trigger_jobs_background_sync(force: bool = False, pages: int = 1) -> bool:
@@ -92,15 +93,15 @@ def trigger_jobs_background_sync(force: bool = False, pages: int = 1) -> bool:
             return False
         if not force and _LIVE_JOBS_LAST_SYNC > 0 and (now - _LIVE_JOBS_LAST_SYNC < JOBS_CACHE_TTL_SECONDS):
             return False
-        _LIVE_JOBS_IS_SYNCING = True
-        worker = threading.Thread(
-            target=run_jobs_sync,
-            kwargs={"pages": pages, "trigger_alerts": True},
-            daemon=True,
-            name="JobsSyncWorker"
-        )
-        worker.start()
-        return True
+
+    worker = threading.Thread(
+        target=run_jobs_sync,
+        kwargs={"pages": pages, "trigger_alerts": True},
+        daemon=True,
+        name="JobsSyncWorker"
+    )
+    worker.start()
+    return True
 
 
 def get_employer_logo(agency: str) -> Optional[str]:

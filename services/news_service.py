@@ -144,7 +144,9 @@ def _run_news_sync() -> None:
     except Exception as e:
         logger.warning("Background news sync failed: %s", e)
     finally:
-        _LIVE_NEWS_IS_SYNCING = False
+        _LIVE_NEWS_LAST_SYNC = time.time()
+        with _LIVE_NEWS_LOCK:
+            _LIVE_NEWS_IS_SYNCING = False
 
 
 def trigger_news_background_sync(force: bool = False) -> bool:
@@ -225,8 +227,9 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
     if not force_refresh and _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
 
-    # Trigger background sync asynchronously (never blocks the web request)
-    trigger_news_background_sync(force=force_refresh)
+    # Only trigger background sync if forced or if cache has never been populated
+    if force_refresh or not _LIVE_NEWS_CACHE["data"]:
+        trigger_news_background_sync(force=force_refresh)
 
     # Fast Path 2: Stale in-memory cache is served immediately while background sync refreshes
     if _LIVE_NEWS_CACHE["data"]:
