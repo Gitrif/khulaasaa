@@ -41,58 +41,6 @@
   </div>
 </div>
 
-<script>
-let currentCvPage = 1;
-const totalCvPages = 5;
-
-function goToCvPage(pageNum) {
-  if (pageNum < 1 || pageNum > totalCvPages) return;
-  currentCvPage = pageNum;
-
-  for (let i = 1; i <= totalCvPages; i++) {
-    const pageEl = document.getElementById('cv-page-' + i);
-    const tabEl = document.getElementById('step-tab-' + i);
-    if (pageEl) {
-      if (i === pageNum) {
-        pageEl.classList.remove('hidden');
-      } else {
-        pageEl.classList.add('hidden');
-      }
-    }
-    if (tabEl) {
-      if (i === pageNum) {
-        tabEl.classList.add('active');
-      } else {
-        tabEl.classList.remove('active');
-      }
-    }
-  }
-
-  // Smooth scroll editor container to top
-  const form = document.getElementById('cvForm');
-  if (form) {
-    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-}
-
-let isMobilePreviewOpen = false;
-function toggleMobileCvPreview() {
-  const previewCol = document.querySelector('.lg\\:col-span-7');
-  const txt = document.getElementById('txtToggleMobilePreview');
-  isMobilePreviewOpen = !isMobilePreviewOpen;
-
-  if (previewCol) {
-    if (isMobilePreviewOpen) {
-      previewCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (txt) txt.textContent = 'Edit';
-    } else {
-      const form = document.getElementById('cvForm');
-      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (txt) txt.textContent = 'Preview';
-    }
-  }
-}
-</script>
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-6xl mx-auto px-4 pt-6 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>

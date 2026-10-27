@@ -1,0 +1,95 @@
+  <!-- Floating Feedback / Beta Feedback Button -->
+  <div class="fixed bottom-4 right-4 z-40 print:hidden">
+    <button type="button" onclick="openFeedbackModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-ink text-white shadow-lg hover:bg-slate-800 transition text-xs font-semibold cursor-pointer border border-slate-700">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span>Feedback</span>
+      <span class="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-mono uppercase text-white/90">Alpha</span>
+    </button>
+  </div>
+
+  <!-- Alpha Feedback & Issue Reporting Modal -->
+  <div id="alphaFeedbackModal" class="modal-overlay hidden" onclick="if(event.target===this) closeFeedbackModal()">
+    <div class="modal-window flex flex-col max-w-md w-full" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeFeedbackModal()">&times;</button>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">ALPHA FEEDBACK</span>
+        <h3 class="font-serif-display text-lg font-bold text-ink">Send Note to Founder</h3>
+      </div>
+      <p class="text-xs text-slate mb-3">Have an issue, idea, or suggestion? Type your message below and it goes straight to my Telegram.</p>
+
+      <form id="feedbackForm" onsubmit="handleFeedbackSubmit(event)" class="space-y-3">
+        <div>
+          <textarea id="feedbackMessage" required rows="5" placeholder="Write your message, bug report, or idea here..." class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600 resize-none"></textarea>
+        </div>
+
+        <div>
+          <input type="text" id="feedbackContact" placeholder="Your phone or @Telegram handle (optional, if you'd like a reply)" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+        </div>
+
+        <div class="pt-1">
+          <button type="submit" id="feedbackSubmitBtn" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
+            Send Message
+          </button>
+          <div id="feedbackStatus" class="mt-2 text-xs py-1.5 px-2.5 rounded hidden text-center"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openFeedbackModal() {
+      const m = document.getElementById('alphaFeedbackModal');
+      if (m) m.classList.remove('hidden');
+    }
+    function closeFeedbackModal() {
+      const m = document.getElementById('alphaFeedbackModal');
+      if (m) m.classList.add('hidden');
+    }
+    async function handleFeedbackSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('feedbackSubmitBtn');
+      const status = document.getElementById('feedbackStatus');
+      const msgEl = document.getElementById('feedbackMessage');
+      const contactEl = document.getElementById('feedbackContact');
+
+      const payload = {
+        feedback_type: 'direct_message',
+        message: msgEl.value.trim(),
+        contact_info: contactEl.value.trim() || 'Anonymous Visitor',
+        page_url: window.location.pathname + window.location.search
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-emerald-100 text-emerald-800 font-medium';
+          status.textContent = 'Thank you! Your message was sent directly to Telegram.';
+          status.classList.remove('hidden');
+          msgEl.value = '';
+          contactEl.value = '';
+          setTimeout(() => {
+            closeFeedbackModal();
+            status.classList.add('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Send Message';
+          }, 2000);
+        } else {
+          throw new Error(data.detail || 'Failed to submit');
+        }
+      } catch (err) {
+        status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-rose-100 text-rose-800 font-medium';
+        status.textContent = 'Submission error. Please try again.';
+        status.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Send Message';
+      }
+    }
+  </script>

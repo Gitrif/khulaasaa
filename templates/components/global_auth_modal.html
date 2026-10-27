@@ -1,0 +1,576 @@
+  <!-- UNIVERSAL MODAL: Sign In / Account & Alert Preferences -->
+  <div id="globalUnifiedModal" class="modal-overlay hidden" onclick="if(event.target===this) closeGlobalAlertsModal()">
+    <div class="modal-window" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeGlobalAlertsModal()">&times;</button>
+
+      <!-- VIEW 1: SIGN IN / REGISTER (UNAUTHENTICATED) -->
+      <div id="modalLoggedOutView" class="space-y-4">
+        <div class="flex items-center gap-2.5">
+          <span class="brand-mark" aria-hidden="true">ކ</span>
+          <div>
+            <h3 id="modalAuthTitle" class="font-serif-display text-xl font-bold text-ink">Sign In to Khulaasaa</h3>
+            <p id="modalAuthSubtitle" class="text-xs text-slate mt-0.5">Access saved CVs, company bids, and real-time Telegram &amp; Viber alerts.</p>
+          </div>
+        </div>
+
+        <div class="modal-tab-bar">
+          <button type="button" id="authModeLoginBtn" class="modal-tab-btn active" onclick="toggleAuthMode('login')">Sign In</button>
+          <button type="button" id="authModeRegisterBtn" class="modal-tab-btn" onclick="toggleAuthMode('register')">Create Account</button>
+        </div>
+
+        <!-- 1. SIGN IN FORM -->
+        <form id="modalLoginForm" onsubmit="handleModalLogin(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-ink mb-1">Email or Phone</label>
+            <input type="text" id="loginIdentifier" required placeholder="user@example.com or 7991234" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink mb-1">Password</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+          </div>
+          <button type="submit" id="btnLoginSubmit" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
+            Sign In &rarr;
+          </button>
+          <div id="loginErrorMsg" class="text-rose-600 text-xs hidden text-center"></div>
+        </form>
+
+        <!-- 2. REGISTER FORM -->
+        <form id="modalRegisterForm" onsubmit="handleModalRegister(event)" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-ink mb-1">Full Name</label>
+            <input type="text" id="regFullName" required placeholder="Ahmed Ali" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-ink mb-1">Email Address</label>
+              <input type="email" id="regEmail" required placeholder="ahmed@gmail.com" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-ink mb-1">Phone Number</label>
+              <input type="tel" id="regPhone" required placeholder="7991234" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink mb-1">Password (Min 8 Characters)</label>
+            <input type="password" id="regPassword" required minlength="8" placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+          </div>
+          <button type="submit" id="btnRegisterSubmit" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
+            Create Free Account &rarr;
+          </button>
+          <div id="registerErrorMsg" class="text-rose-600 text-xs hidden text-center"></div>
+        </form>
+      </div>
+
+      <!-- VIEW 2: LOGGED-IN / VERIFIED SETTINGS MODAL -->
+      <div id="modalLoggedInView" class="space-y-4 hidden">
+        <div class="flex items-center justify-between pb-3 border-b border-hairline">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span id="modalUserEmail" class="text-xs font-bold text-ink"></span>
+            </div>
+            <p class="text-[11px] text-slate mt-0.5">Manage Telegram/Viber links and instant alert notifications.</p>
+          </div>
+          <button onclick="handleGlobalLogout()" class="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer">Sign Out</button>
+        </div>
+
+        <!-- Tab Switcher for Channels & Preferences -->
+        <div class="modal-tab-bar">
+          <button type="button" id="tabBtnChannels" class="modal-tab-btn active" onclick="switchModalSettingsTab('channels')">Channels</button>
+          <button type="button" id="tabBtnAlerts" class="modal-tab-btn" onclick="switchModalSettingsTab('alerts')">Alert Settings</button>
+        </div>
+
+        <!-- 1. CHANNELS TAB -->
+        <div id="modalTabChannels" class="space-y-3">
+          <!-- Telegram Integration Box -->
+          <div class="p-3.5 bg-paper-soft border border-hairline rounded-lg flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span id="modalTgStatusPip" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                <div>
+                  <span class="text-xs font-bold text-ink block">Telegram Alerts</span>
+                  <span id="modalTgSubtitle" class="text-[11px] text-slate">Connect @khulaasaa_bot</span>
+                </div>
+              </div>
+              <span id="modalTgBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Not Linked</span>
+            </div>
+            <div id="tgUnlinkedActions" class="flex items-center gap-2 pt-1">
+              <a id="tgConnectBotBtn" href="https://t.me/khulaasaa_bot?start=connect" target="_blank" rel="noopener noreferrer" class="flex-1 py-1.5 px-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white text-xs font-semibold rounded text-center transition shadow-2xs">
+                Launch Bot &rarr;
+              </a>
+              <input type="text" id="tgCodeInput" placeholder="Code (e.g. TG-1234)" class="w-32 px-2 py-1.5 text-xs border border-hairline rounded bg-white">
+              <button onclick="linkTelegramAccount()" class="py-1.5 px-3 bg-ink hover:bg-slate-800 text-white text-xs font-semibold rounded transition cursor-pointer">
+                Link
+              </button>
+            </div>
+            <div id="tgLinkedActions" class="hidden flex items-center justify-between pt-1">
+              <span id="modalTgChatInfo" class="text-xs font-mono text-ink"></span>
+              <button onclick="unlinkTelegramAccount()" class="text-xs text-rose-600 hover:underline font-semibold cursor-pointer">Unlink</button>
+            </div>
+          </div>
+
+          <!-- Viber Integration Box -->
+          <div class="p-3.5 bg-paper-soft border border-hairline rounded-lg flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span id="modalViberStatusPip" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                <div>
+                  <span class="text-xs font-bold text-ink block">Viber Alerts</span>
+                  <span id="modalViberSubtitle" class="text-[11px] text-slate">Connect Viber Public Channel</span>
+                </div>
+              </div>
+              <span id="modalViberBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Not Linked</span>
+            </div>
+            <div id="viberUnlinkedActions" class="flex items-center gap-2 pt-1">
+              <input type="tel" id="viberPhoneInput" placeholder="Viber Phone (7991234)" class="flex-1 px-2 py-1.5 text-xs border border-hairline rounded bg-white">
+              <button onclick="linkViberAccount()" class="py-1.5 px-3 bg-[#7360F2] hover:bg-[#5E4FD6] text-white text-xs font-semibold rounded transition cursor-pointer">
+                Verify
+              </button>
+            </div>
+            <div id="viberLinkedActions" class="hidden flex items-center justify-between pt-1">
+              <span id="modalViberIdInfo" class="text-xs font-mono text-ink"></span>
+              <button onclick="unlinkViberAccount()" class="text-xs text-rose-600 hover:underline font-semibold cursor-pointer">Unlink</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ALERTS TAB -->
+        <div id="modalTabAlerts" class="space-y-3 hidden">
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
+              <input type="checkbox" id="prefAlertBreaking" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Breaking News Wire Bulletins</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
+              <input type="checkbox" id="prefAlertTenders" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Gazette &amp; SOE Procurement Tenders</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
+              <input type="checkbox" id="prefAlertJobs" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>National Career &amp; Job Vacancies</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
+              <input type="checkbox" id="prefAlertJanaza" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Funeral &amp; Janaza Announcements</span>
+            </label>
+          </div>
+          <button onclick="saveNotificationPreferences()" class="w-full py-2 bg-ink hover:bg-slate-800 text-white text-xs font-bold rounded transition cursor-pointer shadow-xs">
+            Save Preferences
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function isUserAuthenticated() {
+      return document.cookie.includes('session_token=') || Boolean(localStorage.getItem('khulaasaa_user_id'));
+    }
+
+    function toggleAuthMode(mode) {
+      const loginForm = document.getElementById('modalLoginForm');
+      const regForm = document.getElementById('modalRegisterForm');
+      const loginBtn = document.getElementById('authModeLoginBtn');
+      const regBtn = document.getElementById('authModeRegisterBtn');
+      const title = document.getElementById('modalAuthTitle');
+      const subtitle = document.getElementById('modalAuthSubtitle');
+
+      if (mode === 'register') {
+        if (loginForm) loginForm.classList.add('hidden');
+        if (regForm) regForm.classList.remove('hidden');
+        if (loginBtn) loginBtn.className = 'modal-tab-btn';
+        if (regBtn) regBtn.className = 'modal-tab-btn active';
+        if (title) title.textContent = 'Create Free Account';
+        if (subtitle) subtitle.textContent = 'Register to create & download CVs and receive instant tender & job alerts.';
+      } else {
+        if (regForm) regForm.classList.add('hidden');
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (regBtn) regBtn.className = 'modal-tab-btn';
+        if (loginBtn) loginBtn.className = 'modal-tab-btn active';
+        if (title) title.textContent = 'Sign In to Khulaasaa';
+        if (subtitle) subtitle.textContent = 'Access saved CVs, company tender profiles, and real-time alerts.';
+      }
+    }
+
+    function switchModalSettingsTab(tab) {
+      const tabChannels = document.getElementById('modalTabChannels');
+      const tabAlerts = document.getElementById('modalTabAlerts');
+      const btnChannels = document.getElementById('tabBtnChannels');
+      const btnAlerts = document.getElementById('tabBtnAlerts');
+
+      if (tab === 'alerts') {
+        if (tabChannels) tabChannels.classList.add('hidden');
+        if (tabAlerts) tabAlerts.classList.remove('hidden');
+        if (btnChannels) btnChannels.className = 'modal-tab-btn';
+        if (btnAlerts) btnAlerts.className = 'modal-tab-btn active';
+      } else {
+        if (tabAlerts) tabAlerts.classList.add('hidden');
+        if (tabChannels) tabChannels.classList.remove('hidden');
+        if (btnAlerts) btnAlerts.className = 'modal-tab-btn';
+        if (btnChannels) btnChannels.className = 'modal-tab-btn active';
+      }
+    }
+
+    async function openGlobalAlertsModal(preferredTab) {
+      const modal = document.getElementById('globalUnifiedModal');
+      const loggedOutView = document.getElementById('modalLoggedOutView');
+      const loggedInView = document.getElementById('modalLoggedInView');
+      if (!modal) return;
+
+      modal.classList.remove('hidden');
+
+      let user = null;
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data && data.user) user = data.user;
+      } catch (e) {}
+
+      if (user) {
+        if (loggedOutView) loggedOutView.classList.add('hidden');
+        if (loggedInView) loggedInView.classList.remove('hidden');
+        populateLoggedInModal(user);
+        if (preferredTab === 'viber' || preferredTab === 'telegram') {
+          switchModalSettingsTab('channels');
+        } else if (preferredTab === 'alerts') {
+          switchModalSettingsTab('alerts');
+        }
+      } else {
+        if (loggedInView) loggedInView.classList.add('hidden');
+        if (loggedOutView) loggedOutView.classList.remove('hidden');
+        if (preferredTab === 'register') {
+          toggleAuthMode('register');
+        } else {
+          toggleAuthMode('login');
+        }
+      }
+    }
+
+    function closeGlobalAlertsModal() {
+      const modal = document.getElementById('globalUnifiedModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function populateLoggedInModal(user) {
+      const emailEl = document.getElementById('modalUserEmail');
+      if (emailEl) emailEl.textContent = user.email || user.full_name || 'Member Account';
+
+      // Telegram State
+      const tgPip = document.getElementById('modalTgStatusPip');
+      const tgBadge = document.getElementById('modalTgBadge');
+      const tgSubtitle = document.getElementById('modalTgSubtitle');
+      const tgUnlinked = document.getElementById('tgUnlinkedActions');
+      const tgLinked = document.getElementById('tgLinkedActions');
+      const tgChatInfo = document.getElementById('modalTgChatInfo');
+
+      const isTgVerified = Boolean(user.telegram_verified && user.telegram_chat_id);
+      if (isTgVerified) {
+        if (tgPip) tgPip.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        if (tgBadge) {
+          tgBadge.textContent = 'Verified';
+          tgBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800';
+        }
+        if (tgSubtitle) tgSubtitle.textContent = 'Linked to Telegram Chat ID: ' + user.telegram_chat_id;
+        if (tgUnlinked) tgUnlinked.classList.add('hidden');
+        if (tgLinked) tgLinked.classList.remove('hidden');
+        if (tgChatInfo) tgChatInfo.textContent = 'Chat ID: ' + user.telegram_chat_id;
+      } else {
+        if (tgPip) tgPip.className = 'w-2.5 h-2.5 rounded-full bg-slate-300';
+        if (tgBadge) {
+          tgBadge.textContent = 'Not Linked';
+          tgBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700';
+        }
+        if (tgSubtitle) tgSubtitle.textContent = 'Connect @khulaasaa_bot';
+        if (tgUnlinked) tgUnlinked.classList.remove('hidden');
+        if (tgLinked) tgLinked.classList.add('hidden');
+      }
+
+      // Viber State
+      const viberPip = document.getElementById('modalViberStatusPip');
+      const viberBadge = document.getElementById('modalViberBadge');
+      const viberSubtitle = document.getElementById('modalViberSubtitle');
+      const viberUnlinked = document.getElementById('viberUnlinkedActions');
+      const viberLinked = document.getElementById('viberLinkedActions');
+      const viberIdInfo = document.getElementById('modalViberIdInfo');
+
+      const isViberVerified = Boolean(user.viber_verified && user.viber_user_id);
+      if (isViberVerified) {
+        if (viberPip) viberPip.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        if (viberBadge) {
+          viberBadge.textContent = 'Verified';
+          viberBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800';
+        }
+        if (viberSubtitle) viberSubtitle.textContent = 'Linked to Viber ID: ' + user.viber_user_id;
+        if (viberUnlinked) viberUnlinked.classList.add('hidden');
+        if (viberLinked) viberLinked.classList.remove('hidden');
+        if (viberIdInfo) viberIdInfo.textContent = 'Viber ID: ' + user.viber_user_id;
+      } else {
+        if (viberPip) viberPip.className = 'w-2.5 h-2.5 rounded-full bg-slate-300';
+        if (viberBadge) {
+          viberBadge.textContent = 'Not Linked';
+          viberBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700';
+        }
+        if (viberSubtitle) viberSubtitle.textContent = 'Connect Viber Channel';
+        if (viberUnlinked) viberUnlinked.classList.remove('hidden');
+        if (viberLinked) viberLinked.classList.add('hidden');
+      }
+
+      // Prefs
+      const pBreaking = document.getElementById('prefAlertBreaking');
+      const pTenders = document.getElementById('prefAlertTenders');
+      const pJobs = document.getElementById('prefAlertJobs');
+      const pJanaza = document.getElementById('prefAlertJanaza');
+      if (pBreaking) pBreaking.checked = user.alert_breaking !== false;
+      if (pTenders) pTenders.checked = user.alert_tenders !== false;
+      if (pJobs) pJobs.checked = user.alert_jobs !== false;
+      if (pJanaza) pJanaza.checked = user.alert_obituaries !== false;
+    }
+
+    async function handleModalLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('btnLoginSubmit');
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'ok') {
+          closeGlobalAlertsModal();
+          await refreshGlobalAuthPill();
+          const pendingFollow = sessionStorage.getItem('khulaasaa_pending_follow');
+          if (pendingFollow) {
+            try {
+              const pf = JSON.parse(pendingFollow);
+              sessionStorage.removeItem('khulaasaa_pending_follow');
+              await fetch('/api/follows', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pf)
+              });
+              window.location.reload();
+              return;
+            } catch (e) {}
+          }
+          const next = sessionStorage.getItem('khulaasaa_auth_next');
+          if (next) {
+            sessionStorage.removeItem('khulaasaa_auth_next');
+            window.location.href = next;
+          } else {
+            window.location.reload();
+          }
+        } else {
+          errEl.textContent = data.detail || 'Invalid email or password.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign In →';
+      }
+    }
+
+    async function handleModalRegister(e) {
+      e.preventDefault();
+      const full_name = document.getElementById('regFullName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const errEl = document.getElementById('registerErrorMsg');
+      const btn = document.getElementById('btnRegisterSubmit');
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name, email, phone, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'ok') {
+          closeGlobalAlertsModal();
+          await refreshGlobalAuthPill();
+          window.location.reload();
+        } else {
+          errEl.textContent = data.detail || 'Registration failed.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Free Account →';
+      }
+    }
+
+    async function linkTelegramAccount() {
+      const code = document.getElementById('tgCodeInput').value.trim();
+      if (!code) {
+        alert('Please enter your Telegram verification code from @khulaasaa_bot');
+        return;
+      }
+      try {
+        const res = await fetch('/api/channels/telegram/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'ok') {
+          alert('Telegram verified successfully!');
+          refreshGlobalAuthPill();
+          openGlobalAlertsModal('telegram');
+        } else {
+          alert(data.detail || 'Invalid verification code.');
+        }
+      } catch (e) {
+        alert('Network error connecting Telegram.');
+      }
+    }
+
+    async function unlinkTelegramAccount() {
+      if (!confirm('Unlink Telegram alerts?')) return;
+      try {
+        await fetch('/api/channels/telegram/unlink', { method: 'POST' });
+        refreshGlobalAuthPill();
+        openGlobalAlertsModal('telegram');
+      } catch (e) {}
+    }
+
+    async function linkViberAccount() {
+      const phone = document.getElementById('viberPhoneInput').value.trim();
+      if (!phone) {
+        alert('Please enter your Viber phone number');
+        return;
+      }
+      try {
+        const res = await fetch('/api/channels/viber/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'ok') {
+          alert('Viber alerts linked successfully!');
+          refreshGlobalAuthPill();
+          openGlobalAlertsModal('viber');
+        } else {
+          alert(data.detail || 'Could not link Viber.');
+        }
+      } catch (e) {
+        alert('Network error connecting Viber.');
+      }
+    }
+
+    async function unlinkViberAccount() {
+      if (!confirm('Unlink Viber alerts?')) return;
+      try {
+        await fetch('/api/channels/viber/unlink', { method: 'POST' });
+        refreshGlobalAuthPill();
+        openGlobalAlertsModal('viber');
+      } catch (e) {}
+    }
+
+    async function saveNotificationPreferences() {
+      const payload = {
+        alert_breaking: document.getElementById('prefAlertBreaking').checked,
+        alert_tenders: document.getElementById('prefAlertTenders').checked,
+        alert_jobs: document.getElementById('prefAlertJobs').checked,
+        alert_obituaries: document.getElementById('prefAlertJanaza').checked
+      };
+      try {
+        const res = await fetch('/api/account/alerts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('Preferences saved successfully!');
+          closeGlobalAlertsModal();
+        } else {
+          alert('Failed to save preferences.');
+        }
+      } catch (e) {
+        alert('Network error saving preferences.');
+      }
+    }
+
+    // Global Search Interceptor (Single App Bar)
+    let searchDebounceTimer = null;
+    function handleGlobalSearch(query) {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        const q = (query || '').trim();
+        const currentPath = window.location.pathname;
+        if (currentPath === '/bids') {
+          window.location.href = '/bids' + (q ? '?q=' + encodeURIComponent(q) : '');
+        } else if (currentPath === '/jobs') {
+          window.location.href = '/jobs' + (q ? '?q=' + encodeURIComponent(q) : '');
+        } else if (currentPath === '/rentals') {
+          window.location.href = '/rentals' + (q ? '?q=' + encodeURIComponent(q) : '');
+        } else if (currentPath === '/obituaries') {
+          window.location.href = '/obituaries' + (q ? '?q=' + encodeURIComponent(q) : '');
+        } else {
+          // Default to live wire search
+          const noResults = document.getElementById('noResults');
+          const cards = document.querySelectorAll('.story-card');
+          let matchCount = 0;
+          cards.forEach(card => {
+            const headline = (card.querySelector('.card-headline') || {}).textContent || '';
+            const summary = (card.querySelector('.card-summary') || {}).textContent || '';
+            const match = !q || headline.toLowerCase().includes(q.toLowerCase()) || summary.toLowerCase().includes(q.toLowerCase());
+            card.style.display = match ? '' : 'none';
+            if (match) matchCount++;
+          });
+          if (noResults) noResults.style.display = (matchCount === 0 && cards.length > 0) ? 'block' : 'none';
+        }
+      }, 300);
+    }
+
+    // Global Follow helper callable anywhere
+    function promptAuthForFollow(targetType, targetId, targetTitle) {
+      sessionStorage.setItem('khulaasaa_pending_follow', JSON.stringify({
+        target_type: targetType,
+        target_id: targetId,
+        target_title: targetTitle || targetId
+      }));
+      openGlobalAlertsModal('auth');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check query parameter trigger: ?auth=1 or ?auth=register
+      const urlParams = new URLSearchParams(window.location.search);
+      const authAction = urlParams.get('auth');
+      if (authAction) {
+        openGlobalAlertsModal(authAction === 'register' ? 'register' : 'auth');
+      }
+
+      // Smooth navigation prefetching
+      document.querySelectorAll('a[href^="/"]').forEach(link => {
+        const triggerPrefetch = () => {
+          const href = link.getAttribute('href');
+          if (href && !href.startsWith('/api') && !document.querySelector(`link[rel="prefetch"][href="${href}"]`)) {
+            const prefetchLink = document.createElement('link');
+            prefetchLink.rel = 'prefetch';
+            prefetchLink.href = href;
+            document.head.appendChild(prefetchLink);
+          }
+        };
+        link.addEventListener('mouseenter', triggerPrefetch, { once: true });
+        link.addEventListener('touchstart', triggerPrefetch, { passive: true, once: true });
+      });
+    });
+  </script>

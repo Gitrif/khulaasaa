@@ -102,3 +102,22 @@ def get_current_user(request: Request) -> Optional[dict[str, Any]]:
             return get_user_from_session(conn, token)
     except Exception:
         return None
+
+
+def is_authorized_editor(request: Request) -> bool:
+    """Non-blocking check whether the request possesses editor/admin authorization."""
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Basic "):
+        import base64
+        try:
+            raw = base64.b64decode(auth_header[6:].strip()).decode("utf-8")
+            u, p = raw.split(":", 1)
+            if secrets.compare_digest(u, EDITOR_USER) and secrets.compare_digest(p, EDITOR_PASS):
+                return True
+        except Exception:
+            pass
+
+    user = get_current_user(request)
+    if user and (user.get("role") in ("admin", "editor") or user.get("is_admin")):
+        return True
+    return False

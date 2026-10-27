@@ -1,0 +1,48 @@
+  <!-- UNIVERSAL SOURCES MODAL (Triggered by 'x number of sources' on cards) -->
+  <div id="globalSourcesModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeSourcesModal()">
+    <div class="bg-paper border border-hairline max-w-md w-full p-6 shadow-2xl relative rounded-md flex flex-col" onclick="event.stopPropagation()">
+      <button class="absolute top-4 right-4 text-slate hover:text-ink text-2xl font-bold cursor-pointer" onclick="closeSourcesModal()">&times;</button>
+      
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-lagoon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <h3 id="globalSourcesModalHeadline" class="font-serif-display text-base font-bold text-ink truncate max-w-[280px] sm:max-w-[320px]">
+          Story Sources
+        </h3>
+      </div>
+      <p id="globalSourcesModalSubtitle" class="text-xs text-slate mb-4">
+        Cross-checked coverage across independent outlets:
+      </p>
+
+      <div id="globalSourcesModalList" class="flex flex-col gap-2 max-h-[340px] overflow-y-auto no-scrollbar">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-hairline text-right">
+        <button type="button" onclick="closeSourcesModal()" class="px-4 py-1.5 text-xs font-semibold rounded bg-paper-soft hover:bg-cream text-ink border border-hairline transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openSourcesModal(evt, cardId, headline) {
+      if (evt) evt.stopPropagation();
+      const dataEl = document.getElementById('sources-data-' + cardId);
+      const listEl = document.getElementById('globalSourcesModalList');
+      const titleEl = document.getElementById('globalSourcesModalHeadline');
+      if (dataEl && listEl) {
+        listEl.innerHTML = dataEl.innerHTML;
+      }
+      if (titleEl && headline) {
+        titleEl.textContent = headline;
+      }
+      const modal = document.getElementById('globalSourcesModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeSourcesModal() {
+      const modal = document.getElementById('globalSourcesModal');
+      if (modal) modal.classList.add('hidden');
+    }
+  </script>

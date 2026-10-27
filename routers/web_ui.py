@@ -6,14 +6,17 @@ collections, tenders/bids, jobs, obituaries, and CV creator.
 from __future__ import annotations
 
 import html
+import logging
 import os
 import urllib.parse
 from typing import Optional
 
+logger = logging.getLogger(__name__)
+
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from core.deps import get_current_user, templates
+from core.deps import get_current_user, is_authorized_editor, templates
 from data.database import (
     ATOLL_TAXONOMY,
     get_agency_portal_statistics,
@@ -73,7 +76,13 @@ def public_feed(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
     use_live = (source != "mock")
-    events = [enrich_event(e) for e in get_live_news(force_refresh=(refresh == "1"))] if use_live else [enrich_event(e) for e in DEFAULT_EVENTS]
+    force_ref = False
+    if refresh == "1":
+        if is_authorized_editor(request):
+            force_ref = True
+        else:
+            logger.info("Ignoring unauthorized manual refresh on /")
+    events = [enrich_event(e) for e in get_live_news(force_refresh=force_ref)] if use_live else [enrich_event(e) for e in DEFAULT_EVENTS]
     raw_events = events
 
     # Collect tags that actually have matching stories or milestones

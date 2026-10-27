@@ -32,6 +32,20 @@ NEWS_CACHE_TTL_SECONDS = 180  # 3 minutes
 _LIVE_NEWS_LOCK = threading.Lock()
 _LIVE_NEWS_IS_SYNCING: bool = False
 _LIVE_NEWS_LAST_SYNC: float = 0.0
+_LIVE_NEWS_LAST_ATTEMPT: float = 0.0
+_LIVE_NEWS_LAST_SUCCESS: float = 0.0
+_LIVE_NEWS_LAST_ERROR: Optional[str] = None
+
+
+def get_news_sync_status() -> dict[str, Any]:
+    """Return operational observability status of the news synchronization pipeline."""
+    return {
+        "is_syncing": _LIVE_NEWS_IS_SYNCING,
+        "last_sync": _LIVE_NEWS_LAST_SYNC,
+        "last_attempt": _LIVE_NEWS_LAST_ATTEMPT,
+        "last_success": _LIVE_NEWS_LAST_SUCCESS,
+        "last_error": _LIVE_NEWS_LAST_ERROR,
+    }
 
 
 def init_news_cache() -> None:
@@ -49,7 +63,8 @@ def init_news_cache() -> None:
 
 def _run_news_sync() -> None:
     """Background worker to fetch live news and obituaries from external outlets without blocking web traffic."""
-    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC
+    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC, _LIVE_NEWS_LAST_ATTEMPT, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ERROR
+    _LIVE_NEWS_LAST_ATTEMPT = time.time()
     try:
         raw_items = fetch_raw_news_articles()
         news_items, obit_items = split_news_and_obituaries(raw_items)
@@ -93,6 +108,8 @@ def _run_news_sync() -> None:
             _LIVE_NEWS_CACHE["data"] = articles
             _LIVE_NEWS_CACHE["timestamp"] = time.time()
             _LIVE_NEWS_LAST_SYNC = time.time()
+            _LIVE_NEWS_LAST_SUCCESS = time.time()
+            _LIVE_NEWS_LAST_ERROR = None
 
             # Dispatch legacy broadcast alerts with isolated transaction
             try:
@@ -142,21 +159,23 @@ def _run_news_sync() -> None:
             except Exception as e:
                 log_db_error(logger, "evaluate_news_alerts_batch", "services.news_service", e)
     except Exception as e:
+        _LIVE_NEWS_LAST_ERROR = str(e)
         logger.warning("Background news sync failed: %s", e)
     finally:
-        _LIVE_NEWS_LAST_SYNC = time.time()
         with _LIVE_NEWS_LOCK:
             _LIVE_NEWS_IS_SYNCING = False
 
 
 def trigger_news_background_sync(force: bool = False) -> bool:
     """Schedule asynchronous news ingestion if TTL expired and not already running."""
-    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC
+    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ATTEMPT
     now = time.time()
     with _LIVE_NEWS_LOCK:
         if _LIVE_NEWS_IS_SYNCING:
             return False
-        if not force and _LIVE_NEWS_LAST_SYNC > 0 and (now - _LIVE_NEWS_LAST_SYNC < NEWS_CACHE_TTL_SECONDS):
+        if not force and _LIVE_NEWS_LAST_ATTEMPT > 0 and (now - _LIVE_NEWS_LAST_ATTEMPT < 30):
+            return False
+        if not force and _LIVE_NEWS_LAST_SUCCESS > 0 and (now - _LIVE_NEWS_LAST_SUCCESS < NEWS_CACHE_TTL_SECONDS):
             return False
         _LIVE_NEWS_IS_SYNCING = True
         worker = threading.Thread(target=_run_news_sync, daemon=True, name="NewsSyncWorker")
@@ -220,18 +239,16 @@ def enrich_event(evt: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
-    """Fetch live news across Maldivian media outlets, return cached data instantly, sync in background."""
-    now = time.time()
+    """Return live or cached news from memory/SQLite. Never triggers background scraping on ordinary read."""
+    if force_refresh:
+        trigger_news_background_sync(force=True)
 
+    now = time.time()
     # Fast Path 1: Fresh in-memory cache
-    if not force_refresh and _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
+    if _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
 
-    # Only trigger background sync if forced or if cache has never been populated
-    if force_refresh or not _LIVE_NEWS_CACHE["data"]:
-        trigger_news_background_sync(force=force_refresh)
-
-    # Fast Path 2: Stale in-memory cache is served immediately while background sync refreshes
+    # Fast Path 2: Stale in-memory cache is preserved and served immediately
     if _LIVE_NEWS_CACHE["data"]:
         return _LIVE_NEWS_CACHE["data"]
 

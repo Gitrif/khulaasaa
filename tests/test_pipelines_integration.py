@@ -62,7 +62,7 @@ def test_news_pipeline_e2e(client):
 
     # 2. Verify records exist in database
     with get_db() as conn:
-        articles_in_db = query_articles(conn, limit=100)
+        articles_in_db = query_articles(conn, limit=1000)
         found_urls = {a.get("url") for a in articles_in_db}
         assert "https://sun.mv/test-e2e-renewable-1" in found_urls
         assert "https://dhauru.com/test-e2e-renewable-2" in found_urls
@@ -73,7 +73,7 @@ def test_news_pipeline_e2e(client):
         _run_news_sync()
 
     with get_db() as conn:
-        articles_after = query_articles(conn, limit=100)
+        articles_after = query_articles(conn, limit=1000)
         assert len(articles_after) == initial_count
 
     # 4. Verify API / UI rendering of live news
@@ -111,7 +111,9 @@ def test_tenders_pipeline_e2e(client):
     ]
 
     with patch("services.tenders_service.fetch_listing", return_value=mock_notices), \
-         patch("services.tenders_service.fetch_all_agency_portals", return_value=[]):
+         patch("services.tenders_service.fetch_all_agency_portals", return_value=[]), \
+         patch("services.tenders_service.dispatch_tender_alerts"), \
+         patch("services.tenders_service.dispatch_viber_bid_alerts"):
         _run_bids_sync()
 
     # 1. Verify persisted in DB
@@ -125,7 +127,9 @@ def test_tenders_pipeline_e2e(client):
 
     # 2. Verify idempotency: re-running does not duplicate
     with patch("services.tenders_service.fetch_listing", return_value=mock_notices), \
-         patch("services.tenders_service.fetch_all_agency_portals", return_value=[]):
+         patch("services.tenders_service.fetch_all_agency_portals", return_value=[]), \
+         patch("services.tenders_service.dispatch_tender_alerts"), \
+         patch("services.tenders_service.dispatch_viber_bid_alerts"):
         _run_bids_sync()
 
     with get_db() as conn:

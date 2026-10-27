@@ -1,0 +1,63 @@
+  <!-- SPECIFIC JOB / EMPLOYER / DISCIPLINE VACANCY ALERT MODAL -->
+  <div id="jobSpecificAlertModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeJobAlertModal()">
+    <div class="bg-paper border border-hairline max-w-md w-full p-5 sm:p-6 shadow-2xl relative rounded-md flex flex-col" onclick="event.stopPropagation()">
+      <button class="absolute top-4 right-4 text-slate hover:text-ink text-2xl font-bold cursor-pointer" onclick="closeJobAlertModal()">&times;</button>
+      
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold mb-3 self-start">
+        <svg class="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 20 20">
+          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+        </svg>
+        <span>Custom Vacancy Alert</span>
+      </div>
+
+      <h3 class="font-serif-display text-lg font-bold text-ink mb-1">
+        Set Instant Job Alert
+      </h3>
+      <p class="text-xs text-slate mb-4">
+        Receive instant alerts whenever a matching vacancy is announced by government agencies, SOEs, or private employers.
+      </p>
+
+      <form onsubmit="saveJobAlertPreferences(event)" class="space-y-4">
+        <div class="space-y-2.5 bg-paper-soft p-3.5 rounded border border-hairline">
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" id="alertCheckDiscipline" class="mt-0.5 rounded text-lagoon focus:ring-lagoon" checked>
+            <div>
+              <span class="text-xs font-bold text-ink block">Alert for this Discipline:</span>
+              <span id="alertModalDisciplineName" class="text-xs text-slate font-medium">Administration &amp; Management</span>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-2.5 cursor-pointer pt-2 border-t border-hairline/60">
+            <input type="checkbox" id="alertCheckEmployer" class="mt-0.5 rounded text-lagoon focus:ring-lagoon" checked>
+            <div>
+              <span class="text-xs font-bold text-ink block">Alert for this Employer:</span>
+              <span id="alertModalEmployerName" class="text-xs text-slate font-medium">State Trading Organization</span>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-ink block mb-1.5">Delivery Channel:</span>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2.5 rounded border border-hairline bg-white cursor-pointer hover:border-slate-400">
+              <input type="radio" name="alertChannel" value="telegram" checked class="text-lagoon">
+              <span class="text-xs font-medium text-ink">Telegram</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded border border-hairline bg-white cursor-pointer hover:border-slate-400">
+              <input type="radio" name="alertChannel" value="viber" class="text-lagoon">
+              <span class="text-xs font-medium text-ink">Viber</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="submit" class="flex-1 py-2 px-4 rounded text-xs font-bold text-center text-white bg-ink hover:bg-slate-800 transition shadow-xs cursor-pointer">
+            Activate Alerts
+          </button>
+          <button type="button" onclick="closeJobAlertModal()" class="py-2 px-3 rounded text-xs font-medium text-slate hover:text-ink transition border border-hairline cursor-pointer">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>

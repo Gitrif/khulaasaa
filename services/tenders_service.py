@@ -24,12 +24,15 @@ logger = logging.getLogger(__name__)
 
 _LIVE_BIDS_LOCK = threading.Lock()
 _LIVE_BIDS_LAST_SYNC: float = 0.0
+_LIVE_BIDS_LAST_ATTEMPT: float = 0.0
+_LIVE_BIDS_LAST_SUCCESS: float = 0.0
 _LIVE_BIDS_IS_SYNCING: bool = False
 CACHE_TTL_SECONDS = 300  # 5 minutes
 
 _LIVE_BIDS_SYNC_STATUS: dict[str, Any] = {
     "status": "idle",
     "last_run": None,
+    "last_attempt": None,
     "last_success": None,
     "last_error": None,
     "gazette_notices_count": 0,
@@ -66,10 +69,12 @@ def prepare_bids_presentation(rows: list[dict[str, Any]]) -> list[dict[str, Any]
 
 def _run_bids_sync() -> None:
     """Internal worker running in background thread to fetch Gazette and agency tenders."""
-    global _LIVE_BIDS_IS_SYNCING, _LIVE_BIDS_LAST_SYNC
+    global _LIVE_JOBS_IS_SYNCING, _LIVE_BIDS_LAST_SYNC, _LIVE_BIDS_LAST_ATTEMPT, _LIVE_BIDS_LAST_SUCCESS, _LIVE_BIDS_IS_SYNCING
     start_iso = datetime.datetime.now().isoformat()
+    _LIVE_BIDS_LAST_ATTEMPT = time.time()
     _LIVE_BIDS_SYNC_STATUS["status"] = "running"
     _LIVE_BIDS_SYNC_STATUS["last_run"] = start_iso
+    _LIVE_BIDS_SYNC_STATUS["last_attempt"] = start_iso
     errors: list[str] = []
 
     try:
@@ -281,6 +286,8 @@ def _run_bids_sync() -> None:
                 except Exception as exc:
                     log_db_error(logger, "dispatch_viber_bid_alerts", "services.tenders_service", exc)
 
+        _LIVE_BIDS_LAST_SUCCESS = time.time()
+        _LIVE_BIDS_LAST_SYNC = time.time()
         _LIVE_BIDS_SYNC_STATUS.update({
             "status": "success_with_errors" if errors else "success",
             "last_success": datetime.datetime.now().isoformat(),
@@ -295,18 +302,20 @@ def _run_bids_sync() -> None:
             "last_error": str(exc),
         })
     finally:
-        _LIVE_BIDS_LAST_SYNC = time.time()
-        _LIVE_BIDS_IS_SYNCING = False
+        with _LIVE_BIDS_LOCK:
+            _LIVE_BIDS_IS_SYNCING = False
 
 
 def trigger_bids_background_sync(force: bool = False) -> bool:
     """Trigger background scraping of tenders if not already running and TTL expired."""
-    global _LIVE_BIDS_IS_SYNCING, _LIVE_BIDS_LAST_SYNC
+    global _LIVE_BIDS_IS_SYNCING, _LIVE_BIDS_LAST_SUCCESS, _LIVE_BIDS_LAST_ATTEMPT
     now = time.time()
     with _LIVE_BIDS_LOCK:
         if _LIVE_BIDS_IS_SYNCING:
             return False
-        if not force and _LIVE_BIDS_LAST_SYNC > 0 and (now - _LIVE_BIDS_LAST_SYNC < CACHE_TTL_SECONDS):
+        if not force and _LIVE_BIDS_LAST_ATTEMPT > 0 and (now - _LIVE_BIDS_LAST_ATTEMPT < 30):
+            return False
+        if not force and _LIVE_BIDS_LAST_SUCCESS > 0 and (now - _LIVE_BIDS_LAST_SUCCESS < CACHE_TTL_SECONDS):
             return False
         _LIVE_BIDS_IS_SYNCING = True
         worker = threading.Thread(target=_run_bids_sync, daemon=True, name="BidsSyncWorker")
@@ -315,7 +324,8 @@ def trigger_bids_background_sync(force: bool = False) -> bool:
 
 
 def get_live_bids(force_refresh: bool = False) -> list[dict[str, Any]]:
-    """Ensures background sync is scheduled and returns DB bids instantly."""
-    trigger_bids_background_sync(force=force_refresh)
+    """Return persisted tenders from SQLite. Never triggers background scraping on ordinary read."""
+    if force_refresh:
+        trigger_bids_background_sync(force=True)
     with get_db() as conn:
         return query_bids(conn)

@@ -1,14 +1,68 @@
 # AGENT GUIDELINES & ARCHITECTURE CONTRACT: KHULAASAA
 
-## 1. Strict Codebase Invariants
-- **Line Count Cap (< 500 Lines)**: Every Python (`.py`) and JavaScript (`.js`) file must strictly stay below 500 lines. Break modules by domain/responsibility (e.g., formatters, clients, dispatchers, keyboards).
-- **Clean Architecture & Separation of Concerns**:
-  - **Presentation Layer (UI)**: Jinja2 templates in `templates/` and client JS/CSS in `static/`. Templates must not execute business logic or raw SQL.
-  - **Routing Layer**: FastAPI APIRouters in `routers/` handle HTTP requests, input validation, and HTTP exceptions.
-  - **Business Logic / Services**: `scrapers/`, `alerts/`, and `services/` contain pure business rules, web scraping, formatters, and dispatch logic.
-  - **Data Access Layer**: `data/database.py` (facade) and `data/repos/` contain pure SQL/repository operations.
-- **Zero-Emoji Design Policy**: Zero emojis in Telegram bot messages, menus, callbacks, and web templates. Use clean typography, badges, and SVG icons.
-- **Lint & Clean Verification**: Always run `python scripts/lint_cleaner.py` before finalizing changes.
+## 1. File Size, Modularity & Code Organization Policy
+
+### 1.1 Purpose
+All code must remain readable, modular, maintainable, testable, and easy for another developer or AI coding agent to understand.
+The objective is not to minimize line counts at any cost. The objective is to prevent oversized, tightly coupled files, duplicated business logic, unclear responsibilities, and unnecessary architectural complexity.
+**The 500-line guideline is a maintainability warning, not an unconditional splitting rule.**
+This policy applies to all production code, including Python modules, FastAPI routers, services, JavaScript, CSS, Jinja templates, models, schemas, background workers, and supporting modules.
+
+### 1.2 File-Size Guidelines
+| File size | Required action |
+|---|---|
+| Under 500 lines | Preferred. Maintain clear responsibility and cohesion. |
+| 500–800 lines | Review the module for multiple responsibilities, duplicated logic, and opportunities for meaningful extraction. Document why it remains large if no beneficial refactoring is warranted. |
+| Over 800 lines | Mandatory architectural review. Refactor where beneficial or document a specific technical justification for retaining the file. |
+
+Count actual source lines consistently. Do not manipulate blank lines, comments, formatting, or file boundaries merely to meet the thresholds.
+
+### 1.3 One Clear Responsibility per Module
+- **Routers**: HTTP requests, parameter parsing, authentication and authorization enforcement, service orchestration, and response selection.
+- **Services**: Business rules, application workflows, ingestion orchestration, and coordination between persistence and external systems.
+- **Repositories/Data-Access Modules**: Reusable database access and query logic where separation provides a clear benefit.
+- **Models and Schemas**: Domain data structures, persistence mappings, and validation contracts appropriate to their layer.
+- **Presentation Helpers**: Reusable formatting, view-model construction, filter options, and template-ready data preparation.
+- **Jinja Templates**: HTML rendering and minimal presentation conditionals. Do not execute SQL or heavy business transformations in templates.
+- **Frontend JavaScript**: Browser interactions, UI state, and communication with existing server endpoints.
+- **CSS**: Styling, layout, and responsive presentation.
+- **Background Workers**: Scheduled or asynchronous execution, with clear ownership of task lifecycle and concurrency.
+
+### 1.4 Split by Cohesion, Not by Line Count
+When considering a refactor, ask:
+1. Does this file contain multiple independent responsibilities?
+2. Can a group of functions or classes be understood and tested independently?
+3. Does extracting that group establish a clearer interface?
+4. Will the extraction reduce coupling or make future changes safer?
+5. Can the new module be reused without creating circular imports or hidden dependencies?
+6. Will another developer be able to locate the relevant behavior more easily?
+
+*Split the module when the answers indicate a meaningful architectural improvement. Keep related code together when separating it would make the system harder to understand.*
+
+### 1.5 Prohibited Practices
+- Do not split files into trivial modules solely to meet the 500-line guideline.
+- Do not create one-function files without a meaningful architectural reason.
+- Do not introduce excessive wrappers, forwarding functions, or redundant abstraction layers.
+- Do not move business logic into helpers without clarifying ownership or reducing coupling.
+- Do not create circular imports or dependency chains that are harder to follow than the original implementation.
+- Do not duplicate business rules across routers, services, templates, JavaScript, or multiple service modules.
+- Do not create competing implementations of the same feature.
+- Do not rename, relocate, or reorganize unrelated files during a narrowly scoped task.
+- Do not rewrite working functionality merely to satisfy a line-count target.
+- Do not remove tests, comments, validation, authorization checks, or error handling to reduce file size.
+
+**A refactor that reduces line count but increases complexity is not an acceptable refactor.**
+
+### 1.6 One Source of Truth & Dependency Direction
+Each business rule must have one authoritative implementation.
+- Lower-level shared modules must not depend on high-level routers or templates.
+- Presentation modules must not become the owners of business rules.
+- Business services must not depend on browser-specific code.
+- Shared modules must not become dumping grounds for unrelated functions.
+- Authorization and security enforcement remain on the server, even when UI elements control button visibility.
+
+### 1.7 Zero-Emoji Design Policy & Verification
+Zero emojis in Telegram bot messages, menus, callbacks, alerts, and web templates. Use clean typography, badges, and SVG icons. Always run `python scripts/lint_cleaner.py` before finalizing changes.
 
 ---
 

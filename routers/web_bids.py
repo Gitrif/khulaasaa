@@ -11,7 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from core.deps import get_current_user, templates
+from core.deps import get_current_user, is_authorized_editor, templates
 from data.database import (
     get_agency_portal_statistics,
     get_bids_filter_options,
@@ -53,7 +53,10 @@ def bids(
             )
     use_live = (source != "mock")
     if refresh == "1":
-        trigger_bids_background_sync(force=True)
+        if is_authorized_editor(request):
+            trigger_bids_background_sync(force=True)
+        else:
+            logger.info("Ignoring unauthorized manual refresh on /bids")
 
     with get_db() as conn:
         rows = query_bids(

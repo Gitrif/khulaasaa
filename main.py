@@ -165,33 +165,41 @@ def _periodic_sync_worker():
     while not _SHUTDOWN_EVENT.is_set():
         iteration += 1
         # News sync every iteration (approx every 3 mins)
+        t0 = time.time()
         try:
             get_live_news(force_refresh=True)
-        except Exception:
-            pass
+            logger.info("Periodic coordinator: news sync scheduled (took %.2fs)", time.time() - t0)
+        except Exception as exc:
+            logger.warning("Periodic coordinator news sync failed: %s", exc)
 
         # Tenders sync every 2 iterations (approx every 6 mins)
         if iteration % 2 == 0:
+            t0 = time.time()
             try:
                 trigger_bids_background_sync(force=True)
-            except Exception:
-                pass
+                logger.info("Periodic coordinator: tenders sync scheduled (took %.2fs)", time.time() - t0)
+            except Exception as exc:
+                logger.warning("Periodic coordinator tenders sync failed: %s", exc)
 
         # Jobs sync on first run and every 5 iterations (approx every 15 mins)
         if iteration == 1 or iteration % 5 == 0:
+            t0 = time.time()
             try:
                 trigger_jobs_background_sync(force=True)
-            except Exception:
-                pass
+                logger.info("Periodic coordinator: jobs sync scheduled (took %.2fs)", time.time() - t0)
+            except Exception as exc:
+                logger.warning("Periodic coordinator jobs sync failed: %s", exc)
 
         # Rentals sync on first run and every 20 iterations (approx every 60 mins)
         if iteration == 1 or iteration % 20 == 0:
+            t0 = time.time()
             try:
                 from data.scrapers.rentals_scraper import rescrape_and_sync_all_rentals
                 with get_db() as conn:
-                    rescrape_and_sync_all_rentals(conn)
-            except Exception:
-                pass
+                    cnt = rescrape_and_sync_all_rentals(conn)
+                logger.info("Periodic coordinator: rentals sync completed, %d records synced (took %.2fs)", cnt, time.time() - t0)
+            except Exception as exc:
+                logger.warning("Periodic coordinator rentals sync failed: %s", exc)
 
         if _SHUTDOWN_EVENT.wait(timeout=180):
             break

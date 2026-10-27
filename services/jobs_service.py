@@ -36,14 +36,9 @@ def get_jobs_sync_status() -> dict[str, Any]:
     return dict(_JOBS_SYNC_STATUS)
 
 
-def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
-    """Execute jobs synchronization with concurrency protection and operational tracking."""
-    global _LIVE_JOBS_IS_SYNCING, _LIVE_JOBS_LAST_SYNC
-    with _LIVE_JOBS_LOCK:
-        if _LIVE_JOBS_IS_SYNCING:
-            return {"status": "already_running"}
-        _LIVE_JOBS_IS_SYNCING = True
-
+def _execute_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
+    """Internal execution of jobs scraping and database synchronization."""
+    global _LIVE_JOBS_LAST_SYNC
     start_iso = datetime.datetime.now().isoformat()
     _JOBS_SYNC_STATUS["status"] = "running"
     _JOBS_SYNC_STATUS["last_run"] = start_iso
@@ -79,13 +74,39 @@ def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]
             "last_error": str(exc),
         })
         return {"status": "failed", "error": str(exc)}
+
+
+def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
+    """Execute jobs synchronization synchronously with concurrency protection."""
+    global _LIVE_JOBS_IS_SYNCING
+    with _LIVE_JOBS_LOCK:
+        if _LIVE_JOBS_IS_SYNCING:
+            return {"status": "already_running"}
+        _LIVE_JOBS_IS_SYNCING = True
+
+    try:
+        return _execute_jobs_sync(pages=pages, trigger_alerts=trigger_alerts)
+    finally:
+        with _LIVE_JOBS_LOCK:
+            _LIVE_JOBS_IS_SYNCING = False
+
+
+def _run_jobs_worker(pages: int = 1, trigger_alerts: bool = True) -> None:
+    """Background worker entry point guaranteeing atomic lock release in finally."""
+    global _LIVE_JOBS_IS_SYNCING
+    try:
+        _execute_jobs_sync(pages=pages, trigger_alerts=trigger_alerts)
     finally:
         with _LIVE_JOBS_LOCK:
             _LIVE_JOBS_IS_SYNCING = False
 
 
 def trigger_jobs_background_sync(force: bool = False, pages: int = 1) -> bool:
-    """Schedule asynchronous jobs synchronization if TTL expired and not already active."""
+    """
+    Atomically schedule asynchronous jobs synchronization.
+    Guarantees that at most one background sync is scheduled or executing at any time.
+    Releases reservation if worker thread startup fails.
+    """
     global _LIVE_JOBS_IS_SYNCING, _LIVE_JOBS_LAST_SYNC
     now = time.time()
     with _LIVE_JOBS_LOCK:
@@ -93,15 +114,22 @@ def trigger_jobs_background_sync(force: bool = False, pages: int = 1) -> bool:
             return False
         if not force and _LIVE_JOBS_LAST_SYNC > 0 and (now - _LIVE_JOBS_LAST_SYNC < JOBS_CACHE_TTL_SECONDS):
             return False
+        # Atomic reservation right under the lock
+        _LIVE_JOBS_IS_SYNCING = True
 
-    worker = threading.Thread(
-        target=run_jobs_sync,
-        kwargs={"pages": pages, "trigger_alerts": True},
-        daemon=True,
-        name="JobsSyncWorker"
-    )
-    worker.start()
-    return True
+        try:
+            worker = threading.Thread(
+                target=_run_jobs_worker,
+                kwargs={"pages": pages, "trigger_alerts": True},
+                daemon=True,
+                name="JobsSyncWorker"
+            )
+            worker.start()
+            return True
+        except Exception as exc:
+            logger.error("Failed to start JobsSyncWorker thread: %s", exc)
+            _LIVE_JOBS_IS_SYNCING = False
+            return False
 
 
 def get_employer_logo(agency: str) -> Optional[str]:
