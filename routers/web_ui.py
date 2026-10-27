@@ -73,10 +73,8 @@ def public_feed(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
     use_live = (source != "mock")
-    raw_events = [enrich_event(e) for e in get_live_news(force_refresh=(refresh == "1"))] if use_live else [enrich_event(e) for e in DEFAULT_EVENTS]
-    if not raw_events and use_live:
-        raw_events = [enrich_event(e) for e in DEFAULT_EVENTS]
-    events = raw_events
+    events = [enrich_event(e) for e in get_live_news(force_refresh=(refresh == "1"))] if use_live else [enrich_event(e) for e in DEFAULT_EVENTS]
+    raw_events = events
 
     # Collect tags that actually have matching stories or milestones
     active_tag_ids = set()

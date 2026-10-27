@@ -41,7 +41,8 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
         db_jobs = query_jobs(conn, discipline=discipline, search=q)
         all_disciplines = get_job_disciplines(conn)
 
-    trigger_jobs_background_sync(force=False)
+    if request.query_params.get("refresh") == "1":
+        trigger_jobs_background_sync(force=True)
 
     import os
     demo_mode = os.environ.get("KHULAASAA_DEMO_MODE", "").lower() in ("1", "true", "yes") or bool(os.environ.get("PYTEST_CURRENT_TEST"))

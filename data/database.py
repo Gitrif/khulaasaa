@@ -133,3 +133,23 @@ from data.repos.notifications import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def log_db_error(logger_obj: logging.Logger, operation: str, module: str, exc: Exception) -> None:
+    """Log structured diagnostic info for database exceptions including PostgreSQL SQLSTATE safely."""
+    import re
+    sqlstate = getattr(exc, "pgcode", None) or getattr(exc, "sqlstate", None)
+    cls_name = exc.__class__.__name__
+    raw_msg = str(exc).split("\n")[0].strip()
+    safe_msg = re.sub(r"://[^@]+@", "://***:***@", raw_msg)[:200]
+    if sqlstate:
+        logger_obj.warning(
+            "DB Error in %s [%s] (%s, SQLSTATE=%s): %s",
+            module, operation, cls_name, sqlstate, safe_msg
+        )
+    else:
+        logger_obj.warning(
+            "DB Error in %s [%s] (%s): %s",
+            module, operation, cls_name, safe_msg
+        )
+

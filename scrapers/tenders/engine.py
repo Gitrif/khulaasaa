@@ -5,6 +5,7 @@ Runs scrapers across all Maldivian agencies and SOEs concurrently with soft-fail
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional

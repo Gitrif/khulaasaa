@@ -69,21 +69,25 @@ def _run_news_sync() -> None:
                 logger.warning("Error during obituary ingestion: %s", e)
 
         # 2. Persist individual publisher articles to canonical database
+        from data.database import log_db_error
+        persisted_news_items = []
         if news_items:
             with get_db() as conn:
                 for item in news_items:
                     try:
+                        conn.execute("SAVEPOINT art_sp;")
                         upsert_article(conn, item)
+                        conn.execute("RELEASE SAVEPOINT art_sp;")
+                        persisted_news_items.append(item)
                     except Exception as exc:
-                        logger.debug("Failed upserting article %s: %s", item.get("id"), exc)
-                        if hasattr(conn, "rollback"):
-                            try:
-                                conn.rollback()
-                            except Exception:
-                                pass
+                        try:
+                            conn.execute("ROLLBACK TO SAVEPOINT art_sp;")
+                        except Exception:
+                            pass
+                        log_db_error(logger, f"upsert_article_{item.get('id')}", "services.news_service", exc)
 
         # 3. Cluster regular news articles across publishers for feed presentation
-        articles = cluster_articles(news_items) if news_items else []
+        articles = cluster_articles(persisted_news_items) if persisted_news_items else []
         if articles:
             # Update in-memory cache immediately so web requests get fresh news with 0ms delay
             _LIVE_NEWS_CACHE["data"] = articles
@@ -95,7 +99,7 @@ def _run_news_sync() -> None:
                 with get_db() as conn:
                     dispatch_news_alerts(conn, articles)
             except Exception as e:
-                logger.warning("Failed to dispatch news alerts: %s", e)
+                log_db_error(logger, "dispatch_news_alerts", "services.news_service", e)
 
             # Evaluate personalized follow and breaking alerts strictly after persistence
             try:
@@ -105,29 +109,38 @@ def _run_news_sync() -> None:
                     for art in articles:
                         s_id = art.get("story_id") or art.get("id")
                         if s_id:
-                            is_brk = bool(art.get("is_breaking") or art.get("category") == "breaking")
-                            topics = [art.get("category")] if art.get("category") else []
-                            headline = art.get("headline", "")
-                            summary = art.get("summary")
-                            sources = art.get("sources") or []
-                            fp_raw = f"{headline.strip()}|{(summary or '').strip()[:100]}|{len(sources)}"
-                            fp = hashlib.sha256(fp_raw.encode("utf-8")).hexdigest()[:10]
-                            process_content_event(
-                                conn,
-                                content_type="news",
-                                content_id=str(s_id),
-                                title=headline,
-                                summary=summary,
-                                url=art.get("url") or f"/story/{s_id}",
-                                is_breaking=is_brk,
-                                topics=topics,
-                                section=art.get("section") or "news",
-                                source_id=art.get("source_name") or art.get("source"),
-                                event_version=art.get("event_version", 1),
-                                update_fingerprint=fp,
-                            )
+                            try:
+                                conn.execute("SAVEPOINT alert_decision_sp;")
+                                is_brk = bool(art.get("is_breaking") or art.get("category") == "breaking")
+                                topics = [art.get("category")] if art.get("category") else []
+                                headline = art.get("headline", "")
+                                summary = art.get("summary")
+                                sources = art.get("sources") or []
+                                fp_raw = f"{headline.strip()}|{(summary or '').strip()[:100]}|{len(sources)}"
+                                fp = hashlib.sha256(fp_raw.encode("utf-8")).hexdigest()[:10]
+                                process_content_event(
+                                    conn,
+                                    content_type="news",
+                                    content_id=str(s_id),
+                                    title=headline,
+                                    summary=summary,
+                                    url=art.get("url") or f"/story/{s_id}",
+                                    is_breaking=is_brk,
+                                    topics=topics,
+                                    section=art.get("section") or "news",
+                                    source_id=art.get("source_name") or art.get("source"),
+                                    event_version=art.get("event_version", 1),
+                                    update_fingerprint=fp,
+                                )
+                                conn.execute("RELEASE SAVEPOINT alert_decision_sp;")
+                            except Exception as exc:
+                                try:
+                                    conn.execute("ROLLBACK TO SAVEPOINT alert_decision_sp;")
+                                except Exception:
+                                    pass
+                                log_db_error(logger, f"process_news_alert_{s_id}", "services.news_service", exc)
             except Exception as e:
-                logger.warning("Failed evaluating news alerts: %s", e)
+                log_db_error(logger, "evaluate_news_alerts_batch", "services.news_service", e)
     except Exception as e:
         logger.warning("Background news sync failed: %s", e)
     finally:
@@ -231,5 +244,5 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
     except Exception as e:
         logger.warning("Error loading cached news articles: %s", e)
 
-    # Default fallback events
-    return DEFAULT_EVENTS
+    # Return empty list when no live or persisted articles exist (never fabricate mock news as live news)
+    return []

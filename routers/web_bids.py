@@ -52,8 +52,8 @@ def bids(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
     use_live = (source != "mock")
-    if use_live:
-        trigger_bids_background_sync(force=(refresh == "1"))
+    if refresh == "1":
+        trigger_bids_background_sync(force=True)
 
     with get_db() as conn:
         rows = query_bids(

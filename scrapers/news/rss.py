@@ -57,7 +57,10 @@ def fetch_rss_posts(
             return cache_entry.get("articles", [])
 
         if resp.status_code != 200:
-            logger.warning("RSS request failed for %s with HTTP %d", url, resp.status_code)
+            if resp.status_code == 403:
+                logger.info("RSS feed %s returned HTTP 403 (cloud IP restricted by publisher); skipping", url)
+            else:
+                logger.warning("RSS request failed for %s with HTTP %d", url, resp.status_code)
             return cache_entry.get("articles", []) if cache_entry else []
 
         root = ET.fromstring(resp.content)

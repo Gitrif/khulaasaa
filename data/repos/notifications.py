@@ -57,6 +57,7 @@ def create_logical_notification(
         return row["id"] if hasattr(row, "keys") else row[0]
 
     try:
+        conn.execute("SAVEPOINT notif_create_sp;")
         cur = conn.execute(
             """
             INSERT INTO notifications (
@@ -64,6 +65,7 @@ def create_logical_notification(
                 reason, reason_target, title, summary, url,
                 is_urgent, frequency
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, event_key) DO UPDATE SET is_urgent = excluded.is_urgent
             RETURNING id;
             """,
             (
@@ -82,16 +84,24 @@ def create_logical_notification(
             ),
         )
         res_row = cur.fetchone()
+        conn.execute("RELEASE SAVEPOINT notif_create_sp;")
         if res_row:
             return res_row["id"] if hasattr(res_row, "keys") else res_row[0]
         return getattr(cur, "lastrowid", None)
-    except Exception:
-        # Race condition or uniqueness violation handled safely by DB constraint across SQLite & PostgreSQL
+    except Exception as exc:
+        try:
+            conn.execute("ROLLBACK TO SAVEPOINT notif_create_sp;")
+        except Exception:
+            pass
         row = conn.execute(
             "SELECT id FROM notifications WHERE user_id = ? AND event_key = ?;",
             (user_id, clean_event),
         ).fetchone()
-        return (row["id"] if hasattr(row, "keys") else row[0]) if row else None
+        if row:
+            return row["id"] if hasattr(row, "keys") else row[0]
+        from data.database import log_db_error
+        log_db_error(logger, "create_logical_notification", "data.repos.notifications", exc)
+        raise
 
 
 def create_notification_delivery(
@@ -122,25 +132,36 @@ def create_notification_delivery(
         return row["id"] if hasattr(row, "keys") else row[0]
 
     try:
+        conn.execute("SAVEPOINT delivery_create_sp;")
         cur = conn.execute(
             """
             INSERT INTO notification_deliveries (
                 notification_id, user_id, channel, destination, status, max_attempts
             ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(notification_id, channel) DO UPDATE SET status = notification_deliveries.status
             RETURNING id;
             """,
             (notification_id, user_id, clean_channel, clean_dest, init_status, max_attempts),
         )
         res_row = cur.fetchone()
+        conn.execute("RELEASE SAVEPOINT delivery_create_sp;")
         if res_row:
             return res_row["id"] if hasattr(res_row, "keys") else res_row[0]
         return getattr(cur, "lastrowid", None)
-    except Exception:
+    except Exception as exc:
+        try:
+            conn.execute("ROLLBACK TO SAVEPOINT delivery_create_sp;")
+        except Exception:
+            pass
         row = conn.execute(
             "SELECT id FROM notification_deliveries WHERE notification_id = ? AND channel = ?;",
             (notification_id, clean_channel),
         ).fetchone()
-        return (row["id"] if hasattr(row, "keys") else row[0]) if row else None
+        if row:
+            return row["id"] if hasattr(row, "keys") else row[0]
+        from data.database import log_db_error
+        log_db_error(logger, "create_notification_delivery", "data.repos.notifications", exc)
+        raise
 
 
 def update_delivery_status(

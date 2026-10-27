@@ -221,11 +221,18 @@ def dispatch_news_alerts(
     # Users with verified accounts receive personalized alerts honoring quiet hours/follows via alert_decision_service.
     # Exclude them from legacy bot DM broadcasts to prevent duplicates, while preserving default_chat public channel.
     registered_chat_ids: set[str] = set()
+    from data.database import log_db_error
     try:
+        conn.execute("SAVEPOINT tg_verified_check;")
         u_rows = conn.execute("SELECT telegram_chat_id FROM users WHERE telegram_chat_id IS NOT NULL AND telegram_verified = 1;").fetchall()
         registered_chat_ids = {str(r[0]) for r in u_rows if r[0]}
-    except Exception:
-        pass
+        conn.execute("RELEASE SAVEPOINT tg_verified_check;")
+    except Exception as exc:
+        try:
+            conn.execute("ROLLBACK TO SAVEPOINT tg_verified_check;")
+        except Exception:
+            pass
+        log_db_error(logger, "check_registered_chat_ids", "alerts.telegram_dispatch", exc)
 
     sent_records: list[dict[str, Any]] = []
 
@@ -470,6 +477,3 @@ DISCIPLINE_KEYS = [
     ("Logistics", "Marine & Logistics"),
     ("Healthcare", "Healthcare"),
 ]
-
-
-from alerts.telegram_broadcast import dispatch_sponsored_broadcast

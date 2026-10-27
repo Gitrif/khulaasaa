@@ -39,9 +39,9 @@ from alerts.telegram_dispatch import (
     dispatch_tender_alerts,
     dispatch_news_alerts,
     dispatch_obituary_alerts,
-    dispatch_sponsored_broadcast,
     dispatch_job_alerts,
 )
+from alerts.telegram_broadcast import dispatch_sponsored_broadcast
 
 # Re-export bot update handling & background polling
 from alerts.telegram_bot import (

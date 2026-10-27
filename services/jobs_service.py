@@ -242,6 +242,14 @@ def enrich_job(job: dict[str, Any]) -> dict[str, Any]:
     # Application Deadline
     j["deadline_info"] = format_deadline(j.get("deadline_iso"))
 
+    pub = j.get("published_date") or j.get("published_iso")
+    if pub:
+        from core.time_utils import calculate_minutes_ago, format_relative_time
+        mins = calculate_minutes_ago(pub)
+        j["posted_ago"] = format_relative_time(mins, pub)
+    else:
+        j["posted_ago"] = None
+
     # Requirements summary
     req = j.get("requirements")
     j["requirements_clean"] = req.strip() if req and req.strip() and req.strip().lower() != "none" else None

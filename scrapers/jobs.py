@@ -442,12 +442,14 @@ def sync_jobs(conn, pages: int = 1, trigger_alerts: bool = True) -> dict[str, An
     updated_jobs = 0
     alerts_sent = 0
 
+    from data.database import log_db_error
     for j in fetched:
         notice_id = j["notice_id"]
         try:
-            # Check if already exists in db
+            conn.execute("SAVEPOINT job_sp;")
             existing = conn.execute("SELECT id FROM jobs WHERE notice_id = ?;", (notice_id,)).fetchone()
             upsert_job(conn, j)
+            conn.execute("RELEASE SAVEPOINT job_sp;")
             if not existing:
                 new_jobs += 1
                 if trigger_alerts:
@@ -455,21 +457,20 @@ def sync_jobs(conn, pages: int = 1, trigger_alerts: bool = True) -> dict[str, An
                         res = dispatch_job_alerts(j, conn=conn)
                         alerts_sent += res.get("delivered", 0)
                     except Exception as exc:
-                        logger.warning(f"Error dispatching job alert for {notice_id}: {exc}")
+                        log_db_error(logger, f"dispatch_job_alert_{notice_id}", "scrapers.jobs", exc)
                     try:
                         from alerts.viber import dispatch_viber_job_alerts
                         dispatch_viber_job_alerts(conn, [j])
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        log_db_error(logger, f"dispatch_viber_job_{notice_id}", "scrapers.jobs", exc)
             else:
                 updated_jobs += 1
         except Exception as exc:
-            logger.warning("Failed processing job %s: %s", notice_id, exc)
-            if hasattr(conn, "rollback"):
-                try:
-                    conn.rollback()
-                except Exception:
-                    pass
+            try:
+                conn.execute("ROLLBACK TO SAVEPOINT job_sp;")
+            except Exception:
+                pass
+            log_db_error(logger, f"process_job_{notice_id}", "scrapers.jobs", exc)
 
     return {
         "status": "ok",

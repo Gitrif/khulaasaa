@@ -234,6 +234,8 @@ def list_rentals(
     bld_cur = conn.execute("SELECT plot_building, COUNT(*) FROM rentals WHERE is_active = 1 AND is_leased = 0 GROUP BY plot_building;")
     bld_counts = {row[0]: row[1] for row in bld_cur.fetchall() if row[0]}
 
+    from core.time_utils import calculate_minutes_ago, format_relative_time
+
     for r in rows:
         d = dict(r)
         d["contact_name_raw"] = d.get("contact_name")
@@ -244,6 +246,14 @@ def list_rentals(
         d["furnished_items_list"] = _parse_json_or_csv(d.get("furnished_items"))
         d["building_facilities_list"] = _parse_json_or_csv(d.get("building_facilities"))
         d["secondary_sources_list"] = _parse_json_or_csv(d.get("secondary_sources"))
+
+        ts = d.get("created_at") or d.get("posted_date")
+        if ts:
+            mins = calculate_minutes_ago(ts)
+            d["updated_ago"] = format_relative_time(mins, ts)
+        else:
+            d["updated_ago"] = "Recently"
+
         results.append(d)
     return results
 

@@ -33,6 +33,8 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                         cur.execute(schema_path.read_text(encoding="utf-8"))
                         for col in ["news_alerts", "tender_alerts", "job_alerts", "rental_alerts"]:
                             cur.execute(f"ALTER TABLE user_notification_preferences ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 1;")
+                        for col in ["telegram_verified", "viber_verified"]:
+                            cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} INTEGER DEFAULT 0;")
                     pg_conn.commit()
             except Exception as e:
                 logger.warning(f"Error applying Postgres schema: {e}")
@@ -44,6 +46,19 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 pg_conn.commit()
         except Exception as e:
             logger.warning(f"Error initializing modules table on Postgres: {e}")
+
+        # Seed initial rental listings on Postgres if table is empty
+        try:
+            from data.postgres_adapter import get_postgres_db
+            from data.seed_rentals import seed_initial_rentals
+            with get_postgres_db() as pg_conn:
+                cnt_row = pg_conn.execute("SELECT count(*) as cnt FROM rentals;").fetchone()
+                cnt = cnt_row["cnt"] if cnt_row else 0
+                if cnt == 0:
+                    seed_initial_rentals(pg_conn)
+                    pg_conn.commit()
+        except Exception as e:
+            logger.warning(f"Error seeding initial rentals on Postgres: {e}")
         return
 
     with get_db(db_path) as conn:

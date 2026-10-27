@@ -12,7 +12,9 @@ def baseline_mark_existing_alerts_for_subscriber(conn: sqlite3.Connection, chat_
     for a subscriber so they only receive notifications for items that arrive after subscribing.
     """
     chat_str = str(chat_id).strip()
+    from data.database import log_db_error
     try:
+        conn.execute('SAVEPOINT baseline_mark_sp;')
         conn.execute(
             """
             INSERT OR IGNORE INTO sent_alerts (notice_id, chat_id)
@@ -34,8 +36,13 @@ def baseline_mark_existing_alerts_for_subscriber(conn: sqlite3.Connection, chat_
             """,
             (chat_str,),
         )
-    except Exception:
-        pass
+        conn.execute('RELEASE SAVEPOINT baseline_mark_sp;')
+    except Exception as exc:
+        try:
+            conn.execute('ROLLBACK TO SAVEPOINT baseline_mark_sp;')
+        except Exception:
+            pass
+        log_db_error(logger, 'baseline_mark_alerts', 'data.repos.subscribers', exc)
 
 
 def register_or_update_telegram_subscriber(

@@ -34,14 +34,17 @@ HEADERS = {
 }
 
 
-def get_soup(url: str, timeout: int = 15) -> Optional[bs4.BeautifulSoup]:
+def get_soup(url: str, timeout: int = 8) -> Optional[bs4.BeautifulSoup]:
     """Fetch URL using modern HTTP client and return BeautifulSoup object, or None on error."""
     try:
         resp = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
         if resp.status_code == 200:
             return bs4.BeautifulSoup(resp.text, "html.parser")
-        logger.warning("Failed to fetch %s: HTTP %s", url, resp.status_code)
+        if resp.status_code == 403:
+            logger.info("External portal %s returned HTTP 403 (cloud IP restricted); skipping", url)
+        else:
+            logger.warning("Failed to fetch %s: HTTP %s", url, resp.status_code)
         return None
     except Exception as exc:
-        logger.warning("Failed to fetch %s: %s", url, exc)
+        logger.info("External fetch error for %s: %s", url, exc)
         return None

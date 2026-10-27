@@ -17,6 +17,14 @@
         </svg>
         <span>Deadline: <strong class="font-semibold">{{ j.deadline_info.formatted }}</strong></span>
       </div>
+
+      {# Posted / Updated Time #}
+      {% if j.posted_ago %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 px-2 py-0.5 rounded bg-slate-50 border border-slate-200">
+          <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          <span>Posted {{ j.posted_ago }}</span>
+        </span>
+      {% endif %}
     </div>
 
     {# Top Right Actions: Alert Bell, Share, Bookmark #}

@@ -46,6 +46,7 @@ def get_bids_sync_status() -> dict[str, Any]:
 
 def prepare_bids_presentation(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Normalize and format bid records with Dhivehi classification and localized titles for UI."""
+    from core.time_utils import calculate_minutes_ago, format_relative_time
     for r in rows:
         raw_t = r.get("title", "")
         is_dv = is_dhivehi(raw_t)
@@ -56,6 +57,10 @@ def prepare_bids_presentation(rows: list[dict[str, Any]]) -> list[dict[str, Any]
             r["title_dv"] = raw_t
         else:
             r["title_dv"] = ""
+        pub = r.get("published_date") or r.get("published_iso")
+        if pub:
+            mins = calculate_minutes_ago(pub)
+            r["time_ago"] = format_relative_time(mins, pub)
     return rows
 
 
@@ -245,40 +250,36 @@ def _run_bids_sync() -> None:
             except Exception as exc:
                 logger.warning("Error purging expired bids: %s", exc)
 
+            from data.database import log_db_error
+            persisted_records = []
             for bid_dict in new_records:
+                n_id = bid_dict.get("notice_id")
                 try:
+                    conn.execute("SAVEPOINT bid_savepoint;")
                     upsert_bid(conn, bid_dict)
+                    conn.execute("RELEASE SAVEPOINT bid_savepoint;")
                     persisted += 1
+                    persisted_records.append(bid_dict)
                 except Exception as exc:
-                    logger.warning("Failed upserting bid %s: %s", bid_dict.get("notice_id"), exc)
-                    if hasattr(conn, "rollback"):
-                        try:
-                            conn.rollback()
-                        except Exception:
-                            pass
+                    try:
+                        conn.execute("ROLLBACK TO SAVEPOINT bid_savepoint;")
+                    except Exception:
+                        pass
+                    log_db_error(logger, f"upsert_bid_{n_id}", "services.tenders_service", exc)
 
             alerts_dispatched = 0
-            try:
-                alert_res = dispatch_tender_alerts(conn, new_records)
-                if isinstance(alert_res, dict):
-                    alerts_dispatched += alert_res.get("delivered", 0)
-            except Exception as exc:
-                logger.warning("Error dispatching Telegram tender alerts: %s", exc)
-                if hasattr(conn, "rollback"):
-                    try:
-                        conn.rollback()
-                    except Exception:
-                        pass
+            if persisted_records:
+                try:
+                    alert_res = dispatch_tender_alerts(conn, persisted_records)
+                    if isinstance(alert_res, dict):
+                        alerts_dispatched += alert_res.get("delivered", 0)
+                except Exception as exc:
+                    log_db_error(logger, "dispatch_tender_alerts", "services.tenders_service", exc)
 
-            try:
-                dispatch_viber_bid_alerts(conn, new_records)
-            except Exception as exc:
-                logger.warning("Error dispatching Viber tender alerts: %s", exc)
-                if hasattr(conn, "rollback"):
-                    try:
-                        conn.rollback()
-                    except Exception:
-                        pass
+                try:
+                    dispatch_viber_bid_alerts(conn, persisted_records)
+                except Exception as exc:
+                    log_db_error(logger, "dispatch_viber_bid_alerts", "services.tenders_service", exc)
 
         _LIVE_BIDS_SYNC_STATUS.update({
             "status": "success_with_errors" if errors else "success",

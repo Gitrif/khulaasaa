@@ -184,6 +184,15 @@ def _periodic_sync_worker():
             except Exception:
                 pass
 
+        # Rentals sync every 20 iterations (approx every 60 mins)
+        if iteration % 20 == 0:
+            try:
+                from data.scrapers.rentals_scraper import rescrape_and_sync_all_rentals
+                with get_db() as conn:
+                    rescrape_and_sync_all_rentals(conn)
+            except Exception:
+                pass
+
         if _SHUTDOWN_EVENT.wait(timeout=180):
             break
 
