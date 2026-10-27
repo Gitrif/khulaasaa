@@ -47,18 +47,26 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception as e:
             logger.warning(f"Error initializing modules table on Postgres: {e}")
 
-        # Seed initial rental listings on Postgres if table is empty
+        # Seed initial rental listings, jobs, and obituaries on Postgres if tables are empty
         try:
             from data.postgres_adapter import get_postgres_db
-            from data.seed_rentals import seed_initial_rentals
             with get_postgres_db() as pg_conn:
-                cnt_row = pg_conn.execute("SELECT count(*) as cnt FROM rentals;").fetchone()
-                cnt = cnt_row["cnt"] if cnt_row else 0
-                if cnt == 0:
+                r_cnt = (pg_conn.execute("SELECT count(*) as cnt FROM rentals;").fetchone() or {}).get("cnt", 0)
+                if r_cnt == 0:
+                    from data.seed_rentals import seed_initial_rentals
                     seed_initial_rentals(pg_conn)
-                    pg_conn.commit()
+                j_cnt = (pg_conn.execute("SELECT count(*) as cnt FROM jobs;").fetchone() or {}).get("cnt", 0)
+                if j_cnt == 0:
+                    for j in INITIAL_JOBS:
+                        upsert_job(pg_conn, j)
+                ob_cnt = (pg_conn.execute("SELECT count(*) as cnt FROM obituaries;").fetchone() or {}).get("cnt", 0)
+                if ob_cnt == 0:
+                    from data.repos.obituaries import upsert_obituary
+                    for ob in INITIAL_OBITUARIES:
+                        upsert_obituary(pg_conn, ob)
+                pg_conn.commit()
         except Exception as e:
-            logger.warning(f"Error seeding initial rentals on Postgres: {e}")
+            logger.warning(f"Error seeding initial Postgres records: {e}")
         return
 
     with get_db(db_path) as conn:

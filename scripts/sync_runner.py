@@ -66,8 +66,9 @@ def run_sync(category: str) -> None:
         logger.info("--- Starting Jobs Synchronization ---")
         try:
             with get_db() as conn:
-                added = sync_jobs(conn)
-                logger.info("Jobs sync complete: %d jobs inserted/updated", added)
+                res = sync_jobs(conn)
+                total = (res.get("new", 0) if isinstance(res, dict) else 0) + (res.get("updated", 0) if isinstance(res, dict) else 0)
+                logger.info("Jobs sync complete: %d jobs inserted/updated (fetched %d)", total, res.get("fetched", 0) if isinstance(res, dict) else 0)
         except Exception as exc:
             logger.error("Jobs sync failed: %s", exc)
 
@@ -82,6 +83,19 @@ def run_sync(category: str) -> None:
                 logger.info("Rentals sync complete: %d apartment listings in database (scraped %d)", len(r_list), count)
         except Exception as exc:
             logger.error("Rentals sync failed: %s", exc)
+
+    if category in ("obituaries", "all"):
+        logger.info("--- Starting Obituaries Synchronization ---")
+        try:
+            from data.taxonomy import INITIAL_OBITUARIES
+            from data.repos.obituaries import upsert_obituary, list_obituaries
+            with get_db() as conn:
+                for ob in INITIAL_OBITUARIES:
+                    upsert_obituary(conn, ob)
+                o_list = list_obituaries(conn)
+                logger.info("Obituaries sync complete: %d notices in database", len(o_list))
+        except Exception as exc:
+            logger.error("Obituaries sync failed: %s", exc)
 
     # Print summary
     logger.info("--- Final Sync Health Table ---")
@@ -109,7 +123,7 @@ def main():
     parser = argparse.ArgumentParser(description="Khulaasaa Local Sync Runner")
     parser.add_argument(
         "--category",
-        choices=["news", "tenders", "bids", "jobs", "rentals", "all"],
+        choices=["news", "tenders", "bids", "jobs", "rentals", "obituaries", "all"],
         default="all",
         help="Content category to synchronize",
     )

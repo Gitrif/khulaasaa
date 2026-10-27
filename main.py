@@ -177,15 +177,15 @@ def _periodic_sync_worker():
             except Exception:
                 pass
 
-        # Jobs sync every 5 iterations (approx every 15 mins)
-        if iteration % 5 == 0:
+        # Jobs sync on first run and every 5 iterations (approx every 15 mins)
+        if iteration == 1 or iteration % 5 == 0:
             try:
                 trigger_jobs_background_sync(force=True)
             except Exception:
                 pass
 
-        # Rentals sync every 20 iterations (approx every 60 mins)
-        if iteration % 20 == 0:
+        # Rentals sync on first run and every 20 iterations (approx every 60 mins)
+        if iteration == 1 or iteration % 20 == 0:
             try:
                 from data.scrapers.rentals_scraper import rescrape_and_sync_all_rentals
                 with get_db() as conn:

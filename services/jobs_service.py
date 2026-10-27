@@ -64,6 +64,13 @@ def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]
             "last_error": None,
         })
         _LIVE_JOBS_LAST_SYNC = time.time()
+        logger.info(
+            "Jobs sync completed: %d fetched, %d new, %d updated, %d alerts sent",
+            result.get("fetched", 0),
+            result.get("new", 0),
+            result.get("updated", 0),
+            result.get("alerts_sent", 0),
+        )
         return result
     except Exception as exc:
         logger.error("Jobs synchronization failed: %s", exc, exc_info=True)
