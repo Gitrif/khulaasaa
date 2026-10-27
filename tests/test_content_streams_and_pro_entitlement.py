@@ -156,6 +156,184 @@ def test_urgent_breaking_alerts_bypass_category_stream_mute():
         assert candidates[u_id]["reason"] == "breaking"
 
 
+def test_free_user_retains_stream_reason_not_upgraded_to_pro_follow():
+    """Verify free user qualifying via broad stream retains 'stream_{clean_type}' and is NOT recorded with Pro-only 'followed_{type}'."""
+    with get_db() as conn:
+        u_free = create_user(conn, email="stream_bob@example.com", password="password123", full_name="Bob Free")
+        update_user_preferences(conn, u_free, news_alerts=1, followed_content_alerts=1)
+        add_follow(conn, u_free, "topic", "economy", "Economy")
+
+        candidates = evaluate_candidate_recipients(conn, "news", "story_econ_1", topics=["economy"])
+        assert u_free in candidates
+        # Must strictly be stream_news, never upgraded to followed_topic for free user
+        assert candidates[u_free]["reason"] == "stream_news"
+
+
+def test_topic_follow_does_not_match_unrelated_event_types():
+    """Verify news topic follows only match news events, never tenders, jobs, or rentals."""
+    with get_db() as conn:
+        u_pro = create_user(conn, email="stream_carol_pro@example.com", password="password123", full_name="Carol Pro")
+        conn.execute("UPDATE users SET is_paid = 1 WHERE id = ?;", (u_pro,))
+        update_user_preferences(conn, u_pro, news_alerts=0, tender_alerts=0, job_alerts=0, rental_alerts=0, followed_content_alerts=1)
+        add_follow(conn, u_pro, "topic", "tourism", "Tourism")
+
+        # 1. Matching news event -> matches
+        c_news = evaluate_candidate_recipients(conn, "news", "story_tour_1", topics=["tourism"])
+        assert u_pro in c_news
+        assert c_news[u_pro]["reason"] == "followed_topic"
+
+        # 2. Tender event with topic parameter -> does NOT match
+        c_tender = evaluate_candidate_recipients(conn, "tender", "bid_tour_1", topics=["tourism"])
+        assert u_pro not in c_tender
+
+        # 3. Job event with topic parameter -> does NOT match
+        c_job = evaluate_candidate_recipients(conn, "job", "job_tour_1", topics=["tourism"])
+        assert u_pro not in c_job
+
+
+def test_story_follow_does_not_match_non_news_events():
+    """Verify story cluster follows only match news events, never jobs or tenders with identical ID."""
+    with get_db() as conn:
+        u_pro = create_user(conn, email="stream_carol_pro@example.com", password="password123", full_name="Carol Pro")
+        conn.execute("UPDATE users SET is_paid = 1 WHERE id = ?;", (u_pro,))
+        update_user_preferences(conn, u_pro, news_alerts=0, job_alerts=0, tender_alerts=0, followed_content_alerts=1)
+        add_follow(conn, u_pro, "story", "cluster-777", "Story Cluster 777")
+
+        # 1. News event with id cluster-777 -> matches
+        c_news = evaluate_candidate_recipients(conn, "news", "cluster-777")
+        assert u_pro in c_news
+        assert c_news[u_pro]["reason"] == "followed_story"
+
+        # 2. Job event with identical id cluster-777 -> must NOT match
+        c_job = evaluate_candidate_recipients(conn, "job", "cluster-777")
+        assert u_pro not in c_job
+
+        # 3. Tender event with identical id cluster-777 -> must NOT match
+        c_tender = evaluate_candidate_recipients(conn, "tender", "cluster-777")
+        assert u_pro not in c_tender
+
+
+def test_section_follow_compatibility_across_event_types():
+    """Verify section follows map strictly to compatible event types."""
+    with get_db() as conn:
+        u_pro = create_user(conn, email="stream_carol_pro@example.com", password="password123", full_name="Carol Pro")
+        conn.execute("UPDATE users SET is_paid = 1 WHERE id = ?;", (u_pro,))
+        update_user_preferences(conn, u_pro, news_alerts=0, tender_alerts=0, job_alerts=0, rental_alerts=0, followed_content_alerts=1)
+
+        # Follow section 'tenders'
+        add_follow(conn, u_pro, "section", "tenders", "Tenders Section")
+
+        # Tender event matches
+        c_tender = evaluate_candidate_recipients(conn, "tender", "bid_101")
+        assert u_pro in c_tender
+        assert c_tender[u_pro]["reason"] == "followed_section"
+        assert c_tender[u_pro]["reason_target"] == "tenders"
+
+        # News event does NOT match section 'tenders'
+        c_news = evaluate_candidate_recipients(conn, "news", "news_101", section="major")
+        assert u_pro not in c_news
+
+
+def test_multiple_matching_reasons_single_logical_notification():
+    """Verify that multiple triggers result in exactly 1 logical notification without duplication."""
+    with get_db() as conn:
+        u_pro = create_user(conn, email="stream_carol_pro@example.com", password="password123", full_name="Carol Pro")
+        conn.execute("UPDATE users SET is_paid = 1 WHERE id = ?;", (u_pro,))
+        update_user_preferences(conn, u_pro, news_alerts=1, breaking_alerts=1, followed_content_alerts=1)
+        add_follow(conn, u_pro, "topic", "health", "Health")
+
+        # Process breaking news event with followed topic
+        stats = process_content_event(
+            conn,
+            content_type="news",
+            content_id="story_health_urgent",
+            title="Urgent Health Update",
+            is_breaking=True,
+            topics=["health"],
+        )
+        assert stats["eligible_users"] >= 1
+        assert stats["notifications_created"] == 1
+
+        # Second call with same event key creates 0 new notifications
+        stats2 = process_content_event(
+            conn,
+            content_type="news",
+            content_id="story_health_urgent",
+            title="Urgent Health Update Repeat",
+            is_breaking=True,
+            topics=["health"],
+        )
+        assert stats2["notifications_created"] == 0
+
+
+def test_global_pause_and_verified_channel_delivery_gate():
+    """Verify global pause excludes users and only truthfully verified channels receive deliveries."""
+    with get_db() as conn:
+        # User 1: Paused
+        u_paused = create_user(conn, email="stream_alice@example.com", password="password123", full_name="Alice Paused")
+        update_user_preferences(conn, u_paused, is_paused=1, news_alerts=1)
+
+        # User 2: Active with unverified telegram
+        u_unver = create_user(conn, email="stream_bob@example.com", password="password123", full_name="Bob Unverified")
+        conn.execute("UPDATE users SET telegram_chat_id = '99999', telegram_verified = 0 WHERE id = ?;", (u_unver,))
+        update_user_preferences(conn, u_unver, is_paused=0, news_alerts=1, telegram_enabled=1)
+
+        # User 3: Active with verified telegram
+        u_ver = create_user(conn, email="stream_carol_pro@example.com", password="password123", full_name="Carol Verified")
+        conn.execute("UPDATE users SET telegram_chat_id = '88888', telegram_verified = 1 WHERE id = ?;", (u_ver,))
+        update_user_preferences(conn, u_ver, is_paused=0, news_alerts=1, telegram_enabled=1)
+
+        candidates = evaluate_candidate_recipients(conn, "news", "story_pause_test")
+        assert u_paused not in candidates
+        assert u_unver in candidates
+        assert u_ver in candidates
+
+        # Run process_content_event
+        process_content_event(conn, "news", "story_pause_test", title="Pause Gate Headline")
+
+        # Unverified user got 0 deliveries
+        d_unver = conn.execute("SELECT COUNT(*) FROM notification_deliveries WHERE user_id = ?;", (u_unver,)).fetchone()[0]
+        assert d_unver == 0
+
+        # Verified user got 1 delivery
+        d_ver = conn.execute("SELECT COUNT(*) FROM notification_deliveries WHERE user_id = ?;", (u_ver,)).fetchone()[0]
+        assert d_ver == 1
+
+
+def test_account_menu_xss_protection():
+    """
+    Verify malicious profile values (HTML tags, script tags, event handlers, quotes)
+    are strictly assigned via DOM textContent and cannot execute or inject tags.
+    """
+    malicious_payloads = [
+        '<script>alert("xss")</script>',
+        '<img src=x onerror=alert(1)>',
+        '"><svg/onload=alert(1)>',
+        "';alert(String.fromCharCode(88,83,83))//",
+    ]
+
+    # Verify that in templates/base.html, renderUserAvatarMenu sets textContent and does not use innerHTML
+    with open("templates/base.html", "r", encoding="utf-8") as f:
+        base_html = f.read()
+
+    # Assert DOM construction functions exist and contain zero innerHTML
+    assert "function renderUserAvatarMenu(" in base_html
+    assert "function renderGuestAvatarButton(" in base_html
+
+    # Extract the renderUserAvatarMenu function body
+    fn_match = re.search(r"function renderUserAvatarMenu\(container, u\)\s*\{(.*?)\n    \}", base_html, re.DOTALL)
+    assert fn_match is not None, "renderUserAvatarMenu function must be defined"
+    fn_body = fn_match.group(1)
+
+    # Must NOT contain innerHTML
+    assert "innerHTML" not in fn_body, "renderUserAvatarMenu must strictly use DOM APIs without innerHTML"
+    # Must use textContent for full_name, email, displayName, and initials
+    assert "dropFullEl.textContent" in fn_body
+    assert "dropEmailEl.textContent" in fn_body
+    assert "nameEl.textContent" in fn_body
+    assert "initEl.textContent" in fn_body
+
+
 def test_all_javascript_syntax_validity_across_templates():
     """Verify that all inline script blocks in rendered templates pass Node.js V8 compile checks."""
     files = ["templates/base.html", "templates/index.html", "templates/account_alerts.html", "static/js/app.js"]

@@ -109,6 +109,7 @@ def test_follow_target_matching_rules():
     """Verify matching across all 4 follow targets: story, topic, section, source."""
     with get_db() as conn:
         u_id = create_user(conn, email="phase3_alice@example.com", password="password1", full_name="Alice Match")
+        conn.execute("UPDATE users SET is_paid = 1 WHERE id = ?;", (u_id,))
         # Ensure preferences initialized
         update_user_preferences(conn, u_id, followed_content_alerts=1, is_paused=0)
 

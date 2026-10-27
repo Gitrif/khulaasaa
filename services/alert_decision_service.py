@@ -138,18 +138,39 @@ def evaluate_candidate_recipients(
             uid = r[0]
             candidates[uid] = {"reason": "breaking", "reason_target": "Breaking News"}
 
-    # 3. Follow matching (story, topic, section, source)
+    # 3. Follow matching with strict content-type compatibility rules
+    # Compatibility rules:
+    # - 'story', 'topic', 'source': strictly valid only for content_type == 'news'.
+    # - 'section':
+    #     news: 'major', 'general', or 'breaking'
+    #     tender: 'tenders'
+    #     job: 'jobs'
+    #     rental: 'rentals'
     follow_clauses: list[tuple[str, str]] = []
-    if clean_type == "news" and clean_id:
-        follow_clauses.append(("story", clean_id))
-    if topics:
-        for t in topics:
-            if t:
-                follow_clauses.append(("topic", t.strip().lower()))
-    if section:
-        follow_clauses.append(("section", section.strip().lower()))
-    if source_id:
-        follow_clauses.append(("source", str(source_id).strip().lower()))
+    if clean_type == "news":
+        if clean_id:
+            follow_clauses.append(("story", clean_id))
+        if topics:
+            for t in topics:
+                if t:
+                    follow_clauses.append(("topic", t.strip().lower()))
+        if source_id:
+            follow_clauses.append(("source", str(source_id).strip().lower()))
+        if section:
+            sec_clean = section.strip().lower()
+            if sec_clean in {"major", "general", "breaking"}:
+                follow_clauses.append(("section", sec_clean))
+        if is_breaking:
+            follow_clauses.append(("section", "breaking"))
+
+    elif clean_type == "tender":
+        follow_clauses.append(("section", "tenders"))
+
+    elif clean_type == "job":
+        follow_clauses.append(("section", "jobs"))
+
+    elif clean_type == "rental":
+        follow_clauses.append(("section", "rentals"))
 
     if follow_clauses:
         for f_type, f_id in follow_clauses:
@@ -166,19 +187,23 @@ def evaluate_candidate_recipients(
                 uid = r[0]
                 is_paid = bool(r[3])
 
-                if uid in candidates:
-                    # If already candidate via stream, upgrade to personalized follow reason
-                    if candidates[uid]["reason"].startswith("stream_"):
+                # Only Pro users qualify for personalized follow reasons
+                if is_paid:
+                    if uid in candidates:
+                        # Upgrade broad stream reason to personalized follow reason (breaking remains urgent)
+                        if candidates[uid]["reason"].startswith("stream_"):
+                            candidates[uid] = {
+                                "reason": f"followed_{f_type}",
+                                "reason_target": f_id,
+                            }
+                    else:
+                        # Pro Entitlement: Pro users receive targeted follows even if broad category stream is muted
                         candidates[uid] = {
                             "reason": f"followed_{f_type}",
                             "reason_target": f_id,
                         }
-                elif is_paid:
-                    # Pro Entitlement: Pro users receive targeted follows even if category stream is disabled
-                    candidates[uid] = {
-                        "reason": f"followed_{f_type}",
-                        "reason_target": f_id,
-                    }
+                # Free users who qualified through an enabled broad stream retain reason: stream_{clean_type}.
+                # Free users whose broad stream is muted do NOT match.
 
     return candidates
 
