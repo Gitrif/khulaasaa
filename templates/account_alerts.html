@@ -45,17 +45,82 @@
       </label>
     </div>
 
-    <!-- 1. Content Triggers -->
+    <!-- 1. Free Content Streams -->
+    <section class="bg-paper rounded-xl border border-hairline p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-lagoon"></span>
+            Free Content Streams
+          </h2>
+          <p class="text-xs text-slate mt-0.5">Toggle notification feeds for all content categories independently. Receive one, some, or all categories for free.</p>
+        </div>
+        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide">Included Free</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- News Stream -->
+        <div class="flex items-start justify-between gap-3 p-3.5 rounded-lg border border-hairline bg-paper-soft">
+          <div>
+            <div class="font-semibold text-sm text-ink">News Stream</div>
+            <p class="text-xs text-slate mt-0.5">All national news, analysis, and wire updates.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input type="checkbox" id="prefNewsAlerts" name="news_alerts" value="1" {% if preferences.news_alerts %}checked{% endif %} class="sr-only peer">
+            <div class="w-10 h-5 bg-slate/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-lagoon"></div>
+          </label>
+        </div>
+
+        <!-- Tenders Stream -->
+        <div class="flex items-start justify-between gap-3 p-3.5 rounded-lg border border-hairline bg-paper-soft">
+          <div>
+            <div class="font-semibold text-sm text-ink">Tenders &amp; RFPs</div>
+            <p class="text-xs text-slate mt-0.5">All government and state-owned enterprise bid notices.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input type="checkbox" id="prefTenderAlerts" name="tender_alerts" value="1" {% if preferences.tender_alerts %}checked{% endif %} class="sr-only peer">
+            <div class="w-10 h-5 bg-slate/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-lagoon"></div>
+          </label>
+        </div>
+
+        <!-- Jobs Stream -->
+        <div class="flex items-start justify-between gap-3 p-3.5 rounded-lg border border-hairline bg-paper-soft">
+          <div>
+            <div class="font-semibold text-sm text-ink">Jobs &amp; Vacancies</div>
+            <p class="text-xs text-slate mt-0.5">All public sector and private employment announcements.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input type="checkbox" id="prefJobAlerts" name="job_alerts" value="1" {% if preferences.job_alerts %}checked{% endif %} class="sr-only peer">
+            <div class="w-10 h-5 bg-slate/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-lagoon"></div>
+          </label>
+        </div>
+
+        <!-- Rentals Stream -->
+        <div class="flex items-start justify-between gap-3 p-3.5 rounded-lg border border-hairline bg-paper-soft">
+          <div>
+            <div class="font-semibold text-sm text-ink">Property Rentals</div>
+            <p class="text-xs text-slate mt-0.5">All residential and commercial lease listings.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input type="checkbox" id="prefRentalAlerts" name="rental_alerts" value="1" {% if preferences.rental_alerts %}checked{% endif %} class="sr-only peer">
+            <div class="w-10 h-5 bg-slate/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-lagoon"></div>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Breaking News & Personalization -->
     <section class="bg-paper rounded-xl border border-hairline p-6">
       <h2 class="text-base font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-flag"></span>
-        Alert Content Triggers
+        Priority &amp; Personalization
       </h2>
       <div class="space-y-4">
+        <!-- Breaking News -->
         <div class="flex items-start justify-between gap-4 pb-4 border-b border-hairline/60">
           <div>
             <div class="font-semibold text-sm text-ink">Breaking News Alerts</div>
-            <p class="text-xs text-slate mt-0.5">Receive immediate notifications for critical national developments and confirmed breaking news.</p>
+            <p class="text-xs text-slate mt-0.5">Receive immediate notifications for critical national developments and confirmed breaking news (bypasses quiet hours).</p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
             <input type="checkbox" id="prefBreakingAlerts" name="breaking_alerts" value="1" {% if preferences.breaking_alerts %}checked{% endif %} class="sr-only peer">
@@ -63,11 +128,15 @@
           </label>
         </div>
 
+        <!-- Followed Content Updates -->
         <div class="flex items-start justify-between gap-4">
           <div>
-            <div class="font-semibold text-sm text-ink">Followed Content Updates</div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm text-ink">Personalized Followed Updates</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">PRO FEATURE</span>
+            </div>
             <p class="text-xs text-slate mt-0.5">
-              Receive updates matching stories, topics, sections, or publishers you follow.
+              Receive precision notifications matching specific stories, topics, sections, or agencies you follow.
               <a href="/following" class="text-lagoon font-semibold hover:underline ml-1">View your {{ follow_counts.total or 0 }} followed items &rarr;</a>
             </p>
           </div>
@@ -244,6 +313,10 @@ async function handleSavePreferences(e) {
   const freqEl = form.querySelector('input[name="frequency"]:checked');
   const payload = {
     is_paused: document.getElementById('prefIsPaused').checked ? 1 : 0,
+    news_alerts: document.getElementById('prefNewsAlerts').checked ? 1 : 0,
+    tender_alerts: document.getElementById('prefTenderAlerts').checked ? 1 : 0,
+    job_alerts: document.getElementById('prefJobAlerts').checked ? 1 : 0,
+    rental_alerts: document.getElementById('prefRentalAlerts').checked ? 1 : 0,
     breaking_alerts: document.getElementById('prefBreakingAlerts').checked ? 1 : 0,
     followed_content_alerts: document.getElementById('prefFollowedAlerts').checked ? 1 : 0,
     telegram_enabled: document.getElementById('prefTelegramEnabled').checked ? 1 : 0,

@@ -31,6 +31,8 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 with get_postgres_db() as pg_conn:
                     with pg_conn._conn.cursor() as cur:
                         cur.execute(schema_path.read_text(encoding="utf-8"))
+                        for col in ["news_alerts", "tender_alerts", "job_alerts", "rental_alerts"]:
+                            cur.execute(f"ALTER TABLE user_notification_preferences ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 1;")
                     pg_conn.commit()
             except Exception as e:
                 logger.warning(f"Error applying Postgres schema: {e}")
@@ -182,6 +184,17 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claim_token TEXT;")
             if nd_cols and "claimed_at" not in nd_cols:
                 conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claimed_at TIMESTAMP;")
+
+            pref_cols = [row[1] for row in conn.execute("PRAGMA table_info(user_notification_preferences);").fetchall()]
+            if pref_cols:
+                if "news_alerts" not in pref_cols:
+                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN news_alerts INTEGER NOT NULL DEFAULT 1;")
+                if "tender_alerts" not in pref_cols:
+                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN tender_alerts INTEGER NOT NULL DEFAULT 1;")
+                if "job_alerts" not in pref_cols:
+                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN job_alerts INTEGER NOT NULL DEFAULT 1;")
+                if "rental_alerts" not in pref_cols:
+                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN rental_alerts INTEGER NOT NULL DEFAULT 1;")
         except Exception:
             pass
 

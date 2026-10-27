@@ -404,6 +404,10 @@ CREATE INDEX IF NOT EXISTS idx_user_follows_target ON user_follows(target_type, 
 
 CREATE TABLE IF NOT EXISTS user_notification_preferences (
     user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    news_alerts INTEGER NOT NULL DEFAULT 1,
+    tender_alerts INTEGER NOT NULL DEFAULT 1,
+    job_alerts INTEGER NOT NULL DEFAULT 1,
+    rental_alerts INTEGER NOT NULL DEFAULT 1,
     breaking_alerts INTEGER NOT NULL DEFAULT 1,
     followed_content_alerts INTEGER NOT NULL DEFAULT 1,
     telegram_enabled INTEGER NOT NULL DEFAULT 1,

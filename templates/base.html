@@ -169,41 +169,91 @@
     async function loadNotificationsList() {
       const listEl = document.getElementById('userNotifList');
       if (!listEl) return;
-      listEl.innerHTML = '<div class="py-6 text-center text-xs text-slate">Loading notifications...</div>';
+      listEl.textContent = '';
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'py-6 text-center text-xs text-slate';
+      loadingEl.textContent = 'Loading notifications...';
+      listEl.appendChild(loadingEl);
+
       try {
         const res = await fetch('/api/account/notifications?limit=15');
         const data = await res.json();
+        listEl.textContent = '';
         if (!res.ok || data.status !== 'ok') {
-          listEl.innerHTML = '<div class="py-6 text-center text-xs text-red-600">Failed to load notifications.</div>';
+          const errEl = document.createElement('div');
+          errEl.className = 'py-6 text-center text-xs text-red-600';
+          errEl.textContent = 'Failed to load notifications.';
+          listEl.appendChild(errEl);
           return;
         }
         const notifs = data.notifications || [];
         if (notifs.length === 0) {
-          listEl.innerHTML = '<div class="py-8 text-center text-xs text-slate">No notifications yet.</div>';
+          const emptyEl = document.createElement('div');
+          emptyEl.className = 'py-8 text-center text-xs text-slate';
+          emptyEl.textContent = 'No notifications yet.';
+          listEl.appendChild(emptyEl);
           return;
         }
-        listEl.innerHTML = notifs.map(n => {
-          const bg = n.is_read ? 'bg-white' : 'bg-paper-soft';
-          const unreadDot = !n.is_read ? '<span class="w-2 h-2 rounded-full bg-lagoon shrink-0 mt-1"></span>' : '';
-          const urlEsc = n.url ? n.url.replace(/'/g, "\\'") : '';
-          const clickHandler = urlEsc ? `onclick="handleNotificationClick(event, ${n.id}, '${urlEsc}')"` : `onclick="handleNotificationClick(event, ${n.id}, null)"`;
-          const timeStr = n.created_at ? n.created_at.slice(0, 16).replace('T', ' ') : '';
-          return `
-            <div class="p-3 hover:bg-paper cursor-pointer transition flex items-start gap-2.5 ${bg}" ${clickHandler}>
-              ${unreadDot}
-              <div class="min-w-0 flex-1">
-                <div class="text-xs font-semibold text-ink line-clamp-2 leading-tight">${n.title || 'Alert Notification'}</div>
-                ${n.summary ? `<div class="text-[11px] text-slate line-clamp-2 mt-0.5">${n.summary}</div>` : ''}
-                <div class="text-[10px] text-slate/70 mt-1 flex items-center gap-2">
-                  <span class="uppercase tracking-wider font-semibold">${n.content_type || 'alert'}</span>
-                  ${timeStr ? `<span>• ${timeStr}</span>` : ''}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
+
+        notifs.forEach(n => {
+          const notifId = parseInt(n.id, 10);
+          if (isNaN(notifId) || notifId <= 0) return;
+
+          let safeUrl = null;
+          if (typeof n.url === 'string' && n.url.startsWith('/') && !n.url.startsWith('//') && !n.url.includes('\\')) {
+            safeUrl = n.url;
+          }
+
+          const itemEl = document.createElement('div');
+          itemEl.className = 'p-3 hover:bg-paper cursor-pointer transition flex items-start gap-2.5 ' + (n.is_read ? 'bg-white' : 'bg-paper-soft');
+
+          if (!n.is_read) {
+            const dot = document.createElement('span');
+            dot.className = 'w-2 h-2 rounded-full bg-lagoon shrink-0 mt-1';
+            itemEl.appendChild(dot);
+          }
+
+          const contentCol = document.createElement('div');
+          contentCol.className = 'min-w-0 flex-1';
+
+          const titleEl = document.createElement('div');
+          titleEl.className = 'text-xs font-semibold text-ink line-clamp-2 leading-tight';
+          titleEl.textContent = n.title || 'Alert Notification';
+          contentCol.appendChild(titleEl);
+
+          if (n.summary) {
+            const sumEl = document.createElement('div');
+            sumEl.className = 'text-[11px] text-slate line-clamp-2 mt-0.5';
+            sumEl.textContent = n.summary;
+            contentCol.appendChild(sumEl);
+          }
+
+          const metaEl = document.createElement('div');
+          metaEl.className = 'text-[10px] text-slate/70 mt-1 flex items-center gap-2';
+
+          const typeSpan = document.createElement('span');
+          typeSpan.className = 'uppercase tracking-wider font-semibold';
+          typeSpan.textContent = n.content_type || 'alert';
+          metaEl.appendChild(typeSpan);
+
+          if (n.created_at) {
+            const timeSpan = document.createElement('span');
+            timeSpan.textContent = '• ' + n.created_at.slice(0, 16).replace('T', ' ');
+            metaEl.appendChild(timeSpan);
+          }
+
+          contentCol.appendChild(metaEl);
+          itemEl.appendChild(contentCol);
+
+          itemEl.addEventListener('click', (e) => handleNotificationClick(e, notifId, safeUrl));
+          listEl.appendChild(itemEl);
+        });
       } catch (err) {
-        listEl.innerHTML = '<div class="py-6 text-center text-xs text-red-600">Network error.</div>';
+        listEl.textContent = '';
+        const netErrEl = document.createElement('div');
+        netErrEl.className = 'py-6 text-center text-xs text-red-600';
+        netErrEl.textContent = 'Network error.';
+        listEl.appendChild(netErrEl);
       }
     }
 
@@ -213,13 +263,12 @@
         await fetch(`/api/account/notifications/${notifId}/read`, { method: 'POST' });
         refreshNotificationBadge();
       } catch (err) {}
-      if (url) {
+      if (url && typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
         window.location.href = url;
       } else {
         await loadNotificationsList();
       }
     }
-
     async function markAllNotificationsAsRead() {
       try {
         await fetch('/api/account/notifications/read-all', { method: 'POST' });
@@ -371,13 +420,6 @@
       sessionStorage.removeItem('khulaasaa_pending_follow');
       refreshGlobalAuthPill();
       window.location.href = '/';
-    }
-      localStorage.removeItem('khulaasaa_tg_connected');
-      localStorage.removeItem('khulaasaa_viber_connected');
-      localStorage.removeItem('khulaasaa_tg_name');
-      localStorage.removeItem('khulaasaa_is_paid');
-      refreshGlobalAuthPill();
-      window.location.reload();
     }
 
     async function toggleFollow(targetType, targetId, targetTitle, btnElement) {
@@ -698,29 +740,7 @@
           </div>
         </div>
 
-        <!-- 1-Click Fast Connect Buttons (Telegram & Viber) -->
-        <div class="space-y-2 pt-1">
-          <a href="https://t.me/khulaasaa_bot?start=auth" target="_blank" rel="noopener noreferrer"
-             onclick="localStorage.setItem('khulaasaa_tg_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
-             class="modal-auth-btn-tg">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-            <span>Continue with Telegram (@khulaasaa_bot) &rarr;</span>
-          </a>
-
-          <a href="viber://pa?chatURI=reeldin"
-             onclick="localStorage.setItem('khulaasaa_viber_connected', '1'); setTimeout(refreshGlobalAuthPill, 1000);"
-             class="modal-auth-btn-vb">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.22-1.31C8.63 21.53 10.27 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.82 14.18c-.24.67-1.19 1.25-1.93 1.36-.51.07-1.18.1-3.41-.83-2.86-1.19-4.7-4.11-4.84-4.3-.14-.19-1.17-1.56-1.17-2.98 0-1.41.74-2.11 1-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.15.31-.29.48-.15.17-.31.38-.44.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.31.15.49.13.67-.08.19-.21.79-.92 1-1.23.21-.31.42-.26.7-.15.29.1 1.83.86 2.14 1.02.31.15.52.23.6.36.07.13.07.76-.17 1.43z"/></svg>
-            <span>Continue with Viber (Khulaasaa Bot) &rarr;</span>
-          </a>
-        </div>
-
-        <div class="relative flex items-center justify-center my-3">
-          <div class="border-t border-hairline w-full"></div>
-          <span class="bg-paper px-2 text-[11px] uppercase tracking-wider text-slate font-medium">or continue with email</span>
-        </div>
-
-        <!-- Mode Toggle: Sign In vs Register -->
+<!-- Mode Toggle: Sign In vs Register -->
         <div class="flex items-center gap-4 border-b border-hairline pb-2">
           <button type="button" id="authModeLoginBtn" onclick="toggleAuthMode('login')" class="modal-tab-btn active">
             Sign In
@@ -1108,8 +1128,8 @@
             status.textContent = 'Alert preferences saved successfully!';
             status.className = 'mt-2 text-xs py-1.5 px-2.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block text-center';
           }
-          if (tgChatId) localStorage.setItem('khulaasaa_tg_connected', '1');
-          if (vbUserId) localStorage.setItem('khulaasaa_viber_connected', '1');
+          // verified status managed by backend
+          // verified status managed by backend
           refreshGlobalAuthPill();
           if (data.user) populateModalUserData(data.user);
         } else {

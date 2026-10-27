@@ -11,6 +11,10 @@ from typing import Any, Optional
 DEFAULT_PREFERENCES: dict[str, Any] = {
     "breaking_alerts": 1,
     "followed_content_alerts": 1,
+    "news_alerts": 1,
+    "tender_alerts": 1,
+    "job_alerts": 1,
+    "rental_alerts": 1,
     "telegram_enabled": 1,
     "viber_enabled": 1,
     "frequency": "instant",
@@ -31,21 +35,29 @@ def _parse_pref_row(row: Any) -> Optional[dict[str, Any]]:
         "user_id": row[0],
         "breaking_alerts": row[1],
         "followed_content_alerts": row[2],
-        "telegram_enabled": row[3],
-        "viber_enabled": row[4],
-        "frequency": row[5],
-        "quiet_hours_enabled": row[6],
-        "quiet_hours_start": row[7],
-        "quiet_hours_end": row[8],
-        "timezone": row[9],
-        "is_paused": row[10],
-        "created_at": row[11],
-        "updated_at": row[12],
+        "news_alerts": row[3],
+        "tender_alerts": row[4],
+        "job_alerts": row[5],
+        "rental_alerts": row[6],
+        "telegram_enabled": row[7],
+        "viber_enabled": row[8],
+        "frequency": row[9],
+        "quiet_hours_enabled": row[10],
+        "quiet_hours_start": row[11],
+        "quiet_hours_end": row[12],
+        "timezone": row[13],
+        "is_paused": row[14],
+        "created_at": row[15],
+        "updated_at": row[16],
     }
     return {
         "user_id": d["user_id"],
         "breaking_alerts": bool(d.get("breaking_alerts", 1)),
         "followed_content_alerts": bool(d.get("followed_content_alerts", 1)),
+        "news_alerts": bool(d.get("news_alerts", 1)),
+        "tender_alerts": bool(d.get("tender_alerts", 1)),
+        "job_alerts": bool(d.get("job_alerts", 1)),
+        "rental_alerts": bool(d.get("rental_alerts", 1)),
         "telegram_enabled": bool(d.get("telegram_enabled", 1)),
         "viber_enabled": bool(d.get("viber_enabled", 1)),
         "frequency": str(d.get("frequency") or "instant").lower(),
@@ -66,7 +78,9 @@ def get_user_preferences(conn: sqlite3.Connection, user_id: int) -> dict[str, An
     """
     row = conn.execute(
         """
-        SELECT user_id, breaking_alerts, followed_content_alerts, telegram_enabled, viber_enabled,
+        SELECT user_id, breaking_alerts, followed_content_alerts,
+               news_alerts, tender_alerts, job_alerts, rental_alerts,
+               telegram_enabled, viber_enabled,
                frequency, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, timezone,
                is_paused, created_at, updated_at
         FROM user_notification_preferences
@@ -84,16 +98,22 @@ def get_user_preferences(conn: sqlite3.Connection, user_id: int) -> dict[str, An
     conn.execute(
         """
         INSERT INTO user_notification_preferences (
-            user_id, breaking_alerts, followed_content_alerts, telegram_enabled, viber_enabled,
+            user_id, breaking_alerts, followed_content_alerts,
+            news_alerts, tender_alerts, job_alerts, rental_alerts,
+            telegram_enabled, viber_enabled,
             frequency, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, timezone, is_paused
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO NOTHING;
         """,
         (
             user_id,
             DEFAULT_PREFERENCES["breaking_alerts"],
             DEFAULT_PREFERENCES["followed_content_alerts"],
+            DEFAULT_PREFERENCES["news_alerts"],
+            DEFAULT_PREFERENCES["tender_alerts"],
+            DEFAULT_PREFERENCES["job_alerts"],
+            DEFAULT_PREFERENCES["rental_alerts"],
             DEFAULT_PREFERENCES["telegram_enabled"],
             DEFAULT_PREFERENCES["viber_enabled"],
             DEFAULT_PREFERENCES["frequency"],
@@ -107,7 +127,9 @@ def get_user_preferences(conn: sqlite3.Connection, user_id: int) -> dict[str, An
 
     row = conn.execute(
         """
-        SELECT user_id, breaking_alerts, followed_content_alerts, telegram_enabled, viber_enabled,
+        SELECT user_id, breaking_alerts, followed_content_alerts,
+               news_alerts, tender_alerts, job_alerts, rental_alerts,
+               telegram_enabled, viber_enabled,
                frequency, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, timezone,
                is_paused, created_at, updated_at
         FROM user_notification_preferences
@@ -128,6 +150,10 @@ def update_user_preferences(conn: sqlite3.Connection, user_id: int, **kwargs: An
     valid_keys = {
         "breaking_alerts",
         "followed_content_alerts",
+        "news_alerts",
+        "tender_alerts",
+        "job_alerts",
+        "rental_alerts",
         "telegram_enabled",
         "viber_enabled",
         "frequency",
@@ -145,7 +171,18 @@ def update_user_preferences(conn: sqlite3.Connection, user_id: int, **kwargs: An
         if key not in valid_keys or val is None:
             continue
 
-        if key in {"breaking_alerts", "followed_content_alerts", "telegram_enabled", "viber_enabled", "quiet_hours_enabled", "is_paused"}:
+        if key in {
+            "breaking_alerts",
+            "followed_content_alerts",
+            "news_alerts",
+            "tender_alerts",
+            "job_alerts",
+            "rental_alerts",
+            "telegram_enabled",
+            "viber_enabled",
+            "quiet_hours_enabled",
+            "is_paused",
+        }:
             updates.append(f"{key} = ?")
             params.append(1 if val else 0)
 

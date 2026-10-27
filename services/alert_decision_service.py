@@ -80,6 +80,14 @@ def build_event_key(
     return f"{clean_type}:{clean_id}:v{max(1, event_version)}"
 
 
+STREAM_PREF_MAP: dict[str, tuple[str, str]] = {
+    "news": ("news_alerts", "News Stream"),
+    "tender": ("tender_alerts", "Tenders Stream"),
+    "job": ("job_alerts", "Jobs Stream"),
+    "rental": ("rental_alerts", "Rentals Stream"),
+}
+
+
 def evaluate_candidate_recipients(
     conn: sqlite3.Connection,
     content_type: str,
@@ -90,14 +98,33 @@ def evaluate_candidate_recipients(
     source_id: Optional[str] = None,
 ) -> dict[int, dict[str, Any]]:
     """
-    Identify all users matching breaking news or follows (story, topic, section, source).
+    Identify all candidate recipients based on category streams, breaking alerts, and follows.
+    - Category Streams (Free): Users receive all events in enabled content streams (news, tender, job, rental).
+    - Breaking Alerts: Urgent breaking news reaches users with breaking_alerts = 1.
+    - Personalization (Pro): Followed story/topic/section/source matching. Pro subscribers (is_paid = 1)
+      can receive granular followed alerts even when broad category streams are disabled.
     Returns mapping: user_id -> {'reason': ..., 'reason_target': ...}.
     """
     candidates: dict[int, dict[str, Any]] = {}
     clean_type = content_type.strip().lower()
     clean_id = str(content_id).strip()
 
-    # 1. Breaking news candidates
+    # 1. Content Stream Matching (Free tier default feeds)
+    if clean_type in STREAM_PREF_MAP:
+        col_name, display_name = STREAM_PREF_MAP[clean_type]
+        stream_rows = conn.execute(
+            f"""
+            SELECT u.id
+            FROM users u
+            JOIN user_notification_preferences p ON u.id = p.user_id
+            WHERE p.{col_name} = 1 AND p.is_paused = 0;
+            """
+        ).fetchall()
+        for r in stream_rows:
+            uid = r[0]
+            candidates[uid] = {"reason": f"stream_{clean_type}", "reason_target": display_name}
+
+    # 2. Breaking News Candidates (Urgent priority)
     if is_breaking:
         breaking_rows = conn.execute(
             """
@@ -111,7 +138,7 @@ def evaluate_candidate_recipients(
             uid = r[0]
             candidates[uid] = {"reason": "breaking", "reason_target": "Breaking News"}
 
-    # 2. Follow matching (story, topic, section, source)
+    # 3. Follow matching (story, topic, section, source)
     follow_clauses: list[tuple[str, str]] = []
     if clean_type == "news" and clean_id:
         follow_clauses.append(("story", clean_id))
@@ -125,10 +152,9 @@ def evaluate_candidate_recipients(
         follow_clauses.append(("source", str(source_id).strip().lower()))
 
     if follow_clauses:
-        # Match follows where user has followed_content_alerts = 1 and is_paused = 0
         for f_type, f_id in follow_clauses:
             query = """
-                SELECT f.user_id, f.target_type, f.target_id
+                SELECT f.user_id, f.target_type, f.target_id, u.is_paid
                 FROM user_follows f
                 JOIN users u ON f.user_id = u.id
                 JOIN user_notification_preferences p ON u.id = p.user_id
@@ -138,8 +164,17 @@ def evaluate_candidate_recipients(
             rows = conn.execute(query, (f_type, f_id)).fetchall()
             for r in rows:
                 uid = r[0]
-                # If already matched via breaking, keep breaking or upgrade
-                if uid not in candidates:
+                is_paid = bool(r[3])
+
+                if uid in candidates:
+                    # If already candidate via stream, upgrade to personalized follow reason
+                    if candidates[uid]["reason"].startswith("stream_"):
+                        candidates[uid] = {
+                            "reason": f"followed_{f_type}",
+                            "reason_target": f_id,
+                        }
+                elif is_paid:
+                    # Pro Entitlement: Pro users receive targeted follows even if category stream is disabled
                     candidates[uid] = {
                         "reason": f"followed_{f_type}",
                         "reason_target": f_id,

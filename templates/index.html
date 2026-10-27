@@ -56,7 +56,7 @@
       <span class="font-bold text-ink px-2 py-0.5 rounded bg-paper-soft border border-hairline">
         {{ active_tag_obj.label if active_tag_obj else (active_topic_obj.label if active_topic_obj else active_tag or active_topic) }}
       </span>
-      <span class="text-slate">({{ (sections.major|length) + (sections.breaking|length) + (sections.general|length) }} stories matching)</span>
+      <span class="text-slate">({{ ((sections.major|length) if sections and sections.major else 0) + ((sections.breaking|length) if sections and sections.breaking else 0) + ((sections.general|length) if sections and sections.general else 0) }} stories matching)</span>
     </div>
     <div class="flex items-center gap-2">
       {% if active_topic %}
@@ -143,8 +143,12 @@
       </section>
       {% endif %}
 
-      {% if not sections.breaking and not sections.major and not sections.general %}
-      <p class="text-sm text-slate py-12 text-center">Nothing under this filter yet.</p>
+      {% if not sections or (not sections.breaking and not sections.major and not sections.general) %}
+      <div class="py-16 text-center text-slate bg-paper-soft/40 rounded-xl border border-dashed border-hairline my-6">
+        <p class="text-sm font-semibold text-ink">No stories available under this view</p>
+        <p class="text-xs text-slate mt-1">Live news and narrative dispatches will appear here once published.</p>
+        <a href="/" class="inline-block mt-3 px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink">&larr; Return to All News</a>
+      </div>
       {% endif %}
     </div>
 
@@ -186,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tg = window.Telegram.WebApp;
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       currentTelegramUser = tg.initDataUnsafe.user;
-      localStorage.setItem('khulaasaa_tg_connected', '1');
+      // public bot opened
       if (currentTelegramUser.username) {
         localStorage.setItem('khulaasaa_tg_name', '@' + currentTelegramUser.username);
       } else if (currentTelegramUser.first_name) {
@@ -239,7 +243,7 @@ function showConnectedState(connected) {
 }
 
 function handleTelegramConnectClick(e) {
-  localStorage.setItem('khulaasaa_tg_connected', '1');
+  // public bot opened
   localStorage.setItem('khulaasaa_tg_name', 'Telegram User');
   // Transition modal smoothly to alert settings for when user returns
   setTimeout(() => {
@@ -305,6 +309,8 @@ async function saveAlertPreferences() {
       });
     } catch(err) {}
   }
+}
+
 function openArticleUrl(url) {
   if (!url) return;
   if (window.Telegram?.WebApp?.openLink) {
@@ -361,7 +367,7 @@ function toggleFilterDrawer() {
 }
 
 function handleViberConnectClick(e) {
-  localStorage.setItem('khulaasaa_tg_connected', '1');
+  // public bot opened
   localStorage.setItem('khulaasaa_tg_name', 'Viber User');
   setTimeout(() => {
     showConnectedState(true);
@@ -399,7 +405,7 @@ async function submitUnifiedSubscription(e) {
     });
     const data = await res.json();
     if (data.ok) {
-      localStorage.setItem('khulaasaa_tg_connected', '1');
+      // public bot opened
       localStorage.setItem('khulaasaa_tg_name', (platform === 'viber' ? 'Viber: ' : 'Telegram: ') + targetId);
       showConnectedState(true);
       if (statusEl) {

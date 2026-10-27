@@ -6,7 +6,10 @@
 // Native Partial Loader (fetches Jinja2 HTML component snippet and swaps DOM target)
 async function loadPartial(url, targetSelector, pushState = true) {
   const target = document.querySelector(targetSelector);
-  if (!target) return;
+  if (!target) {
+    window.location.href = url;
+    return;
+  }
 
   target.style.opacity = '0.5';
   target.style.transition = 'opacity 0.15s ease';
@@ -59,8 +62,13 @@ document.addEventListener('click', function (e) {
 
 // Handle browser Back / Forward buttons with partial state
 window.addEventListener('popstate', function (e) {
-  if (e.state && e.state.partialUrl && e.state.target) {
-    loadPartial(e.state.partialUrl, e.state.target, false);
+  if (e.state && e.state.partialUrl) {
+    const target = e.state.target ? document.querySelector(e.state.target) : null;
+    if (target) {
+      loadPartial(e.state.partialUrl, e.state.target, false);
+    } else {
+      window.location.href = e.state.partialUrl || '/';
+    }
   }
 });
 

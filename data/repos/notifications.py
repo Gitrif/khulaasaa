@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
-VALID_CONTENT_TYPES = {"news", "tender", "job", "obituary"}
+VALID_CONTENT_TYPES = {"news", "tender", "job", "rental", "obituary"}
 VALID_DELIVERY_CHANNELS = {"telegram", "viber"}
 VALID_DELIVERY_STATUSES = {
     "pending",
