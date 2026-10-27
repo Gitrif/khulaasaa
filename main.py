@@ -184,6 +184,14 @@ def _periodic_sync_worker():
             except Exception:
                 pass
 
+        # Operational alert delivery queue (retry failed deliveries & release quiet-hour queues)
+        try:
+            from services.alert_delivery_service import process_operational_delivery_queue
+            with get_db() as conn:
+                process_operational_delivery_queue(conn)
+        except Exception:
+            pass
+
         if _SHUTDOWN_EVENT.wait(timeout=180):
             break
 
@@ -204,6 +212,11 @@ async def lifespan(app: FastAPI):
         start_telegram_bot_polling()
         set_telegram_chat_menu_button()
         try:
+            from services.alert_delivery_worker import start_outbox_worker
+            start_outbox_worker(interval_seconds=30)
+        except Exception:
+            pass
+        try:
             threading.Thread(target=register_khulaasaa_manifest, daemon=True, name="Hooks85ManifestRegister").start()
         except Exception:
             pass
@@ -211,6 +224,11 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown lifecycle
     _SHUTDOWN_EVENT.set()
+    try:
+        from services.alert_delivery_worker import stop_outbox_worker
+        stop_outbox_worker()
+    except Exception:
+        pass
     try:
         from data.postgres_adapter import close_connection_pool
         close_connection_pool()

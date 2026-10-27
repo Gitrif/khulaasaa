@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import os
 import sqlite3
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from data.repos.notifications import update_delivery_status
@@ -150,3 +151,63 @@ def retry_failed_deliveries(
             results["failed"] += 1
 
     return results
+
+
+def process_operational_delivery_queue(
+    conn: sqlite3.Connection,
+    limit: int = 50,
+    mock_mode: bool = False,
+) -> dict[str, int]:
+    """
+    Operational worker that:
+    1. Releases 'queued_quiet_hours' when the user's quiet hours have ended.
+    2. Retries 'pending' and retryable 'failed' deliveries with bounded retries.
+    3. Keeps 'queued_digest' safely in queue (digest dispatcher remains explicitly separate).
+    """
+    now_utc = datetime.now(timezone.utc)
+    released_count = 0
+
+    qh_rows = conn.execute(
+        """
+        SELECT d.id, d.user_id, p.quiet_hours_enabled, p.quiet_hours_start, p.quiet_hours_end, p.timezone
+        FROM notification_deliveries d
+        JOIN user_notification_preferences p ON d.user_id = p.user_id
+        WHERE d.status = 'queued_quiet_hours'
+        LIMIT ?;
+        """,
+        (limit,),
+    ).fetchall()
+
+    for row in qh_rows:
+        deliv_id = row[0]
+        qh_enabled = bool(row[2])
+        qh_start = row[3] or "23:00"
+        qh_end = row[4] or "07:00"
+        tz_name = row[5] or "Indian/Maldives"
+
+        still_quiet = False
+        if qh_enabled:
+            from services.alert_decision_service import is_in_quiet_hours
+            still_quiet = is_in_quiet_hours(now_utc, qh_start, qh_end, tz_name)
+
+        if not still_quiet:
+            conn.execute(
+                "UPDATE notification_deliveries SET status = 'pending', updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+                (deliv_id,),
+            )
+            released_count += 1
+
+    if hasattr(conn, "commit"):
+        try:
+            conn.commit()
+        except Exception:
+            pass
+
+    retry_stats = retry_failed_deliveries(conn, limit=limit, mock_mode=mock_mode)
+
+    return {
+        "quiet_hours_released": released_count,
+        "dispatched": retry_stats.get("success", 0),
+        "failed": retry_stats.get("failed", 0),
+        "total_attempted": retry_stats.get("total", 0),
+    }

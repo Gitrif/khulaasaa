@@ -194,6 +194,7 @@ def process_content_event(
         return stats
 
     now_utc = datetime.now(timezone.utc)
+    pending_dispatches: list[dict[str, Any]] = []
 
     for user_id, match_meta in candidates.items():
         # Fetch user preferences & connection flags
@@ -230,16 +231,6 @@ def process_content_event(
         vb_id = pref_row[12]
         vb_verified = bool(pref_row[13])
 
-        # Channel eligibility: Preference enabled AND truthfully verified AND address exists
-        eligible_channels: list[tuple[str, str]] = []
-        if tg_pref and tg_verified and tg_chat:
-            eligible_channels.append(("telegram", str(tg_chat)))
-        if vb_pref and vb_verified and vb_id:
-            eligible_channels.append(("viber", str(vb_id)))
-
-        if not eligible_channels:
-            continue  # No verified or enabled channels for this user
-
         # Quiet hours evaluation
         in_quiet = False
         if qh_enabled:
@@ -249,7 +240,15 @@ def process_content_event(
         defer_for_quiet_hours = in_quiet and not is_breaking
         defer_for_digest = (frequency == "digest")
 
-        # 1. Create 1 logical notification record
+        # Deduplication check: Has user already been alerted for this exact event?
+        already_alerted = conn.execute(
+            "SELECT id FROM notifications WHERE user_id = ? AND event_key = ?;",
+            (user_id, event_key),
+        ).fetchone()
+        if already_alerted:
+            continue
+
+        # 1. Create 1 logical notification record (recorded independently for in-app center)
         notif_id = create_logical_notification(
             conn,
             user_id=user_id,
@@ -271,7 +270,14 @@ def process_content_event(
 
         stats["notifications_created"] += 1
 
-        # 2. Create channel delivery records
+        # Channel eligibility: Preference enabled AND truthfully verified AND address exists
+        eligible_channels: list[tuple[str, str]] = []
+        if tg_pref and tg_verified and tg_chat:
+            eligible_channels.append(("telegram", str(tg_chat)))
+        if vb_pref and vb_verified and vb_id:
+            eligible_channels.append(("viber", str(vb_id)))
+
+        # 2. Create channel delivery records for eligible channels
         for channel, destination in eligible_channels:
             delivery_status = "pending"
             if defer_for_quiet_hours:
@@ -290,9 +296,8 @@ def process_content_event(
 
             if deliv_id:
                 stats["deliveries_queued"] += 1
-                # If actionable instant delivery, dispatch immediately
                 if delivery_status == "pending":
-                    deliv_dict = {
+                    pending_dispatches.append({
                         "id": deliv_id,
                         "channel": channel,
                         "destination": destination,
@@ -301,8 +306,19 @@ def process_content_event(
                         "url": url,
                         "content_type": clean_type,
                         "is_urgent": is_breaking,
-                    }
-                    dispatch_single_delivery(conn, deliv_dict, mock_mode=mock_mode)
-                    stats["deliveries_dispatched"] += 1
+                    })
+
+    # Commit durable database state BEFORE external network dispatch
+    if hasattr(conn, "commit"):
+        try:
+            conn.commit()
+        except Exception:
+            pass
+
+    # External delivery dispatch occurs strictly AFTER database persistence
+    for deliv_dict in pending_dispatches:
+        ok, _ = dispatch_single_delivery(conn, deliv_dict, mock_mode=mock_mode)
+        if ok:
+            stats["deliveries_dispatched"] += 1
 
     return stats

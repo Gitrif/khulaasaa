@@ -63,7 +63,8 @@ def create_logical_notification(
                 user_id, event_key, content_type, content_id, event_version,
                 reason, reason_target, title, summary, url,
                 is_urgent, frequency
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id;
             """,
             (
                 user_id,
@@ -80,9 +81,12 @@ def create_logical_notification(
                 frequency if frequency in ("instant", "digest") else "instant",
             ),
         )
-        return cur.lastrowid
-    except sqlite3.IntegrityError:
-        # Race condition handled safely by DB constraint
+        res_row = cur.fetchone()
+        if res_row:
+            return res_row["id"] if hasattr(res_row, "keys") else res_row[0]
+        return getattr(cur, "lastrowid", None)
+    except Exception:
+        # Race condition or uniqueness violation handled safely by DB constraint across SQLite & PostgreSQL
         row = conn.execute(
             "SELECT id FROM notifications WHERE user_id = ? AND event_key = ?;",
             (user_id, clean_event),
@@ -122,12 +126,16 @@ def create_notification_delivery(
             """
             INSERT INTO notification_deliveries (
                 notification_id, user_id, channel, destination, status, max_attempts
-            ) VALUES (?, ?, ?, ?, ?, ?);
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id;
             """,
             (notification_id, user_id, clean_channel, clean_dest, init_status, max_attempts),
         )
-        return cur.lastrowid
-    except sqlite3.IntegrityError:
+        res_row = cur.fetchone()
+        if res_row:
+            return res_row["id"] if hasattr(res_row, "keys") else res_row[0]
+        return getattr(cur, "lastrowid", None)
+    except Exception:
         row = conn.execute(
             "SELECT id FROM notification_deliveries WHERE notification_id = ? AND channel = ?;",
             (notification_id, clean_channel),

@@ -217,6 +217,16 @@ def dispatch_news_alerts(
     if not subscribers or not articles:
         return []
 
+    # Preserve distinction between public channel broadcasts and personalized user alerts:
+    # Users with verified accounts receive personalized alerts honoring quiet hours/follows via alert_decision_service.
+    # Exclude them from legacy bot DM broadcasts to prevent duplicates, while preserving default_chat public channel.
+    registered_chat_ids: set[str] = set()
+    try:
+        u_rows = conn.execute("SELECT telegram_chat_id FROM users WHERE telegram_chat_id IS NOT NULL AND telegram_verified = 1;").fetchall()
+        registered_chat_ids = {str(r[0]) for r in u_rows if r[0]}
+    except Exception:
+        pass
+
     sent_records: list[dict[str, Any]] = []
 
     from data.database import get_active_sponsored_ad, record_ad_impression, is_subscriber_paid
@@ -226,6 +236,8 @@ def dispatch_news_alerts(
 
     for sub_row in subscribers:
         chat_id = str(sub_row["chat_id"])
+        if default_chat and chat_id != str(default_chat) and chat_id in registered_chat_ids:
+            continue
         sub_started_at = str(sub_row["created_at"] or "")
         paid = is_subscriber_paid(conn, chat_id)
         try:
