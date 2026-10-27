@@ -99,6 +99,7 @@ from scrapers.translator import (
 )
 from services.news_service import enrich_event, get_live_news, init_news_cache
 from services.hooks85_service import register_khulaasaa_manifest
+from services.jobs_service import trigger_jobs_background_sync
 from services.tenders_service import (
     CACHE_TTL_SECONDS,
     _LIVE_BIDS_IS_SYNCING,
@@ -145,17 +146,42 @@ from routers.webhooks import router as webhooks_router
 
 
 
+_SHUTDOWN_EVENT = threading.Event()
+
+
 def _periodic_sync_worker():
-    """Background worker that periodically syncs news and tenders every 3 minutes."""
+    """Background worker that periodically syncs news, tenders, and jobs with graceful shutdown."""
     if os.environ.get("PYTEST_CURRENT_TEST"):
         return
-    time.sleep(10)
-    while True:
+    # Initial pause before periodic sync loop begins
+    if _SHUTDOWN_EVENT.wait(timeout=10):
+        return
+
+    iteration = 0
+    while not _SHUTDOWN_EVENT.is_set():
+        iteration += 1
+        # News sync every iteration (approx every 3 mins)
         try:
             get_live_news(force_refresh=True)
         except Exception:
             pass
-        time.sleep(180)
+
+        # Tenders sync every 2 iterations (approx every 6 mins)
+        if iteration % 2 == 0:
+            try:
+                trigger_bids_background_sync(force=True)
+            except Exception:
+                pass
+
+        # Jobs sync every 5 iterations (approx every 15 mins)
+        if iteration % 5 == 0:
+            try:
+                trigger_jobs_background_sync(force=True)
+            except Exception:
+                pass
+
+        if _SHUTDOWN_EVENT.wait(timeout=180):
+            break
 
 
 @asynccontextmanager
@@ -170,15 +196,17 @@ async def lifespan(app: FastAPI):
             pass
     if not os.environ.get("PYTEST_CURRENT_TEST"):
         trigger_bids_background_sync(force=False)
+        trigger_jobs_background_sync(force=False)
         start_telegram_bot_polling()
         set_telegram_chat_menu_button()
         try:
             threading.Thread(target=register_khulaasaa_manifest, daemon=True, name="Hooks85ManifestRegister").start()
         except Exception:
             pass
-        threading.Thread(target=_periodic_sync_worker, daemon=True, name="PeriodicNewsSync").start()
+        threading.Thread(target=_periodic_sync_worker, daemon=True, name="PeriodicSyncCoordinator").start()
     yield
     # Shutdown lifecycle
+    _SHUTDOWN_EVENT.set()
     try:
         from data.postgres_adapter import close_connection_pool
         close_connection_pool()
@@ -223,6 +251,7 @@ __all__ = [
     "enrich_event",
     "get_live_bids",
     "trigger_bids_background_sync",
+    "trigger_jobs_background_sync",
     "send_telegram_message",
     "send_viber_message",
     "format_viber_job",

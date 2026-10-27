@@ -15,6 +15,8 @@ from scrapers.news import (
     calculate_minutes_ago,
     cluster_articles,
     fetch_all_live_news,
+    fetch_raw_news_articles,
+    split_news_and_obituaries,
     format_relative_time,
 )
 from scrapers.translator import is_dhivehi
@@ -46,25 +48,44 @@ def init_news_cache() -> None:
 
 
 def _run_news_sync() -> None:
-    """Background worker to fetch live news from external outlets without blocking web traffic."""
+    """Background worker to fetch live news and obituaries from external outlets without blocking web traffic."""
     global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC
     try:
-        articles = fetch_all_live_news()
+        raw_items = fetch_raw_news_articles()
+        news_items, obit_items = split_news_and_obituaries(raw_items)
+
+        # 1. Ingest obituary notices into database via domain repository
+        if obit_items:
+            try:
+                from data.database import upsert_scraped_obituary
+                with get_db() as conn:
+                    for ob in obit_items:
+                        try:
+                            text = f"{ob.get('headline', '')}\n{ob.get('summary', '')}"
+                            upsert_scraped_obituary(conn, text, ob.get("url"))
+                        except Exception as e:
+                            logger.warning("Failed to persist obituary notice: %s", e)
+            except Exception as e:
+                logger.warning("Error during obituary ingestion: %s", e)
+
+        # 2. Persist individual publisher articles to canonical database
+        if news_items:
+            with get_db() as conn:
+                for item in news_items:
+                    try:
+                        upsert_article(conn, item)
+                    except Exception as exc:
+                        logger.debug("Failed upserting article %s: %s", item.get("id"), exc)
+
+        # 3. Cluster regular news articles across publishers for feed presentation
+        articles = cluster_articles(news_items) if news_items else []
         if articles:
-            # 1. Update in-memory cache immediately so web requests get fresh news with 0ms delay
+            # Update in-memory cache immediately so web requests get fresh news with 0ms delay
             _LIVE_NEWS_CACHE["data"] = articles
             _LIVE_NEWS_CACHE["timestamp"] = time.time()
             _LIVE_NEWS_LAST_SYNC = time.time()
 
-            # 2. Fast batch persist to DB with brief transaction
-            with get_db() as conn:
-                for art in articles:
-                    try:
-                        upsert_article(conn, art)
-                    except Exception:
-                        pass
-
-            # 3. Dispatch news alerts with isolated transaction
+            # Dispatch news alerts with isolated transaction
             try:
                 with get_db() as conn:
                     dispatch_news_alerts(conn, articles)

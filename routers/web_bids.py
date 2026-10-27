@@ -21,8 +21,7 @@ from data.database import (
     query_bids,
 )
 from alerts.telegram import get_telegram_credentials
-from services.tenders_service import trigger_bids_background_sync
-from scrapers.translator import is_dhivehi, translate_dhivehi_title
+from services.tenders_service import trigger_bids_background_sync, prepare_bids_presentation
 from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)
@@ -72,15 +71,7 @@ def bids(
         stats = get_agency_portal_statistics(conn)
         active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
 
-    for r in rows:
-        raw_t = r.get("title", "")
-        r["is_dhivehi"] = is_dhivehi(raw_t)
-        if not r.get("title_en"):
-            r["title_en"] = translate_dhivehi_title(raw_t)
-        if r["is_dhivehi"]:
-            r["title_dv"] = raw_t
-        else:
-            r["title_dv"] = ""
+    rows = prepare_bids_presentation(rows)
 
     default_token, default_chat = get_telegram_credentials()
 

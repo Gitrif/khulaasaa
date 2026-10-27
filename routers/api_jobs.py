@@ -178,9 +178,8 @@ def api_upgrade_user(request: Request):
 @router.post("/api/jobs/sync")
 def api_jobs_sync():
     """Trigger live sync of job vacancies from gazette.gov.mv and broadcast new alerts."""
-    with get_db() as conn:
-        stats = sync_jobs(conn, pages=1, trigger_alerts=True)
-    return stats
+    from services.jobs_service import run_jobs_sync
+    return run_jobs_sync(pages=1, trigger_alerts=True)
 
 
 @router.post("/api/jobs/test-alert")

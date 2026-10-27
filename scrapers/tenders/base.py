@@ -4,6 +4,7 @@ Common configurations, SSL context, and HTTP fetching helpers for procurement/bi
 from __future__ import annotations
 
 import logging
+import ssl
 from typing import Optional
 import bs4
 import requests
@@ -12,6 +13,11 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
+
+# SSL context preserved for backward compatibility
+SSL_CTX = ssl.create_default_context()
+SSL_CTX.check_hostname = False
+SSL_CTX.verify_mode = ssl.CERT_NONE
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",

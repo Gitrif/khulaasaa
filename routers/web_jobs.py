@@ -20,7 +20,7 @@ from data.database import (
 )
 from data.mock_events import JOBS
 from scrapers.jobs import JOB_DISCIPLINES
-from services.jobs_service import enrich_job
+from services.jobs_service import enrich_job, trigger_jobs_background_sync
 from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)
@@ -41,11 +41,15 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
         db_jobs = query_jobs(conn, discipline=discipline, search=q)
         all_disciplines = get_job_disciplines(conn)
 
-    if not db_jobs and not discipline and not q:
+    trigger_jobs_background_sync(force=False)
+
+    import os
+    demo_mode = os.environ.get("KHULAASAA_DEMO_MODE", "").lower() in ("1", "true", "yes") or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if not db_jobs and not discipline and not q and demo_mode:
         db_jobs = JOBS
 
     if not all_disciplines:
-        all_disciplines = sorted({j["discipline"] for j in JOBS} | set(JOB_DISCIPLINES))
+        all_disciplines = sorted({j["discipline"] for j in (db_jobs or [])} | set(JOB_DISCIPLINES))
 
     # Golden Rule: If any link is broken, omit it; if no valid link exists, remove the post
     enriched_jobs = [

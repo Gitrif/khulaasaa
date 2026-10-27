@@ -405,14 +405,23 @@ def parse_listing_html(html: str) -> list[BidNotice]:
 # Network layer
 # ---------------------------------------------------------------------
 
+GAZETTE_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Sec-Ch-Ua": '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Upgrade-Insecure-Requests": "1",
+}
+
+
 def fetch_notice(notice_id: str, session=None) -> BidNotice:
+    """Fetch notice details from Gazette print view."""
     import requests
 
     session = session or requests.Session()
-    session.headers.setdefault(
-        "User-Agent",
-        "DispatchBot/0.1 (+https://example.mv/about-our-crawler; contact@example.mv)",
-    )
+    session.headers.update(GAZETTE_HEADERS)
     url = print_url(notice_id)
     resp = session.get(url, timeout=15)
     resp.raise_for_status()
@@ -424,10 +433,7 @@ def fetch_listing(type_slug: str = "beelan", page: int = 1, session=None) -> lis
     import requests
 
     session = session or requests.Session()
-    session.headers.setdefault(
-        "User-Agent",
-        "DispatchBot/0.1 (+https://example.mv/about-our-crawler; contact@example.mv)",
-    )
+    session.headers.update(GAZETTE_HEADERS)
     url = f"{BASE_URL}/iulaan?type={type_slug}&page={page}"
     resp = session.get(url, timeout=15)
     resp.raise_for_status()

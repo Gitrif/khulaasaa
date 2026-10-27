@@ -24,8 +24,13 @@ client = TestClient(app)
 
 class TestHooks85GatewayIntegration(unittest.TestCase):
 
-    def test_khulaasaa_manifest_registration(self):
+    @patch("urllib.request.urlopen")
+    def test_khulaasaa_manifest_registration(self, mock_urlopen):
         """Verify Khulaasaa app manifest registers cleanly with hooks85 Gateway."""
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.__enter__.return_value = mock_resp
+        mock_urlopen.return_value = mock_resp
         res = register_khulaasaa_manifest()
         self.assertTrue(res, "Manifest should register successfully with hooks85 Gateway")
 
@@ -34,8 +39,13 @@ class TestHooks85GatewayIntegration(unittest.TestCase):
         self.assertIsNone(verify_hooks85_session(""))
         self.assertIsNone(verify_hooks85_session("invalid-dummy-cookie"))
 
-    def test_login_via_hooks85_invalid_credentials(self):
+    @patch("urllib.request.urlopen")
+    def test_login_via_hooks85_invalid_credentials(self, mock_urlopen):
         """Verify login_via_hooks85 returns error status for bad credentials."""
+        import urllib.error
+        import io
+        err = urllib.error.HTTPError("http://localhost:8101", 401, "Unauthorized", {}, io.BytesIO(b'{"detail":"Invalid credentials"}'))
+        mock_urlopen.side_effect = err
         res = login_via_hooks85("nobody_test@example.mv", "badpassword999")
         self.assertIsNotNone(res)
         self.assertEqual(res.get("status"), "error")

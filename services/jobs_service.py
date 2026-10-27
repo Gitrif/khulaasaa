@@ -6,8 +6,94 @@ and multi-source application hierarchy (including strict HDC-only prioritization
 from __future__ import annotations
 
 import datetime
+import logging
 import re
+import threading
+import time
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
+
+_LIVE_JOBS_LOCK = threading.Lock()
+_LIVE_JOBS_LAST_SYNC: float = 0.0
+_LIVE_JOBS_IS_SYNCING: bool = False
+JOBS_CACHE_TTL_SECONDS = 900  # 15 minutes
+
+_JOBS_SYNC_STATUS: dict[str, Any] = {
+    "status": "idle",
+    "last_run": None,
+    "last_success": None,
+    "last_error": None,
+    "fetched": 0,
+    "new": 0,
+    "updated": 0,
+    "alerts_sent": 0,
+}
+
+
+def get_jobs_sync_status() -> dict[str, Any]:
+    """Return operational status of the jobs synchronization pipeline."""
+    return dict(_JOBS_SYNC_STATUS)
+
+
+def run_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
+    """Execute jobs synchronization with concurrency protection and operational tracking."""
+    global _LIVE_JOBS_IS_SYNCING, _LIVE_JOBS_LAST_SYNC
+    with _LIVE_JOBS_LOCK:
+        if _LIVE_JOBS_IS_SYNCING:
+            return {"status": "already_running"}
+        _LIVE_JOBS_IS_SYNCING = True
+
+    start_iso = datetime.datetime.now().isoformat()
+    _JOBS_SYNC_STATUS["status"] = "running"
+    _JOBS_SYNC_STATUS["last_run"] = start_iso
+
+    try:
+        from data.database import get_db
+        from scrapers.jobs import sync_jobs
+        with get_db() as conn:
+            result = sync_jobs(conn, pages=pages, trigger_alerts=trigger_alerts)
+
+        _JOBS_SYNC_STATUS.update({
+            "status": "success",
+            "last_success": datetime.datetime.now().isoformat(),
+            "fetched": result.get("fetched", 0),
+            "new": result.get("new", 0),
+            "updated": result.get("updated", 0),
+            "alerts_sent": result.get("alerts_sent", 0),
+            "last_error": None,
+        })
+        _LIVE_JOBS_LAST_SYNC = time.time()
+        return result
+    except Exception as exc:
+        logger.error("Jobs synchronization failed: %s", exc, exc_info=True)
+        _JOBS_SYNC_STATUS.update({
+            "status": "failed",
+            "last_error": str(exc),
+        })
+        return {"status": "failed", "error": str(exc)}
+    finally:
+        _LIVE_JOBS_IS_SYNCING = False
+
+
+def trigger_jobs_background_sync(force: bool = False, pages: int = 1) -> bool:
+    """Schedule asynchronous jobs synchronization if TTL expired and not already active."""
+    global _LIVE_JOBS_IS_SYNCING, _LIVE_JOBS_LAST_SYNC
+    now = time.time()
+    with _LIVE_JOBS_LOCK:
+        if _LIVE_JOBS_IS_SYNCING:
+            return False
+        if not force and _LIVE_JOBS_LAST_SYNC > 0 and (now - _LIVE_JOBS_LAST_SYNC < JOBS_CACHE_TTL_SECONDS):
+            return False
+        _LIVE_JOBS_IS_SYNCING = True
+        worker = threading.Thread(
+            target=run_jobs_sync,
+            kwargs={"pages": pages, "trigger_alerts": True},
+            daemon=True,
+            name="JobsSyncWorker"
+        )
+        worker.start()
+        return True
 
 
 def get_employer_logo(agency: str) -> Optional[str]:

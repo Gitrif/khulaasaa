@@ -5,7 +5,9 @@ stores into database, and triggers subscriber alerts.
 """
 from __future__ import annotations
 
+import datetime
 import logging
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -14,7 +16,7 @@ from typing import Any
 from data.database import get_db, purge_expired_bids, query_bids, upsert_bid
 from scrapers.agencies import fetch_all_agency_portals
 from scrapers.gazette import classify_procurement, fetch_listing, fetch_notice
-from scrapers.translator import translate_agency, translate_dhivehi_title, translate_venue
+from scrapers.translator import is_dhivehi, translate_agency, translate_dhivehi_title, translate_venue
 from alerts.telegram import dispatch_tender_alerts
 from alerts.viber import dispatch_viber_bid_alerts
 
@@ -25,21 +27,73 @@ _LIVE_BIDS_LAST_SYNC: float = 0.0
 _LIVE_BIDS_IS_SYNCING: bool = False
 CACHE_TTL_SECONDS = 300  # 5 minutes
 
+_LIVE_BIDS_SYNC_STATUS: dict[str, Any] = {
+    "status": "idle",
+    "last_run": None,
+    "last_success": None,
+    "last_error": None,
+    "gazette_notices_count": 0,
+    "agency_records_count": 0,
+    "persisted_count": 0,
+    "alerts_dispatched": 0,
+}
+
+
+def get_bids_sync_status() -> dict[str, Any]:
+    """Return operational status of the procurement ingestion pipeline."""
+    return dict(_LIVE_BIDS_SYNC_STATUS)
+
+
+def prepare_bids_presentation(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Normalize and format bid records with Dhivehi classification and localized titles for UI."""
+    for r in rows:
+        raw_t = r.get("title", "")
+        is_dv = is_dhivehi(raw_t)
+        r["is_dhivehi"] = is_dv
+        if not r.get("title_en"):
+            r["title_en"] = translate_dhivehi_title(raw_t)
+        if is_dv:
+            r["title_dv"] = raw_t
+        else:
+            r["title_dv"] = ""
+    return rows
+
 
 def _run_bids_sync() -> None:
     """Internal worker running in background thread to fetch Gazette and agency tenders."""
     global _LIVE_BIDS_IS_SYNCING, _LIVE_BIDS_LAST_SYNC
+    start_iso = datetime.datetime.now().isoformat()
+    _LIVE_BIDS_SYNC_STATUS["status"] = "running"
+    _LIVE_BIDS_SYNC_STATUS["last_run"] = start_iso
+    errors: list[str] = []
+
     try:
-        # 1. Fetch listings and enrich notices over HTTP (NO DB connection held)
+        # 1. Fetch Gazette listings with robust pagination and cycle detection
         notices = []
-        try:
-            notices = fetch_listing(type_slug="beelan", page=1)
+        seen_notice_ids = set()
+        max_pages = int(os.environ.get("GAZETTE_MAX_PAGES", "3"))
+
+        for page_num in range(1, max_pages + 1):
             try:
-                notices += fetch_listing(type_slug="beelan", page=2)
-            except Exception:
-                pass
-        except Exception:
-            pass
+                page_items = fetch_listing(type_slug="beelan", page=page_num)
+                if not page_items:
+                    break
+                new_items_count = 0
+                for item in page_items:
+                    if item.notice_id not in seen_notice_ids:
+                        seen_notice_ids.add(item.notice_id)
+                        notices.append(item)
+                        new_items_count += 1
+                if new_items_count == 0:
+                    # Repeated page detected (reached end of pagination)
+                    break
+            except Exception as exc:
+                logger.warning("Error fetching Gazette listing page %d: %s", page_num, exc)
+                errors.append(f"Gazette page {page_num}: {exc}")
+                if page_num == 1:
+                    break
+
+        _LIVE_BIDS_SYNC_STATUS["gazette_notices_count"] = len(notices)
 
         if notices:
             # Query local DB for already enriched notices to avoid redundant external HTTP requests
@@ -50,8 +104,8 @@ def _run_bids_sync() -> None:
                         "SELECT notice_id FROM bids WHERE submission_location IS NOT NULL AND reference_number IS NOT NULL;"
                     ).fetchall()
                     already_enriched = {r[0] for r in rows if r[0]}
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed querying local enriched bids: %s", exc)
 
             def _enrich_notice(n):
                 # Skip external HTTP request if this notice was already enriched in database
@@ -74,8 +128,8 @@ def _run_bids_sync() -> None:
                             n.body = detailed.body
                         if detailed.deadline_iso:
                             n.deadline_iso = detailed.deadline_iso
-                    except Exception:
-                        pass
+                    except Exception as err:
+                        logger.debug("Notice %s detail enrichment skipped: %s", n.notice_id, err)
                 return n
 
             # Only run thread pool if there are notices that actually need network enrichment
@@ -84,8 +138,8 @@ def _run_bids_sync() -> None:
                 try:
                     with ThreadPoolExecutor(max_workers=5) as executor:
                         list(executor.map(_enrich_notice, to_enrich))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("Error during parallel notice enrichment: %s", exc)
 
         new_records = []
         for n in notices:
@@ -149,8 +203,10 @@ def _run_bids_sync() -> None:
             new_records.append(bid_dict)
 
         # 2. Poll SOE and Ministry tender pages
+        agency_count = 0
         try:
             agency_records = fetch_all_agency_portals()
+            agency_count = len(agency_records)
             for ar in agency_records:
                 nature, disc = classify_procurement(ar.title)
                 agency_clean = translate_agency(ar.agency)
@@ -177,28 +233,51 @@ def _run_bids_sync() -> None:
                 new_records.append(agency_bid)
         except Exception as e:
             logger.warning("Failed to fetch agency portals: %s", e)
+            errors.append(f"Agency portals: {e}")
+
+        _LIVE_BIDS_SYNC_STATUS["agency_records_count"] = agency_count
 
         # 3. Store into DB in a fast atomic transaction
+        persisted = 0
         with get_db() as conn:
             try:
                 purge_expired_bids(conn, retention_days=30)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Error purging expired bids: %s", exc)
 
             for bid_dict in new_records:
                 try:
                     upsert_bid(conn, bid_dict)
-                except Exception:
-                    pass
+                    persisted += 1
+                except Exception as exc:
+                    logger.warning("Failed upserting bid %s: %s", bid_dict.get("notice_id"), exc)
+
+            alerts_dispatched = 0
+            try:
+                alert_res = dispatch_tender_alerts(conn, new_records)
+                if isinstance(alert_res, dict):
+                    alerts_dispatched += alert_res.get("delivered", 0)
+            except Exception as exc:
+                logger.warning("Error dispatching Telegram tender alerts: %s", exc)
 
             try:
-                dispatch_tender_alerts(conn, new_records)
-            except Exception:
-                pass
-            try:
                 dispatch_viber_bid_alerts(conn, new_records)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Error dispatching Viber tender alerts: %s", exc)
+
+        _LIVE_BIDS_SYNC_STATUS.update({
+            "status": "success_with_errors" if errors else "success",
+            "last_success": datetime.datetime.now().isoformat(),
+            "persisted_count": persisted,
+            "alerts_dispatched": alerts_dispatched,
+            "last_error": "; ".join(errors) if errors else None,
+        })
+    except Exception as exc:
+        logger.error("Bids sync critical failure: %s", exc, exc_info=True)
+        _LIVE_BIDS_SYNC_STATUS.update({
+            "status": "failed",
+            "last_error": str(exc),
+        })
     finally:
         _LIVE_BIDS_LAST_SYNC = time.time()
         _LIVE_BIDS_IS_SYNCING = False
@@ -214,7 +293,7 @@ def trigger_bids_background_sync(force: bool = False) -> bool:
         if not force and _LIVE_BIDS_LAST_SYNC > 0 and (now - _LIVE_BIDS_LAST_SYNC < CACHE_TTL_SECONDS):
             return False
         _LIVE_BIDS_IS_SYNCING = True
-        worker = threading.Thread(target=_run_bids_sync, daemon=True)
+        worker = threading.Thread(target=_run_bids_sync, daemon=True, name="BidsSyncWorker")
         worker.start()
         return True
 
