@@ -120,5 +120,16 @@ from data.repos.preferences import (
     update_user_preferences,
     DEFAULT_PREFERENCES,
 )
+from data.repos.notifications import (
+    create_logical_notification,
+    create_notification_delivery,
+    update_delivery_status,
+    list_user_notifications,
+    mark_notification_read,
+    mark_all_notifications_read,
+    get_unread_notification_count,
+    get_deliveries_for_notification,
+    get_pending_deliveries,
+)
 
 logger = logging.getLogger(__name__)

@@ -85,12 +85,37 @@ def _run_news_sync() -> None:
             _LIVE_NEWS_CACHE["timestamp"] = time.time()
             _LIVE_NEWS_LAST_SYNC = time.time()
 
-            # Dispatch news alerts with isolated transaction
+            # Dispatch legacy broadcast alerts with isolated transaction
             try:
                 with get_db() as conn:
                     dispatch_news_alerts(conn, articles)
             except Exception as e:
                 logger.warning("Failed to dispatch news alerts: %s", e)
+
+            # Evaluate personalized follow and breaking alerts strictly after persistence
+            try:
+                from services.alert_decision_service import process_content_event
+                with get_db() as conn:
+                    for art in articles[:5]:
+                        s_id = art.get("story_id") or art.get("id")
+                        if s_id:
+                            is_brk = bool(art.get("is_breaking") or art.get("category") == "breaking")
+                            topics = [art.get("category")] if art.get("category") else []
+                            process_content_event(
+                                conn,
+                                content_type="news",
+                                content_id=str(s_id),
+                                title=art.get("headline", ""),
+                                summary=art.get("summary"),
+                                url=art.get("url") or f"/story/{s_id}",
+                                is_breaking=is_brk,
+                                topics=topics,
+                                section=art.get("section") or "news",
+                                source_id=art.get("source_name") or art.get("source"),
+                                event_version=art.get("event_version", 1),
+                            )
+            except Exception as e:
+                logger.warning("Failed evaluating news alerts: %s", e)
     except Exception as e:
         logger.warning("Background news sync failed: %s", e)
     finally:

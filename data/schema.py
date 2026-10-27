@@ -2,10 +2,6 @@
 Database schema SQL and DDL definitions for Khulaasaa.
 """
 
-# ---------------------------------------------------------------------
-# Database Schema
-# ---------------------------------------------------------------------
-
 SCHEMA_SQL = """
 -- 1. Canonical Sources Registry (Single Source of Truth for Portals, Media, and Marketplaces)
 CREATE TABLE IF NOT EXISTS sources (
@@ -333,6 +329,46 @@ CREATE TABLE IF NOT EXISTS channel_link_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_token ON channel_link_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_user ON channel_link_tokens(user_id, channel);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_key TEXT NOT NULL,
+    content_type TEXT NOT NULL, -- 'news', 'tender', 'job', 'obituary'
+    content_id TEXT NOT NULL,
+    event_version INTEGER NOT NULL DEFAULT 1,
+    reason TEXT NOT NULL, -- 'breaking', 'followed_story', 'followed_topic', 'followed_section', 'followed_source'
+    reason_target TEXT,
+    title TEXT NOT NULL,
+    summary TEXT,
+    url TEXT,
+    is_urgent INTEGER NOT NULL DEFAULT 0,
+    frequency TEXT NOT NULL DEFAULT 'instant', -- 'instant', 'digest'
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, event_key)
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_event ON notifications(event_key);
+
+CREATE TABLE IF NOT EXISTS notification_deliveries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    notification_id INTEGER NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL, -- 'telegram', 'viber'
+    destination TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'delivered', 'failed', 'dead_letter', 'queued_quiet_hours', 'queued_digest'
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    max_attempts INTEGER NOT NULL DEFAULT 3,
+    error_message TEXT,
+    last_attempt_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(notification_id, channel)
+);
+CREATE INDEX IF NOT EXISTS idx_deliveries_status ON notification_deliveries(status, channel);
+CREATE INDEX IF NOT EXISTS idx_deliveries_user ON notification_deliveries(user_id);
 
 CREATE TABLE IF NOT EXISTS user_sessions (
     token TEXT PRIMARY KEY,

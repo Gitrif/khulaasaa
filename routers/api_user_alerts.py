@@ -104,3 +104,53 @@ async def api_test_alert_connection(request: Request):
         return JSONResponse(status_code=400, content={"ok": False, "detail": res.get("status_message", "Failed to deliver Viber alert")})
 
     raise HTTPException(status_code=400, detail="Invalid alert channel")
+
+
+@router.get("/api/account/notifications")
+def api_get_user_notifications(request: Request, limit: int = 30, offset: int = 0):
+    """Retrieve in-app notifications and unread count for the authenticated user."""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    with get_db() as conn:
+        from data.repos.notifications import (
+            get_unread_notification_count,
+            list_user_notifications,
+        )
+        notifs = list_user_notifications(conn, user["id"], limit=limit, offset=offset)
+        unread = get_unread_notification_count(conn, user["id"])
+
+    return {
+        "status": "ok",
+        "notifications": notifs,
+        "unread_count": unread,
+    }
+
+
+@router.post("/api/account/notifications/{notification_id}/read")
+def api_mark_notification_read(request: Request, notification_id: int):
+    """Mark a specific notification as read."""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    with get_db() as conn:
+        from data.repos.notifications import mark_notification_read
+        ok = mark_notification_read(conn, user["id"], notification_id)
+
+    return {"status": "ok", "success": ok}
+
+
+@router.post("/api/account/notifications/read-all")
+def api_mark_all_notifications_read(request: Request):
+    """Mark all unread notifications as read for current user."""
+    user = get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    with get_db() as conn:
+        from data.repos.notifications import mark_all_notifications_read
+        count = mark_all_notifications_read(conn, user["id"])
+
+    return {"status": "ok", "marked_read": count}

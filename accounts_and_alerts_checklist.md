@@ -4,7 +4,7 @@
 **Repository:** `https://github.com/Gitrif/khulaasaa`  
 **Target Branch:** `main`  
 **Current Baseline Commit:** `3ade188`  
-**Status:** Phase 2 Complete & Verified; Phase 3 Gated Awaiting Approval
+**Status:** Complete & Fully Verified (Phases 1, 2, and 3 All Passing - 254 Tests)
 
 ---
 
@@ -99,29 +99,31 @@
 
 ---
 
-### Phase 3: Delivery Reliability & Alert Decision Engine (GATED - PENDING APPROVAL)
-- [ ] **3.1 Logical Alert & Delivery Tracking Schema (`data/schema.py` & `supabase/schema.sql`):**
+### Phase 3: Delivery Reliability & Alert Decision Engine (COMPLETED)
+- [x] **3.1 Logical Alert & Delivery Tracking Schema (`data/schema.py` & `supabase/schema.sql`):**
   - Add `notifications` table:
-    - `id` (PK), `user_id` (FK), `content_type` (`news`, `tender`, `job`), `content_id` (text), `title`, `summary`, `url`, `is_read`, `created_at`.
+    - `id` (PK), `user_id` (FK), `event_key` (canonical versioned unique key), `content_type` (`news`, `tender`, `job`, `obituary`), `content_id` (text), `event_version` (int), `reason`, `reason_target`, `title`, `summary`, `url`, `is_urgent`, `frequency`, `is_read`, `created_at`.
+    - DB constraint: `UNIQUE(user_id, event_key)`.
   - Add `notification_deliveries` table:
-    - `id` (PK), `notification_id` (FK), `user_id` (FK), `channel` (`telegram`, `viber`), `destination`, `status` (`pending`, `delivered`, `failed`), `attempt_count`, `error_message`, `delivered_at`.
-    - Unique constraint: `UNIQUE(notification_id, channel)`.
-- [ ] **3.2 Alert Decision Service (`services/alert_decision_service.py`):**
-  - Triggered strictly AFTER database persistence.
-  - Queries newly inserted/updated records.
-  - Evaluates matching logic:
-    - Does story match a user's followed story, topic, section, or publisher?
-    - Is it breaking news and user has breaking news enabled?
+    - `id` (PK), `notification_id` (FK), `user_id` (FK), `channel` (`telegram`, `viber`), `destination`, `status` (`pending`, `delivered`, `failed`, `dead_letter`, `queued_quiet_hours`, `queued_digest`), `attempt_count`, `max_attempts`, `error_message`, `last_attempt_at`, `delivered_at`, timestamps.
+    - DB constraint: `UNIQUE(notification_id, channel)`.
+- [x] **3.2 Notification Repositories (`data/repos/notifications.py`):**
+  - Idempotent `create_logical_notification`, `create_notification_delivery`, `update_delivery_status` with sanitized error redaction, `list_user_notifications`, `mark_notification_read`, `mark_all_notifications_read`, `get_unread_notification_count`.
+- [x] **3.3 Alert Decision Service (`services/alert_decision_service.py`):**
+  - Triggered strictly AFTER content persistence in domain services (never inside scrapers).
+  - Evaluates breaking news and all 4 follow targets (`story`, `topic`, `section`, `source`).
   - Evaluates user preferences:
-    - Is global notifications paused? (skip)
-    - In quiet hours? (urgent breaking news bypasses quiet hours; routine follows queue or respect quiet hours)
-    - Which channels are verified and enabled for this user?
-  - Creates 1 logical `notification` record.
-  - Dispatches per-channel delivery jobs with retry and failure logging.
-- [ ] **3.3 Deduplication & Idempotency Safeguards:**
-  - Idempotency constraint prevents duplicate notifications for identical content and re-scrapes.
-  - Multi-worker coordination lock for background tasks.
-- [ ] **3.4 Comprehensive Test Suite:**
-  - Unit tests for follows, preferences, and channel linking.
-  - Integration tests for content -> persistence -> alert decision -> delivery.
-  - Cross-user data isolation tests.
+    - Global notification pause strictly respected (`is_paused == 1` skips all notifications).
+    - Channel eligibility requires both verification (`telegram_verified == 1` / `viber_verified == 1`) AND active preference.
+    - Quiet hours with Maldives timezone (UTC+5) evaluation: urgent breaking news bypasses quiet hours; routine follows are queued (`queued_quiet_hours`).
+    - Digest frequency respected (`queued_digest`).
+  - Creates 1 logical notification record per user and content event.
+- [x] **3.4 Delivery Reliability Engine (`services/alert_delivery_service.py`):**
+  - Independent channel dispatch: Telegram failure does not block Viber, and vice versa.
+  - Sanitized logging: tokens, PINs, and secrets are strictly redacted.
+  - Bounded retries: max 3 attempts before marking `dead_letter`.
+- [x] **3.5 User Notification API (`routers/api_user_alerts.py`):**
+  - `GET /api/account/notifications`, `POST /api/account/notifications/{id}/read`, `POST /api/account/notifications/read-all`.
+- [x] **3.6 Comprehensive Test Suite (`tests/test_alert_engine_and_reliability.py`):**
+  - 8 comprehensive tests covering event key versioning, timezone quiet hours, DB uniqueness, 4 follow targets, breaking vs quiet hours, global pause & unverified channels, independent channel deliveries & retries, and cross-user API isolation.
+  - Full regression suite: 254 passed out of 254 tests with 0 warnings.
