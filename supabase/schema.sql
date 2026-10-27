@@ -461,6 +461,8 @@ CREATE TABLE IF NOT EXISTS notification_deliveries (
     status TEXT NOT NULL DEFAULT 'pending',
     attempt_count INTEGER NOT NULL DEFAULT 0,
     max_attempts INTEGER NOT NULL DEFAULT 3,
+    claim_token TEXT,
+    claimed_at TIMESTAMPTZ,
     error_message TEXT,
     last_attempt_at TIMESTAMPTZ,
     delivered_at TIMESTAMPTZ,

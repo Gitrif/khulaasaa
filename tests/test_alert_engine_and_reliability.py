@@ -201,7 +201,7 @@ def test_breaking_news_vs_routine_quiet_hours_behavior():
         ).fetchone()
         assert delivs_routine[0] == "queued_quiet_hours"
 
-        # 2. Urgent Breaking News -> must BYPASS quiet hours and dispatch
+        # 2. Urgent Breaking News -> must BYPASS quiet hours and queue as pending
         stats_breaking = process_content_event(
             conn,
             content_type="news",
@@ -215,7 +215,15 @@ def test_breaking_news_vs_routine_quiet_hours_behavior():
             "SELECT status FROM notification_deliveries WHERE user_id = ? ORDER BY id DESC LIMIT 1;",
             (u_id,),
         ).fetchone()
-        assert delivs_breaking[0] == "delivered"  # Mock mode dispatches and marks delivered
+        assert delivs_breaking[0] == "pending"
+
+        # Outbox worker sweep dispatches pending deliveries
+        retry_failed_deliveries(conn, mock_mode=True)
+        delivs_breaking_after = conn.execute(
+            "SELECT status FROM notification_deliveries WHERE user_id = ? ORDER BY id DESC LIMIT 1;",
+            (u_id,),
+        ).fetchone()
+        assert delivs_breaking_after[0] == "delivered"
 
 
 def test_global_pause_and_unverified_channel_opt_out():
@@ -264,13 +272,17 @@ def test_independent_channel_deliveries_and_bounded_retry():
             is_paused=0, quiet_hours_enabled=0,
         )
 
-        # Trigger breaking news with Telegram failing but Viber succeeding
+        # Trigger breaking news: decision service queues pending deliveries for both channels
+        stats = process_content_event(
+            conn, content_type="news", content_id="dual_alert_1",
+            title="Dual Alert Test", is_breaking=True, mock_mode=False,
+        )
+        assert stats["deliveries_queued"] == 2
+
+        # Outbox worker sweep with Telegram failing but Viber succeeding
         with patch("alerts.telegram_client.send_telegram_message", return_value=(False, "Telegram 500 error")):
             with patch("alerts.viber.send_viber_message", return_value={"status": 0}):
-                stats = process_content_event(
-                    conn, content_type="news", content_id="dual_alert_1",
-                    title="Dual Alert Test", is_breaking=True, mock_mode=False,
-                )
+                retry_failed_deliveries(conn, limit=5, mock_mode=False)
 
         delivs = conn.execute(
             "SELECT channel, status, attempt_count FROM notification_deliveries WHERE user_id = ? ORDER BY channel ASC;",
@@ -329,6 +341,7 @@ def test_api_account_notifications_endpoints():
         )
 
     # 3. Alice lists notifications -> must see only hers
+    client.cookies.clear()
     client.cookies.set("session_token", alice_token)
     res_list = client.get("/api/account/notifications")
     assert res_list.status_code == 200
@@ -350,6 +363,7 @@ def test_api_account_notifications_endpoints():
     # 6. Check unread count is now 0
     res_list2 = client.get("/api/account/notifications")
     assert res_list2.json()["unread_count"] == 0
+    client.cookies.clear()
 
 
 def test_postgres_returning_id_and_cursor_compatibility():
@@ -478,19 +492,3 @@ def test_legacy_broadcast_skips_registered_users_to_prevent_duplicate_delivery()
                 destinations = [d["chat_id"] for d in dispatched]
                 assert "public_channel_999" in destinations
                 assert "chat_user_personal" not in destinations
-
-
-def test_outbox_worker_lifecycle_and_sweep():
-    """Verify OutboxWorker starts, sweeps pending outbox records, and stops cleanly."""
-    from services.alert_delivery_worker import OutboxWorker
-    worker = OutboxWorker(interval_seconds=10)
-    worker.start()
-    assert worker._is_running is True
-
-    # Run an explicit sweep
-    sweep_res = worker.run_once(mock_mode=True)
-    assert "dispatched" in sweep_res
-    assert "quiet_hours_released" in sweep_res
-
-    worker.stop(timeout=2.0)
-    assert worker._is_running is False

@@ -176,6 +176,12 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 conn.execute("ALTER TABLE users ADD COLUMN telegram_verified INTEGER DEFAULT 0;")
             if usr_cols and "viber_verified" not in usr_cols:
                 conn.execute("ALTER TABLE users ADD COLUMN viber_verified INTEGER DEFAULT 0;")
+
+            nd_cols = [row[1] for row in conn.execute("PRAGMA table_info(notification_deliveries);").fetchall()]
+            if nd_cols and "claim_token" not in nd_cols:
+                conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claim_token TEXT;")
+            if nd_cols and "claimed_at" not in nd_cols:
+                conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claimed_at TIMESTAMP;")
         except Exception:
             pass
 

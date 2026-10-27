@@ -357,9 +357,11 @@ CREATE TABLE IF NOT EXISTS notification_deliveries (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     channel TEXT NOT NULL, -- 'telegram', 'viber'
     destination TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'delivered', 'failed', 'dead_letter', 'queued_quiet_hours', 'queued_digest'
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'delivered', 'failed', 'dead_letter', 'queued_quiet_hours', 'queued_digest', 'claiming'
     attempt_count INTEGER NOT NULL DEFAULT 0,
     max_attempts INTEGER NOT NULL DEFAULT 3,
+    claim_token TEXT,
+    claimed_at TIMESTAMP,
     error_message TEXT,
     last_attempt_at TIMESTAMP,
     delivered_at TIMESTAMP,

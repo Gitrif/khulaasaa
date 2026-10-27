@@ -184,14 +184,6 @@ def _periodic_sync_worker():
             except Exception:
                 pass
 
-        # Operational alert delivery queue (retry failed deliveries & release quiet-hour queues)
-        try:
-            from services.alert_delivery_service import process_operational_delivery_queue
-            with get_db() as conn:
-                process_operational_delivery_queue(conn)
-        except Exception:
-            pass
-
         if _SHUTDOWN_EVENT.wait(timeout=180):
             break
 

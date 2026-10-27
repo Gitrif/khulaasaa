@@ -16,7 +16,6 @@ from data.repos.notifications import (
     create_logical_notification,
     create_notification_delivery,
 )
-from services.alert_delivery_service import dispatch_single_delivery
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +193,6 @@ def process_content_event(
         return stats
 
     now_utc = datetime.now(timezone.utc)
-    pending_dispatches: list[dict[str, Any]] = []
 
     for user_id, match_meta in candidates.items():
         # Fetch user preferences & connection flags
@@ -296,29 +294,9 @@ def process_content_event(
 
             if deliv_id:
                 stats["deliveries_queued"] += 1
-                if delivery_status == "pending":
-                    pending_dispatches.append({
-                        "id": deliv_id,
-                        "channel": channel,
-                        "destination": destination,
-                        "title": title,
-                        "summary": summary,
-                        "url": url,
-                        "content_type": clean_type,
-                        "is_urgent": is_breaking,
-                    })
 
-    # Commit durable database state BEFORE external network dispatch
+    # Commit durable database state. A failed database commit must never be treated as successful.
     if hasattr(conn, "commit"):
-        try:
-            conn.commit()
-        except Exception:
-            pass
-
-    # External delivery dispatch occurs strictly AFTER database persistence
-    for deliv_dict in pending_dispatches:
-        ok, _ = dispatch_single_delivery(conn, deliv_dict, mock_mode=mock_mode)
-        if ok:
-            stats["deliveries_dispatched"] += 1
+        conn.commit()
 
     return stats

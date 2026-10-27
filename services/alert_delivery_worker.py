@@ -29,11 +29,12 @@ class OutboxWorker:
         self.interval = max(5, interval_seconds)
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
+        self._state_lock = threading.Lock()
         self._is_running = False
 
     def start(self) -> None:
         """Start the outbox worker thread."""
-        with _OUTBOX_LOCK:
+        with self._state_lock:
             if self._is_running:
                 return
             self._stop_event.clear()
@@ -48,14 +49,16 @@ class OutboxWorker:
 
     def stop(self, timeout: float = 5.0) -> None:
         """Stop the outbox worker gracefully."""
-        with _OUTBOX_LOCK:
+        with self._state_lock:
             if not self._is_running:
                 return
             self._stop_event.set()
-            if self._thread and self._thread.is_alive():
-                self._thread.join(timeout=timeout)
+            thread = self._thread
             self._is_running = False
-            logger.info("Transactional Outbox Worker stopped")
+
+        if thread and thread.is_alive():
+            thread.join(timeout=timeout)
+        logger.info("Transactional Outbox Worker stopped")
 
     def run_once(self, mock_mode: bool = False) -> dict[str, int]:
         """Execute a single sweep of the outbox delivery queue."""
@@ -80,17 +83,19 @@ def start_outbox_worker(interval_seconds: int = 30) -> OutboxWorker:
     with _OUTBOX_LOCK:
         if _OUTBOX_WORKER is None:
             _OUTBOX_WORKER = OutboxWorker(interval_seconds=interval_seconds)
-        _OUTBOX_WORKER.start()
-        return _OUTBOX_WORKER
+        worker = _OUTBOX_WORKER
+    worker.start()
+    return worker
 
 
-def stop_outbox_worker() -> None:
+def stop_outbox_worker(timeout: float = 5.0) -> None:
     """Stop the global outbox delivery worker."""
     global _OUTBOX_WORKER
     with _OUTBOX_LOCK:
-        if _OUTBOX_WORKER is not None:
-            _OUTBOX_WORKER.stop()
-            _OUTBOX_WORKER = None
+        worker = _OUTBOX_WORKER
+        _OUTBOX_WORKER = None
+    if worker is not None:
+        worker.stop(timeout=timeout)
 
 
 def trigger_outbox_sweep(mock_mode: bool = False) -> dict[str, int]:
