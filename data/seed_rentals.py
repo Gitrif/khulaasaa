@@ -219,7 +219,14 @@ def seed_initial_rentals(conn: sqlite3.Connection) -> None:
     from data.repos.people import resolve_or_create_person
 
     # Delete legacy dummy-seeded aggregated listings
-    conn.execute("DELETE FROM rentals WHERE is_direct = 0;")
+    try:
+        conn.execute("DELETE FROM rentals WHERE is_direct = 0;")
+    except Exception:
+        if hasattr(conn, "rollback"):
+            try:
+                conn.rollback()
+            except Exception:
+                pass
 
     now_d = "2026-10-26"
     now_t = "12:00:00"

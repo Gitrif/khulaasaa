@@ -7,16 +7,16 @@
   <div class="max-w-5xl mx-auto px-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
     <!-- Category / Narrative Filter Pills -->
     <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar filter-pills flex-1 min-w-0">
-      <a href="/" data-partial-target="#news-container" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}" title="See all news stories">
+      <a href="/" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}" title="See all news stories">
         All Stories
       </a>
       <span class="text-hairline mx-1">|</span>
-      <a href="/?tag=ras-male" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
-      <a href="/?tag=sultan-park" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
-      <a href="/?tag=tgst-tax" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
-      <a href="/?tag=green-tax" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
-      <a href="/?tag=traffic-reform" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
-      <a href="/?tag=bridge-safety" data-partial-target="#news-container" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
+      <a href="/?tag=ras-male" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
+      <a href="/?tag=sultan-park" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
+      <a href="/?tag=tgst-tax" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
+      <a href="/?tag=green-tax" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
+      <a href="/?tag=traffic-reform" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
+      <a href="/?tag=bridge-safety" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
       <button id="toggleFilterBtn" class="filter-pill border-dashed" onclick="toggleFilterDrawer()">More Filters ▾</button>
     </div>
 
@@ -86,6 +86,22 @@
   {% endif %}
 
   <div class="mt-3">{% include "_ad_leaderboard.html" %}</div>
+  {% if latest_obituaries %}
+  <div class="my-3 bg-white border border-hairline rounded p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+    <div class="flex items-center gap-2 text-xs flex-wrap">
+      <span class="w-2 h-2 rounded-full bg-slate-600 shrink-0"></span>
+      <span class="font-bold text-ink uppercase tracking-wider text-[11px]">Janaza &amp; Obituaries:</span>
+      <span class="text-slate">
+        {% for ob in latest_obituaries %}
+          <span class="font-medium text-ink">{{ ob.name_dv or ob.name_en }}</span> ({{ ob.island_name_en or ob.island_name_dv or "Malé" }}){% if not loop.last %} &bull; {% endif %}
+        {% endfor %}
+      </span>
+    </div>
+    <a href="/obituaries" class="shrink-0 text-xs font-semibold text-lagoon hover:underline flex items-center gap-1">
+      <span>All Obituaries &rarr;</span>
+    </a>
+  </div>
+  {% endif %}
   <p id="noResults" class="no-results" style="display:none;">No articles or stories match your search.</p>
 
   <div class="news-grid" itemscope itemtype="https://schema.org/ItemList">

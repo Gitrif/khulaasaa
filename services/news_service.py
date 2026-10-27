@@ -76,6 +76,11 @@ def _run_news_sync() -> None:
                         upsert_article(conn, item)
                     except Exception as exc:
                         logger.debug("Failed upserting article %s: %s", item.get("id"), exc)
+                        if hasattr(conn, "rollback"):
+                            try:
+                                conn.rollback()
+                            except Exception:
+                                pass
 
         # 3. Cluster regular news articles across publishers for feed presentation
         articles = cluster_articles(news_items) if news_items else []

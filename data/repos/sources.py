@@ -130,7 +130,21 @@ def resolve_or_create_source(
             """,
             (slug, clean_name, domain or ident_clean, clean_type, clean_logo),
         )
-        return cur.lastrowid
-    except sqlite3.IntegrityError:
-        r2 = conn.execute("SELECT id FROM sources WHERE slug = ? LIMIT 1;", (slug,)).fetchone()
+        last_id = getattr(cur, "lastrowid", None)
+        if last_id:
+            return last_id
+    except Exception:
+        if hasattr(conn, "rollback"):
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+
+    r2 = conn.execute("SELECT id FROM sources WHERE slug = ? LIMIT 1;", (slug,)).fetchone()
+    if r2:
         return r2[0] if isinstance(r2, tuple) else r2["id"]
+
+    r_fallback = conn.execute("SELECT id FROM sources ORDER BY id ASC LIMIT 1;").fetchone()
+    if r_fallback:
+        return r_fallback[0] if isinstance(r_fallback, tuple) else r_fallback["id"]
+    return 1

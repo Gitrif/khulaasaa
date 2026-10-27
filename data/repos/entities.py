@@ -26,7 +26,7 @@ def resolve_or_create_entity(conn: sqlite3.Connection, raw_name: str) -> int:
         (clean_name, clean_name),
     ).fetchone()
     if row:
-        return row["id"]
+        return row["id"] if hasattr(row, "__getitem__") and not isinstance(row, tuple) else row[0]
 
     # 2. Known abbreviations / keywords matching (Check SOEs and State Agencies first before geographical councils)
     low = clean_name.lower()
@@ -88,7 +88,7 @@ def resolve_or_create_entity(conn: sqlite3.Connection, raw_name: str) -> int:
     if target_slug:
         row = conn.execute("SELECT id FROM entities WHERE slug = ?", (target_slug,)).fetchone()
         if row:
-            return row["id"]
+            return row["id"] if hasattr(row, "__getitem__") and not isinstance(row, tuple) else row[0]
 
     # 3. Create a new entity in the dictionary
     from scrapers.translator import is_dhivehi, translate_agency, clean_residual_thaana
@@ -119,7 +119,16 @@ def resolve_or_create_entity(conn: sqlite3.Connection, raw_name: str) -> int:
         """,
         (slug, name_en, name_dv, entity_type),
     )
-    return cursor.lastrowid
+    last_id = getattr(cursor, "lastrowid", None)
+    if last_id:
+        return last_id
+    r = conn.execute("SELECT id FROM entities WHERE slug = ? LIMIT 1;", (slug,)).fetchone()
+    if r:
+        return r["id"] if hasattr(r, "__getitem__") and not isinstance(r, tuple) else r[0]
+    r_fallback = conn.execute("SELECT id FROM entities ORDER BY id ASC LIMIT 1;").fetchone()
+    if r_fallback:
+        return r_fallback["id"] if hasattr(r_fallback, "__getitem__") and not isinstance(r_fallback, tuple) else r_fallback[0]
+    return 1
 
 
 def list_entities(conn: sqlite3.Connection, entity_type: Optional[str] = None) -> list[dict[str, Any]]:

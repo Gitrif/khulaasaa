@@ -79,51 +79,41 @@ def init_modules_table(conn: Any) -> None:
 
 def list_service_modules(conn: Any) -> list[dict[str, Any]]:
     """List all modules with their current operational statuses."""
-    if not _MODULES_INIT_DONE:
-        init_modules_table(conn)
     try:
         cursor = conn.execute("SELECT module_key, name, description, is_enabled, suspended_message, updated_at FROM service_modules ORDER BY rowid ASC")
         rows = cursor.fetchall()
-        return [dict(r) for r in rows]
+        if rows:
+            return [dict(r) for r in rows]
     except Exception:
-        if hasattr(conn, "rollback"):
-            conn.rollback()
-        return [dict(m) for m in DEFAULT_MODULES]
+        pass
+    return [dict(m) for m in DEFAULT_MODULES]
 
 
 def get_service_module(conn: Any, module_key: str) -> Optional[dict[str, Any]]:
     """Retrieve state for a specific service module."""
-    if not _MODULES_INIT_DONE:
-        init_modules_table(conn)
     try:
         cursor = conn.execute("SELECT module_key, name, description, is_enabled, suspended_message, updated_at FROM service_modules WHERE module_key = ?", (module_key,))
         row = cursor.fetchone()
-        return dict(row) if row else None
+        if row:
+            return dict(row)
     except Exception:
-        if hasattr(conn, "rollback"):
-            conn.rollback()
-        for m in DEFAULT_MODULES:
-            if m["module_key"] == module_key:
-                return dict(m)
-        return None
+        pass
+    for m in DEFAULT_MODULES:
+        if m["module_key"] == module_key:
+            return dict(m)
+    return None
 
 
 def is_service_module_enabled(conn: Any, module_key: str) -> bool:
     """Return True if the module is operational (enabled); False if suspended."""
-    if not _MODULES_INIT_DONE:
-        init_modules_table(conn)
     try:
         cursor = conn.execute("SELECT is_enabled FROM service_modules WHERE module_key = ? LIMIT 1;", (module_key,))
         row = cursor.fetchone()
         if row is not None:
             return bool(row[0])
     except Exception:
-        if hasattr(conn, "rollback"):
-            conn.rollback()
-    mod = get_service_module(conn, module_key)
-    if not mod:
-        return True
-    return bool(mod.get("is_enabled", 1))
+        pass
+    return True
 
 
 def update_service_module_status(conn: sqlite3.Connection, module_key: str, is_enabled: bool, suspended_message: Optional[str] = None) -> bool:

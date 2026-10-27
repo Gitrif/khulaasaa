@@ -1,76 +1,8 @@
 /**
  * Khulaasaa Vanilla JS Client Engine
  * 100% Native Browser APIs — Zero external dependencies, zero framework overhead.
+ * Clean, robust server-rendered HTML navigation with native browser bfcache.
  */
-
-// Native Partial Loader (fetches Jinja2 HTML component snippet and swaps DOM target)
-async function loadPartial(url, targetSelector, pushState = true) {
-  const target = document.querySelector(targetSelector);
-  if (!target) {
-    window.location.href = url;
-    return;
-  }
-
-  target.style.opacity = '0.5';
-  target.style.transition = 'opacity 0.15s ease';
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'text/html'
-      }
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const html = await res.text();
-    target.innerHTML = html;
-
-    if (pushState && window.history && window.history.pushState) {
-      window.history.pushState({ partialUrl: url, target: targetSelector }, '', url);
-    }
-  } catch (err) {
-    console.error('Failed to load partial content:', err);
-    // Graceful fallback: navigate full page
-    window.location.href = url;
-  } finally {
-    target.style.opacity = '1';
-  }
-}
-
-// Global click delegation for partial-enabled links
-document.addEventListener('click', function (e) {
-  const trigger = e.target.closest('[data-partial-target]');
-  if (!trigger) return;
-
-  const targetSelector = trigger.getAttribute('data-partial-target');
-  const url = trigger.getAttribute('href') || trigger.getAttribute('data-url');
-  if (!url || !targetSelector) return;
-
-  e.preventDefault();
-
-  // Update active pill UI if in a filter bar
-  const pillBar = trigger.closest('.filter-pills, .tagnav');
-  if (pillBar) {
-    pillBar.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    trigger.classList.add('active');
-  }
-
-  loadPartial(url, targetSelector, true);
-});
-
-// Handle browser Back / Forward buttons with partial state
-window.addEventListener('popstate', function (e) {
-  if (e.state && e.state.partialUrl) {
-    const target = e.state.target ? document.querySelector(e.state.target) : null;
-    if (target) {
-      loadPartial(e.state.partialUrl, e.state.target, false);
-    } else {
-      window.location.href = e.state.partialUrl || '/';
-    }
-  }
-});
 
 // LocalStorage Saved Jobs Bookmark Manager
 function getSavedJobs() {

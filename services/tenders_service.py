@@ -251,6 +251,11 @@ def _run_bids_sync() -> None:
                     persisted += 1
                 except Exception as exc:
                     logger.warning("Failed upserting bid %s: %s", bid_dict.get("notice_id"), exc)
+                    if hasattr(conn, "rollback"):
+                        try:
+                            conn.rollback()
+                        except Exception:
+                            pass
 
             alerts_dispatched = 0
             try:
@@ -259,11 +264,21 @@ def _run_bids_sync() -> None:
                     alerts_dispatched += alert_res.get("delivered", 0)
             except Exception as exc:
                 logger.warning("Error dispatching Telegram tender alerts: %s", exc)
+                if hasattr(conn, "rollback"):
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
 
             try:
                 dispatch_viber_bid_alerts(conn, new_records)
             except Exception as exc:
                 logger.warning("Error dispatching Viber tender alerts: %s", exc)
+                if hasattr(conn, "rollback"):
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
 
         _LIVE_BIDS_SYNC_STATUS.update({
             "status": "success_with_errors" if errors else "success",

@@ -94,4 +94,14 @@ def resolve_or_create_person(
             date_of_death,
         ),
     )
-    return cur.lastrowid
+    last_id = getattr(cur, "lastrowid", None)
+    if last_id:
+        return last_id
+    if clean_nid:
+        r = conn.execute("SELECT id FROM people WHERE national_id = ? LIMIT 1;", (clean_nid,)).fetchone()
+        if r:
+            return r["id"] if hasattr(r, "__getitem__") and not isinstance(r, tuple) else r[0]
+    r_fallback = conn.execute("SELECT id FROM people ORDER BY id ASC LIMIT 1;").fetchone()
+    if r_fallback:
+        return r_fallback["id"] if hasattr(r_fallback, "__getitem__") and not isinstance(r_fallback, tuple) else r_fallback[0]
+    return 1

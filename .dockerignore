@@ -7,4 +7,17 @@ __pycache__
 .git
 .gitignore
 .env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+data/*.sqlite
+data/*.sqlite3
 debug_*.html
+node_modules
+tests
+scratch
+.vscode
+.idea
+.gemini

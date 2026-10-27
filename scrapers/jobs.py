@@ -444,24 +444,32 @@ def sync_jobs(conn, pages: int = 1, trigger_alerts: bool = True) -> dict[str, An
 
     for j in fetched:
         notice_id = j["notice_id"]
-        # Check if already exists in db
-        existing = conn.execute("SELECT id FROM jobs WHERE notice_id = ?;", (notice_id,)).fetchone()
-        upsert_job(conn, j)
-        if not existing:
-            new_jobs += 1
-            if trigger_alerts:
+        try:
+            # Check if already exists in db
+            existing = conn.execute("SELECT id FROM jobs WHERE notice_id = ?;", (notice_id,)).fetchone()
+            upsert_job(conn, j)
+            if not existing:
+                new_jobs += 1
+                if trigger_alerts:
+                    try:
+                        res = dispatch_job_alerts(j, conn=conn)
+                        alerts_sent += res.get("delivered", 0)
+                    except Exception as exc:
+                        logger.warning(f"Error dispatching job alert for {notice_id}: {exc}")
+                    try:
+                        from alerts.viber import dispatch_viber_job_alerts
+                        dispatch_viber_job_alerts(conn, [j])
+                    except Exception:
+                        pass
+            else:
+                updated_jobs += 1
+        except Exception as exc:
+            logger.warning("Failed processing job %s: %s", notice_id, exc)
+            if hasattr(conn, "rollback"):
                 try:
-                    res = dispatch_job_alerts(j, conn=conn)
-                    alerts_sent += res.get("delivered", 0)
-                except Exception as exc:
-                    logger.warning(f"Error dispatching job alert for {notice_id}: {exc}")
-                try:
-                    from alerts.viber import dispatch_viber_job_alerts
-                    dispatch_viber_job_alerts(conn, [j])
+                    conn.rollback()
                 except Exception:
                     pass
-        else:
-            updated_jobs += 1
 
     return {
         "status": "ok",

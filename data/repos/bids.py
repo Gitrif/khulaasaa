@@ -140,9 +140,11 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
 
     from data.repos.sources import resolve_or_create_source
     s_ident = (new_sources[0] if new_sources else None) or bid.get("source_url") or "gazette"
-    source_id = bid.get("source_id") or resolve_or_create_source(
-        conn, s_ident, source_type="official" if "gazette" in str(s_ident) else "portal"
-    )
+    source_id = bid.get("source_id")
+    if not source_id or int(source_id) <= 0:
+        source_id = resolve_or_create_source(
+            conn, s_ident, source_type="official" if "gazette" in str(s_ident) else "portal"
+        )
 
     from core.time_utils import parse_datetime_components
     pub_raw_val = bid.get("published_date") or bid.get("published_iso")
@@ -278,21 +280,22 @@ def query_bids(
         query += " AND (submission_date IS NULL OR submission_date > ?)"
         params.append(now_iso)
 
+    today_str = datetime.now().strftime("%Y-%m-%d")
     query += """
     ORDER BY
         CASE
-            WHEN submission_date >= date('now') THEN 0
+            WHEN submission_date >= ? THEN 0
             WHEN submission_date IS NULL THEN 1
             ELSE 2
         END ASC,
         CASE
-            WHEN submission_date >= date('now') THEN submission_date
+            WHEN submission_date >= ? THEN submission_date
         END ASC,
         submission_date DESC,
         published_date DESC
     LIMIT ?;
     """
-    params.append(limit)
+    params.extend([today_str, today_str, limit])
 
     rows = conn.execute(query, params).fetchall()
     results = []

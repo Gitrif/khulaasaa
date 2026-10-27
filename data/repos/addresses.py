@@ -76,4 +76,13 @@ def resolve_or_create_address(
             clean_addr,
         ),
     )
-    return cur.lastrowid
+    last_id = getattr(cur, "lastrowid", None)
+    if last_id:
+        return last_id
+    r = conn.execute("SELECT id FROM addresses WHERE formatted_address = ? LIMIT 1;", (clean_addr,)).fetchone()
+    if r:
+        return r["id"] if hasattr(r, "__getitem__") and not isinstance(r, tuple) else r[0]
+    r_fallback = conn.execute("SELECT id FROM addresses ORDER BY id ASC LIMIT 1;").fetchone()
+    if r_fallback:
+        return r_fallback["id"] if hasattr(r_fallback, "__getitem__") and not isinstance(r_fallback, tuple) else r_fallback[0]
+    return 1

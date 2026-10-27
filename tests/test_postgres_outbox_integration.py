@@ -35,11 +35,19 @@ def validate_pg_test_url(url: str) -> None:
     # Database must explicitly contain 'test' or be on a local test port/host with a test db name
     is_test_db = "test" in db_name or db_name.endswith("_test") or db_name.startswith("test_")
     is_safe_host = host in ("localhost", "127.0.0.1", "::1", "pg-test")
+    allow_remote = os.environ.get("ALLOW_REMOTE_TEST_DB") == "1"
 
     if not is_test_db:
         raise RuntimeError(
             f"Safety guard: Refusing to run tests against database '{db_name}'. "
             f"Test database name must contain 'test' to prevent accidental data corruption."
+        )
+
+    if not is_safe_host and not allow_remote:
+        raise RuntimeError(
+            f"Safety guard: Refusing to run tests against non-local host '{host}'. "
+            f"Allowed local test hosts: localhost, 127.0.0.1, ::1, pg-test. "
+            f"Set ALLOW_REMOTE_TEST_DB=1 to explicitly override this guard."
         )
 
 
@@ -400,3 +408,25 @@ def test_pg_finalization_lost_lease(clean_pg_deliveries):
         assert row["claim_token"] is None
     finally:
         conn.close()
+
+
+def test_validate_pg_test_url_host_and_dbname_guards(monkeypatch):
+    """Enforce both approved test db name and host allowlist with optional remote override."""
+    # 1. Valid local test URLs must pass
+    validate_pg_test_url("postgresql://u:p@localhost:5432/khulaasaa_test")
+    validate_pg_test_url("postgresql://u:p@127.0.0.1:5433/test_khulaasaa")
+    validate_pg_test_url("postgresql://u:p@pg-test:5432/khulaasaa_test")
+
+    # 2. Non-test db name on localhost must be rejected
+    with pytest.raises(RuntimeError, match="must contain 'test'"):
+        validate_pg_test_url("postgresql://u:p@localhost:5432/production_db")
+
+    # 3. Remote host with test db name must be rejected by default
+    monkeypatch.delenv("ALLOW_REMOTE_TEST_DB", raising=False)
+    with pytest.raises(RuntimeError, match="Refusing to run tests against non-local host"):
+        validate_pg_test_url("postgresql://u:p@remote-db.provider.com:5432/khulaasaa_test")
+
+    # 4. Remote host allowed only with explicit opt-in
+    monkeypatch.setenv("ALLOW_REMOTE_TEST_DB", "1")
+    validate_pg_test_url("postgresql://u:p@remote-db.provider.com:5432/khulaasaa_test")
+

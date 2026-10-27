@@ -184,11 +184,6 @@ def list_obituaries(
     retention_days: int = 7,
 ) -> list[dict[str, Any]]:
     """List obituaries within 7-day history, sorted by atoll/island order."""
-    try:
-        purge_expired_obituaries(conn, retention_days=retention_days)
-    except Exception:
-        pass
-
     clauses = []
     params: list[Any] = []
     if active_only:

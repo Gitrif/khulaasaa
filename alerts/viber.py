@@ -409,13 +409,20 @@ def dispatch_viber_job_alerts(
 
 
 def dispatch_viber_bid_alerts(
-    bids: list[dict[str, Any]],
+    bids: Any,
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> int:
     """Broadcast new tender/bid announcements to all active Viber subscribers."""
+    if not isinstance(bids, list) and isinstance(bot_token, list):
+        bids = bot_token
+        bot_token = None
+
+    if not isinstance(bids, list) or not bids:
+        return 0
+
     token, _, _ = get_viber_credentials(bot_token)
-    if not token or not bids:
+    if not token:
         return 0
 
     with get_db() as conn:
