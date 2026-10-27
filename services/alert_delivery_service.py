@@ -22,11 +22,15 @@ from data.repos.notifications import update_delivery_status
 
 logger = logging.getLogger(__name__)
 
-# Bounded retry backoff schedule (seconds since last attempt)
+# Bounded retry backoff schedule (seconds since last failed attempt).
+# Policy: max_attempts defines total provider attempts (default 3: 1 initial attempt + 2 retries).
+# - Attempt 1 (initial send, attempt_count=0): immediate, no backoff.
+# - Attempt 2 (retry 1, attempt_count=1): requires 30s delay (RETRY_BACKOFF_SECONDS[1]).
+# - Attempt 3 (retry 2, attempt_count=2): requires 120s delay (RETRY_BACKOFF_SECONDS[2]).
+# - Failure on attempt 3: attempt_count=3 >= max_attempts (3), terminal transition to 'dead_letter'.
 RETRY_BACKOFF_SECONDS = {
     1: 30,    # First retry after 30s
     2: 120,   # Second retry after 2m
-    3: 300,   # Third retry after 5m
 }
 DEFAULT_LEASE_SECONDS = 180  # 3 minute worker claim lease
 

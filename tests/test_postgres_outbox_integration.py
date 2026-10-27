@@ -1,10 +1,11 @@
 """
 Genuine PostgreSQL Integration Tests for Outbox Claim Races, Rollback, and Lease Recovery.
-Phase 3.3 PostgreSQL Verification.
+Phase 3.3.1 PostgreSQL Verification & Strict Data Isolation.
 """
 import os
 import threading
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 import pytest
 
 try:
@@ -22,16 +23,39 @@ from services.alert_delivery_service import (
 )
 
 PG_TEST_URL = os.environ.get("TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost:5433/khulaasaa_test")
+REQUIRE_POSTGRES = os.environ.get("REQUIRE_POSTGRES") == "1"
+
+
+def validate_pg_test_url(url: str) -> None:
+    """Safety guard: refuses to run tests against an unexpected or non-test database."""
+    parsed = urlparse(url)
+    db_name = (parsed.path or "").lstrip("/").lower()
+    host = (parsed.hostname or "").lower()
+
+    # Database must explicitly contain 'test' or be on a local test port/host with a test db name
+    is_test_db = "test" in db_name or db_name.endswith("_test") or db_name.startswith("test_")
+    is_safe_host = host in ("localhost", "127.0.0.1", "::1", "pg-test")
+
+    if not is_test_db:
+        raise RuntimeError(
+            f"Safety guard: Refusing to run tests against database '{db_name}'. "
+            f"Test database name must contain 'test' to prevent accidental data corruption."
+        )
 
 
 def get_pg_connection():
+    validate_pg_test_url(PG_TEST_URL)
     if not HAVE_PSYCOPG2:
+        if REQUIRE_POSTGRES:
+            pytest.fail("REQUIRE_POSTGRES=1 but psycopg2 is not installed.")
         pytest.skip("psycopg2 is not installed")
     try:
         conn = psycopg2.connect(PG_TEST_URL)
         conn.autocommit = False
         return conn
     except Exception as exc:
+        if REQUIRE_POSTGRES:
+            pytest.fail(f"REQUIRE_POSTGRES=1 but PostgreSQL not reachable at {PG_TEST_URL}: {exc}")
         pytest.skip(f"PostgreSQL test database not reachable at {PG_TEST_URL}: {exc}")
 
 
@@ -101,25 +125,102 @@ def setup_pg_tables():
         conn.close()
 
 
+def _clean_pg_test_users_only(conn):
+    """Scoped cleanup: strictly deletes test-owned rows (email LIKE 'pg_test_%')."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM notification_deliveries
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pg_test_%');
+
+            DELETE FROM notifications
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pg_test_%');
+
+            DELETE FROM users
+            WHERE email LIKE 'pg_test_%';
+            """
+        )
+    conn.commit()
+
+
 @pytest.fixture
 def clean_pg_deliveries():
-    """Clean test data before and after each test."""
+    """Scoped cleanup before and after each test that preserves unrelated user data."""
     conn = get_pg_connection()
     try:
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM notification_deliveries;")
-            cur.execute("DELETE FROM notifications;")
-            cur.execute("DELETE FROM users WHERE email LIKE 'pg_test_%';")
-        conn.commit()
+        _clean_pg_test_users_only(conn)
     finally:
         conn.close()
     yield
     conn = get_pg_connection()
     try:
+        _clean_pg_test_users_only(conn)
+    finally:
+        conn.close()
+
+
+def test_pg_safety_guard_blocks_unexpected_database():
+    """Verify safety guard rejects production or non-test URLs."""
+    with pytest.raises(RuntimeError, match="Safety guard"):
+        validate_pg_test_url("postgresql://app:secret@db.prod.internal:5432/khulaasaa_production")
+
+    with pytest.raises(RuntimeError, match="Safety guard"):
+        validate_pg_test_url("postgresql://app:secret@localhost:5432/khulaasaa_prod")
+
+    # Valid test URL must pass
+    validate_pg_test_url("postgresql://app:secret@localhost:5433/khulaasaa_test")
+    validate_pg_test_url("postgresql://app:secret@127.0.0.1:5432/my_test_db")
+
+
+def test_pg_cleanup_preserves_unrelated_records():
+    """Verify cleanup strictly deletes test records and never touches unrelated records."""
+    conn = get_pg_connection()
+    try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM notification_deliveries;")
-            cur.execute("DELETE FROM notifications;")
-            cur.execute("DELETE FROM users WHERE email LIKE 'pg_test_%';")
+            # Insert unrelated record
+            cur.execute("DELETE FROM users WHERE email = 'unrelated_retained@example.com';")
+            cur.execute("INSERT INTO users (email, password_hash, full_name) VALUES ('unrelated_retained@example.com', 'h', 'Retained User') RETURNING id;")
+            unrelated_uid = cur.fetchone()[0]
+
+            cur.execute("INSERT INTO notifications (user_id, event_key, content_type, content_id, title) VALUES (%s, 'unrelated:event:1', 'news', 'u1', 'Retained Title') RETURNING id;", (unrelated_uid,))
+            unrelated_nid = cur.fetchone()[0]
+
+            cur.execute("INSERT INTO notification_deliveries (notification_id, user_id, channel, destination, status) VALUES (%s, %s, 'telegram', '1234', 'delivered') RETURNING id;", (unrelated_nid, unrelated_uid))
+            unrelated_did = cur.fetchone()[0]
+
+            # Insert test record
+            cur.execute("INSERT INTO users (email, password_hash, full_name) VALUES ('pg_test_to_delete@example.com', 'h', 'Test User') RETURNING id;")
+            test_uid = cur.fetchone()[0]
+            cur.execute("INSERT INTO notifications (user_id, event_key, content_type, content_id, title) VALUES (%s, 'test:event:1', 'news', 't1', 'Test Title') RETURNING id;", (test_uid,))
+            test_nid = cur.fetchone()[0]
+            cur.execute("INSERT INTO notification_deliveries (notification_id, user_id, channel, destination, status) VALUES (%s, %s, 'telegram', '5678', 'pending') RETURNING id;", (test_nid, test_uid))
+            test_did = cur.fetchone()[0]
+        conn.commit()
+
+        # Run test-scoped cleanup
+        _clean_pg_test_users_only(conn)
+
+        # Verify test record is deleted
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE id = %s;", (test_uid,))
+            assert cur.fetchone() is None
+            cur.execute("SELECT id FROM notifications WHERE id = %s;", (test_nid,))
+            assert cur.fetchone() is None
+            cur.execute("SELECT id FROM notification_deliveries WHERE id = %s;", (test_did,))
+            assert cur.fetchone() is None
+
+            # Verify unrelated record is 100% PRESERVED
+            cur.execute("SELECT id FROM users WHERE id = %s;", (unrelated_uid,))
+            assert cur.fetchone() is not None
+            cur.execute("SELECT id FROM notifications WHERE id = %s;", (unrelated_nid,))
+            assert cur.fetchone() is not None
+            cur.execute("SELECT id FROM notification_deliveries WHERE id = %s;", (unrelated_did,))
+            assert cur.fetchone() is not None
+
+            # Clean up the test-created retained record
+            cur.execute("DELETE FROM notification_deliveries WHERE id = %s;", (unrelated_did,))
+            cur.execute("DELETE FROM notifications WHERE id = %s;", (unrelated_nid,))
+            cur.execute("DELETE FROM users WHERE id = %s;", (unrelated_uid,))
         conn.commit()
     finally:
         conn.close()
