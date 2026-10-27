@@ -26,11 +26,10 @@
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/modals.css">
-  <link rel="stylesheet" href="/static/css/cv.css">
-  <link rel="stylesheet" href="/static/css/print.css">
+  <link rel="stylesheet" href="/static/css/print.css" media="print">
   <link rel="stylesheet" href="/static/css/style.css">
   {% block extra_head %}{% endblock %}
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       if (window.Telegram && window.Telegram.WebApp) {
@@ -117,6 +116,15 @@
       if (e.key === 'Escape') {
         closeUserAvatarMenu();
         closeNotificationsMenu();
+        if (typeof closeGlobalAlertsModal === 'function') closeGlobalAlertsModal();
+        if (typeof closeSourcesModal === 'function') closeSourcesModal();
+        if (typeof closeJobAlertModal === 'function') closeJobAlertModal();
+        if (typeof closeFeedbackModal === 'function') closeFeedbackModal();
+        const advM = document.getElementById('advancedFilterModal');
+        if (advM && !advM.classList.contains('hidden')) {
+          if (typeof closeAdvancedFilterModal === 'function') closeAdvancedFilterModal();
+          else advM.classList.add('hidden');
+        }
       }
     });
 
@@ -781,10 +789,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       <span>Rentals</span>
     </a>
-    <button type="button" onclick="openGlobalAlertsModal('viber')" class="mobile-nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-      <span>Alerts</span>
-    </button>
+    <a href="/obituaries" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/obituaries') else '' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m-6-10h12"/></svg>
+      <span>Janaza</span>
+    </a>
   </nav>
 
   <!-- UNIVERSAL MODAL: Sign In / Account & Alert Preferences -->

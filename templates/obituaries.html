@@ -240,7 +240,18 @@
     {% else %}
     <div class="col-span-2 text-center py-12 bg-white border border-hairline rounded">
       <p class="font-serif-display text-lg text-slate">No obituary announcements posted yet.</p>
-      <p class="text-xs text-slate mt-1">New funeral announcements will appear here automatically.</p>
+      <p class="text-xs text-slate mt-1">
+        {% if search_q or (active_atoll and active_atoll != 'all') or (active_region and active_region != 'all') %}
+          Try searching for another island or removing atoll filters.
+        {% else %}
+          New funeral and Janaza announcements will appear here automatically.
+        {% endif %}
+      </p>
+      {% if search_q or (active_atoll and active_atoll != 'all') or (active_region and active_region != 'all') %}
+      <a href="/obituaries" class="inline-block mt-3 px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink">
+        Reset Filters
+      </a>
+      {% endif %}
     </div>
     {% endfor %}
   </div>

@@ -6,6 +6,20 @@
       {% include "_ad_infeed.html" %}
     {% endif %}
   {% else %}
-    <p class="text-sm text-slate py-12 text-center">No bids match this filter.</p>
+    <div class="bg-white border border-hairline rounded-lg p-12 text-center text-slate">
+      <p class="text-sm font-semibold text-ink">No bids match this filter.</p>
+      <p class="text-xs text-slate mt-1">
+        {% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %}
+          Try clearing one or more filters or searching for different keywords.
+        {% else %}
+          Government Gazette and SOE procurement notices will appear here once published.
+        {% endif %}
+      </p>
+      {% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %}
+      <a href="/bids" class="inline-block mt-3 px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink">
+        Reset All Filters
+      </a>
+      {% endif %}
+    </div>
   {% endfor %}
 </div>

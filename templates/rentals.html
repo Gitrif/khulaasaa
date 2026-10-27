@@ -175,9 +175,23 @@
     </div>
   {% else %}
     <div class="bg-white border border-hairline rounded-lg p-10 text-center text-slate">
-      <h3 class="font-serif-display text-base font-bold text-ink mb-1">No apartments found matching your criteria</h3>
-      <p class="text-xs mb-4">Try clearing or widening your bedroom, location, or budget filters.</p>
+      <h3 class="font-serif-display text-base font-bold text-ink mb-1">
+        {% if active_location != 'All Locations' or active_bedrooms > 0 or active_max_rent > 0 or search_query %}
+          No apartments found matching your criteria
+        {% else %}
+          No rental listings currently available
+        {% endif %}
+      </h3>
+      <p class="text-xs mb-4">
+        {% if active_location != 'All Locations' or active_bedrooms > 0 or active_max_rent > 0 or search_query %}
+          Try clearing or widening your bedroom, location, or budget filters.
+        {% else %}
+          Consolidated apartment listings across Malé, Hulhumalé, and atolls will appear here automatically.
+        {% endif %}
+      </p>
+      {% if active_location != 'All Locations' or active_bedrooms > 0 or active_max_rent > 0 or search_query %}
       <a href="/rentals" class="px-3.5 py-1.5 bg-ink text-white font-semibold text-xs rounded">Clear All Filters</a>
+      {% endif %}
     </div>
   {% endif %}
 

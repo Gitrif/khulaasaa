@@ -7,10 +7,19 @@
     {% endif %}
   {% else %}
     <div class="bg-white border border-hairline rounded p-12 text-center text-slate">
-      <p class="text-sm">No job openings found matching this filter.</p>
-      <a href="/jobs" class="inline-block mt-2 text-xs text-lagoon font-semibold hover:underline">
+      <p class="text-sm font-semibold text-ink">No job openings found matching this filter.</p>
+      <p class="text-xs text-slate mt-1">
+        {% if active_discipline or search_query %}
+          Try selecting another discipline or clearing your search query.
+        {% else %}
+          Career openings from Gazette and leading employers will appear here automatically.
+        {% endif %}
+      </p>
+      {% if active_discipline or search_query %}
+      <a href="/jobs" class="inline-block mt-3 px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink">
         Clear filters
       </a>
+      {% endif %}
     </div>
   {% endfor %}
 </div>

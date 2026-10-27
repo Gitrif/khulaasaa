@@ -634,6 +634,12 @@
 .user-avatar-dropdown.hidden {
   display: none !important;
 }
+.user-notif-dropdown {
+  z-index: 100;
+}
+.user-notif-dropdown.hidden {
+  display: none !important;
+}
 .user-avatar-dropdown-item {
   display: flex;
   align-items: center;
@@ -1016,7 +1022,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 40;
   height: 56px;
   background: rgba(253, 252, 250, 0.98);
   backdrop-filter: blur(8px);
@@ -1036,7 +1042,7 @@
 }
 @media (max-width: 767px) {
   body {
-    padding-bottom: 64px !important;
+    padding-bottom: 72px;
   }
 }
 .mobile-nav-item {
@@ -1096,11 +1102,11 @@
    Header Stickiness & Always-Visible Navigation
    ========================================================================== */
 header, .site-header {
-  position: -webkit-sticky !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 1000 !important;
-  background-color: var(--paper) !important;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--paper);
   border-bottom: 1px solid var(--hairline);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
@@ -1114,47 +1120,8 @@ header, .site-header {
 }
 @media (min-width: 768px) {
   .desktop-nav-menu {
-    display: block !important;
+    display: block;
   }
-}
-
-/* Mobile & Fixed Bottom Navigation Bar (Always Visible) */
-.mobile-bottom-nav {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: 1000 !important;
-  height: 56px;
-  background: rgba(253, 252, 250, 0.98);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-top: 1px solid var(--hairline);
-  display: flex !important;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 0.5rem;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
-}
-
-@media (min-width: 768px) {
-  .mobile-bottom-nav {
-    display: flex !important;
-    max-width: 480px;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
-    bottom: 12px !important;
-    border-radius: 9999px !important;
-    border: 1px solid var(--hairline) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-    padding: 0 1.5rem;
-  }
-}
-
-body {
-  padding-bottom: 74px !important;
 }
 
 /* Tender Bid Meta Box (Information & Submission) */

@@ -1,5 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Maldivian CV Creator & Job Alerts — Khulaasaa
+{% block title %}Maldivian CV Creator & Job Alerts — Khulaasaa{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/cv.css">
+{% endblock %}
+
+{% block content %}
 <!-- Floating CV Action Bar (Always visible above the bottom navigation bar) -->
 <div id="cvFloatingActionsBar" class="cv-floating-actions print:hidden">
   <div class="cv-floating-actions-inner">
@@ -34,7 +40,6 @@
     </div>
   </div>
 </div>
-
 
 <script>
 let currentCvPage = 1;
@@ -88,10 +93,6 @@ function toggleMobileCvPreview() {
   }
 }
 </script>
-
-{% endblock %}
-
-{% block content %}
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-6xl mx-auto px-4 pt-6 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>

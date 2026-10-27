@@ -93,22 +93,7 @@ def public_feed(
     if topic:
         events = [e for e in events if e.get("topic") == topic]
     if tag:
-        tag_filtered = [e for e in events if tag in e.get("tags", [])]
-        if not tag_filtered:
-            # Fallback to timeline milestones matching this tag so users never see an empty screen
-            for tl in TIMELINES.values():
-                if tl.get("tag") == tag:
-                    for m in tl.get("milestones", []):
-                        tag_filtered.append(enrich_event({
-                            **m,
-                            "tags": [tag],
-                            "section": "general",
-                            "topic": "infrastructure",
-                            "published_raw": m.get("date_raw"),
-                            "published_iso": m.get("date_iso"),
-                            "summary": m.get("detail", ""),
-                        }))
-        events = tag_filtered
+        events = [e for e in events if tag in e.get("tags", [])]
 
     # Sort if requested
     if sort == "outlets":

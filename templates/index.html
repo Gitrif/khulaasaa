@@ -161,9 +161,23 @@
 
       {% if not sections or (not sections.breaking and not sections.major and not sections.general) %}
       <div class="py-16 text-center text-slate bg-paper-soft/40 rounded-xl border border-dashed border-hairline my-6">
-        <p class="text-sm font-semibold text-ink">No stories available under this view</p>
-        <p class="text-xs text-slate mt-1">Live news and narrative dispatches will appear here once published.</p>
+        <p class="text-sm font-semibold text-ink">
+          {% if active_tag or active_topic %}
+            No stories match this filter
+          {% else %}
+            No news stories currently available
+          {% endif %}
+        </p>
+        <p class="text-xs text-slate mt-1">
+          {% if active_tag or active_topic %}
+            Try selecting a different topic or clearing your active filter.
+          {% else %}
+            Live news and narrative dispatches will appear here once published.
+          {% endif %}
+        </p>
+        {% if active_tag or active_topic %}
         <a href="/" class="inline-block mt-3 px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink">&larr; Return to All News</a>
+        {% endif %}
       </div>
       {% endif %}
     </div>
