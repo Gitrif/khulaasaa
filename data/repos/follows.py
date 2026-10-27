@@ -8,7 +8,6 @@ import sqlite3
 from typing import Any, Optional
 
 from data.sources_data import SOURCES, TIMELINE_TAGS, TOPICS
-from services.clustering import KNOWN_STORY_CLUSTERS
 
 VALID_FOLLOW_TYPES = {"story", "topic", "section", "source"}
 
@@ -80,6 +79,7 @@ def validate_and_resolve_target(
 
     elif clean_type == "story":
         # Check known clusters or timeline tags
+        from services.clustering import KNOWN_STORY_CLUSTERS
         matched_cluster = next((c for c in KNOWN_STORY_CLUSTERS if c.get("story_id") == clean_id or c.get("id") == clean_id), None)
         if matched_cluster:
             # Normalize cluster id to stable story_id so follows survive multi-outlet re-clustering

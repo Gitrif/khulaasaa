@@ -11,40 +11,15 @@ from starlette.testclient import TestClient
 
 from main import app
 from data.database import (
-    get_db,
-    init_db,
-    create_user,
-    get_user_by_email,
-    add_follow,
-    update_user_preferences,
-    get_user_preferences,
+    get_db, init_db, create_user, get_user_by_email, add_follow,
+    update_user_preferences, get_user_preferences,
 )
-from services.channel_linking_service import (
-    create_channel_link_token,
-    verify_and_link_channel,
-    disconnect_channel,
-)
-from services.alert_decision_service import (
-    build_event_key,
-    is_in_quiet_hours,
-    evaluate_candidate_recipients,
-    process_content_event,
-)
-from services.alert_delivery_service import (
-    format_notification_message,
-    dispatch_single_delivery,
-    retry_failed_deliveries,
-)
+from services.channel_linking_service import create_channel_link_token, verify_and_link_channel, disconnect_channel
+from services.alert_decision_service import build_event_key, is_in_quiet_hours, evaluate_candidate_recipients, process_content_event
+from services.alert_delivery_service import format_notification_message, dispatch_single_delivery, retry_failed_deliveries
 from data.repos.notifications import (
-    create_logical_notification,
-    create_notification_delivery,
-    update_delivery_status,
-    list_user_notifications,
-    mark_notification_read,
-    mark_all_notifications_read,
-    get_unread_notification_count,
-    get_deliveries_for_notification,
-    get_pending_deliveries,
+    create_logical_notification, create_notification_delivery,
+    list_user_notifications, mark_notification_read, get_unread_notification_count,
 )
 
 client = TestClient(app, follow_redirects=False)
@@ -297,7 +272,12 @@ def test_independent_channel_deliveries_and_bounded_retry():
         assert d_map["viber"][0] == "delivered"
 
         # Now test retry of failed delivery up to max_attempts
-        # Attempt 2 (fails)
+        # Attempt immediately -> must be blocked by 30s backoff!
+        assert retry_failed_deliveries(conn, limit=5, mock_mode=False)["total"] == 0
+
+        # Simulate 35s passing -> attempt 2 (fails)
+        p35 = (datetime.now(timezone.utc) - timedelta(seconds=35)).isoformat()
+        conn.execute("UPDATE notification_deliveries SET last_attempt_at = ? WHERE user_id = ? AND channel = 'telegram';", (p35, uid))
         with patch("alerts.telegram_client.send_telegram_message", return_value=(False, "Still failing")):
             retry_failed_deliveries(conn, limit=5, mock_mode=False)
 
@@ -305,13 +285,23 @@ def test_independent_channel_deliveries_and_bounded_retry():
         assert tg_row2[0] == "failed"
         assert tg_row2[1] == 2
 
-        # Attempt 3 (fails -> dead_letter)
+        # Blocked by 120s backoff!
+        assert retry_failed_deliveries(conn, limit=5, mock_mode=False)["total"] == 0
+
+        # Simulate 125s passing -> attempt 3 (fails -> dead_letter)
+        p125 = (datetime.now(timezone.utc) - timedelta(seconds=125)).isoformat()
+        conn.execute("UPDATE notification_deliveries SET last_attempt_at = ? WHERE user_id = ? AND channel = 'telegram';", (p125, uid))
         with patch("alerts.telegram_client.send_telegram_message", return_value=(False, "Final fail")):
             retry_failed_deliveries(conn, limit=5, mock_mode=False)
 
         tg_row3 = conn.execute("SELECT status, attempt_count FROM notification_deliveries WHERE user_id = ? AND channel = 'telegram';", (uid,)).fetchone()
         assert tg_row3[0] == "dead_letter"
         assert tg_row3[1] == 3
+
+        # Confirm terminal dead_letter cannot be reclaimed automatically
+        p_hr = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        conn.execute("UPDATE notification_deliveries SET last_attempt_at = ? WHERE user_id = ? AND channel = 'telegram';", (p_hr, uid))
+        assert retry_failed_deliveries(conn, limit=5, mock_mode=False)["total"] == 0
 
 
 def test_api_account_notifications_endpoints():

@@ -2,6 +2,12 @@
 Alert Delivery Reliability Engine for Khulaasaa.
 Handles atomic claiming, lease expiry, retry backoff, and independent channel dispatch to Telegram and Viber.
 Guarantees at-least-once delivery semantics without holding database locks across network I/O.
+
+Policy: Provider network requests enforce strict timeouts (10s for Telegram, 10-12s for Viber),
+comfortably below DEFAULT_LEASE_SECONDS (180s). Under normal operation, network calls complete
+within 12s, guaranteeing completion and finalization long before lease expiration. If a slow provider
+causes a lease to expire and another worker reclaims it, finalization by the original worker
+fails safely via claim_token rowcount mismatch.
 """
 from __future__ import annotations
 
@@ -132,8 +138,14 @@ def claim_actionable_deliveries(
     if hasattr(conn, "commit"):
         try:
             conn.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error("Failed to commit delivery claims: %s", exc)
+            if hasattr(conn, "rollback"):
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+            return []
 
     if not claimed_ids:
         return []
@@ -169,7 +181,7 @@ def finalize_delivery(
                 break
 
     if success:
-        conn.execute(
+        cur = conn.execute(
             """
             UPDATE notification_deliveries
             SET status = 'delivered', delivered_at = ?, attempt_count = attempt_count + 1,
@@ -179,7 +191,7 @@ def finalize_delivery(
             (now_iso, now_iso, delivery_id, claim_token),
         )
     else:
-        conn.execute(
+        cur = conn.execute(
             """
             UPDATE notification_deliveries
             SET status = CASE WHEN attempt_count + 1 >= max_attempts THEN 'dead_letter' ELSE 'failed' END,
@@ -190,11 +202,24 @@ def finalize_delivery(
             (now_iso, clean_err, delivery_id, claim_token),
         )
 
+    if cur.rowcount == 0:
+        logger.warning(
+            "Could not finalize delivery %s: claim token mismatch or lease already reclaimed by another worker",
+            delivery_id,
+        )
+        return False
+
     if hasattr(conn, "commit"):
         try:
             conn.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error("Failed to commit finalization for delivery %s: %s", delivery_id, exc)
+            if hasattr(conn, "rollback"):
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+            return False
     return True
 
 
@@ -215,8 +240,10 @@ def dispatch_single_delivery(
     is_urgent = bool(delivery.get("is_urgent"))
 
     if mock_mode or os.environ.get("KHULAASAA_MOCK_ALERTS") == "1":
-        finalize_delivery(conn, delivery_id, claim_token, success=True)
-        return True, "Delivered (mock mode)"
+        finalized = finalize_delivery(conn, delivery_id, claim_token, success=True)
+        if finalized:
+            return True, "Delivered (mock mode)"
+        return False, f"Mock delivery finalization failed to commit for delivery {delivery_id}"
 
     msg = format_notification_message(
         content_type=content_type, title=title, summary=summary,
@@ -245,15 +272,20 @@ def dispatch_single_delivery(
     except Exception as exc:
         err_msg = f"Provider connection error: {type(exc).__name__}"
 
-    finalize_delivery(conn, delivery_id, claim_token, success=success, error_message=err_msg)
-    return success, "Delivered successfully" if success else (err_msg or "Delivery failed")
+    finalized = finalize_delivery(conn, delivery_id, claim_token, success=success, error_message=err_msg)
+    if success and finalized:
+        return True, "Delivered successfully"
+    elif success and not finalized:
+        return False, f"Provider accepted delivery but database finalization failed to commit for delivery {delivery_id}"
+    else:
+        return False, err_msg or "Delivery failed"
 
 
 def retry_failed_deliveries(
     conn: sqlite3.Connection,
     limit: int = 25,
     mock_mode: bool = False,
-    ignore_backoff: bool = True,
+    ignore_backoff: bool = False,
 ) -> dict[str, int]:
     """Retry pending or retryable deliveries with bounded retries."""
     claimed = claim_actionable_deliveries(conn, limit=limit, ignore_backoff=ignore_backoff)
@@ -317,8 +349,14 @@ def process_operational_delivery_queue(
     if hasattr(conn, "commit"):
         try:
             conn.commit()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error("Failed to commit quiet-hours queue release: %s", exc)
+            if hasattr(conn, "rollback"):
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+            released_count = 0
 
     # 2. Claim actionable deliveries
     claimed = claim_actionable_deliveries(conn, limit=limit, worker_id=worker_id)
