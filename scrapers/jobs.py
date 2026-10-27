@@ -460,7 +460,7 @@ def sync_jobs(conn, pages: int = 1, trigger_alerts: bool = True) -> dict[str, An
                         log_db_error(logger, f"dispatch_job_alert_{notice_id}", "scrapers.jobs", exc)
                     try:
                         from alerts.viber import dispatch_viber_job_alerts
-                        dispatch_viber_job_alerts(conn, [j])
+                        dispatch_viber_job_alerts([j])
                     except Exception as exc:
                         log_db_error(logger, f"dispatch_viber_job_{notice_id}", "scrapers.jobs", exc)
             else:

@@ -15,6 +15,7 @@ Admin console (HTTP Basic):
 """
 from __future__ import annotations
 
+import logging
 import os
 import threading
 import time
@@ -22,6 +23,8 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger("khulaasaa.main")
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles

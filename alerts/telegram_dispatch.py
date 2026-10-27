@@ -334,7 +334,7 @@ def dispatch_obituary_alerts(
     if not subscribers or not obituaries:
         return []
 
-    token, _ = get_telegram_credentials(bot_token=bot_token)
+    token, default_chat = get_telegram_credentials(bot_token=bot_token)
     if not token:
         return []
 
@@ -386,7 +386,7 @@ def dispatch_job_alerts(
     session: Optional[requests.Session] = None,
 ) -> dict[str, Any]:
     """Broadcast job vacancy notification to matching registered users and Telegram alert subscribers."""
-    token, _ = get_telegram_credentials(bot_token=bot_token)
+    token, default_chat = get_telegram_credentials(bot_token=bot_token)
     if not token:
         return {"delivered": 0, "failed": 0, "reason": "No bot token"}
 

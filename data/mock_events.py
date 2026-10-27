@@ -1,6 +1,7 @@
 """
 Default and fallback events, and seed job postings for offline/initial state.
 """
+from datetime import datetime, timezone
 from typing import Any
 
 DEFAULT_EVENTS: list[dict[str, Any]] = [

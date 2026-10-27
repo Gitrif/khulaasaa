@@ -86,6 +86,9 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
             if is_chatter:
                 continue
 
+            date_el = m.select_one(".tgme_widget_message_date time")
+            link_el = m.select_one(".tgme_widget_message_date")
+
             # Filter out obituary / funeral notices from general news feed
             is_obituary = any(k in txt_low or k in txt for k in [
                 "kashunamaadhu", "ކަށުނަމާދު", "صلاة الجنازة", "ޖަނާޒާ", "جنازة",
@@ -100,9 +103,6 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
                 except Exception:
                     pass
                 continue
-
-            date_el = m.select_one(".tgme_widget_message_date time")
-            link_el = m.select_one(".tgme_widget_message_date")
             date_iso = date_el.get("datetime") if date_el else None
             link = link_el.get("href") if link_el else url
 

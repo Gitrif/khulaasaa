@@ -383,13 +383,15 @@ def dispatch_viber_obituary_alerts(
 
 
 def dispatch_viber_job_alerts(
-    jobs: list[dict[str, Any]],
-    bot_token: Optional[str] = None,
-    base_url: str = "https://khulaasaa.tech",
+    jobs: Any, bot_token: Optional[str] = None, base_url: str = "https://khulaasaa.tech"
 ) -> int:
     """Broadcast new job announcements to all active Viber subscribers."""
+    if not isinstance(jobs, list) and isinstance(bot_token, list):
+        jobs, bot_token = bot_token, None
+    if not isinstance(jobs, list) or not jobs:
+        return 0
     token, _, _ = get_viber_credentials(bot_token)
-    if not token or not jobs:
+    if not token:
         return 0
 
     with get_db() as conn:
@@ -409,9 +411,7 @@ def dispatch_viber_job_alerts(
 
 
 def dispatch_viber_bid_alerts(
-    bids: Any,
-    bot_token: Optional[str] = None,
-    base_url: str = "https://khulaasaa.tech",
+    bids: Any, bot_token: Optional[str] = None, base_url: str = "https://khulaasaa.tech"
 ) -> int:
     """Broadcast new tender/bid announcements to all active Viber subscribers."""
     if not isinstance(bids, list) and isinstance(bot_token, list):
@@ -484,8 +484,7 @@ def dispatch_viber_sponsored_broadcast(
     msg_text = "\n".join(lines)
     keyboard = build_viber_main_keyboard(base_url)
 
-    sent_count = 0
-    fail_count = 0
+    sent_count = fail_count = 0
     for sub in subscribers:
         cats = sub.get("categories") or ["all"]
         if target_category != "all" and "all" not in cats and target_category not in cats:
