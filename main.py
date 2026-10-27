@@ -136,10 +136,14 @@ from alerts.viber import (
 
 from routers.admin import router as admin_router
 from routers.api_ads import router as api_ads_router
+from routers.api_channels import router as api_channels_router
 from routers.api_feedback import router as api_feedback_router
+from routers.api_follows import router as api_follows_router
 from routers.api_jobs import router as api_jobs_router
 from routers.api_news import router as api_news_router
+from routers.api_preferences import router as api_preferences_router
 from routers.api_rfq import router as api_rfq_router
+from routers.web_account import router as web_account_router
 from routers.web_ui import router as web_ui_router
 from routers.web_rentals import router as web_rentals_router
 from routers.webhooks import router as webhooks_router
@@ -232,8 +236,12 @@ def healthz():
 
 # Mount domain presentation routers
 app.include_router(web_ui_router)
+app.include_router(web_account_router)
 app.include_router(web_rentals_router)
 app.include_router(api_news_router)
+app.include_router(api_follows_router)
+app.include_router(api_preferences_router)
+app.include_router(api_channels_router)
 app.include_router(api_rfq_router)
 app.include_router(api_jobs_router)
 app.include_router(api_ads_router)

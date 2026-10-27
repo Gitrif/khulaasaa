@@ -78,6 +78,10 @@ from data.repos.users import (
     create_user_session,
     get_user_from_session,
     delete_user_session,
+    create_password_reset_token,
+    verify_and_consume_password_reset_token,
+    update_user_profile,
+    change_user_password,
 )
 from data.repos.cvs import (
     save_user_cv,
@@ -100,6 +104,21 @@ from data.repos.jobs import (
 from data.repos.stories import (
     upsert_article,
     query_articles,
+)
+from data.repos.follows import (
+    add_follow,
+    remove_follow,
+    list_user_follows,
+    is_following,
+    get_followers_for_target,
+    get_user_follow_counts,
+    VALID_FOLLOW_TYPES,
+    VALID_SECTIONS,
+)
+from data.repos.preferences import (
+    get_user_preferences,
+    update_user_preferences,
+    DEFAULT_PREFERENCES,
 )
 
 logger = logging.getLogger(__name__)

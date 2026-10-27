@@ -34,7 +34,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
         </svg>
       </button>
-      <button type="button" class="follow-icon-btn" onclick="toggleFollow(event, this)" title="News alerts coming soon" aria-label="News alerts coming soon">
+      <button type="button" class="follow-icon-btn"
+              data-follow-type="story"
+              data-follow-id="{{ evt.story_id or evt.id }}"
+              data-follow-title="{{ evt.headline }}"
+              onclick="event.stopPropagation(); toggleFollow('story', '{{ evt.story_id or evt.id }}', '{{ evt.headline|replace('\'', '\\\'') }}', this)"
+              title="Follow this story" aria-label="Follow this story">
         <svg class="w-3.5 h-3.5 fill-none stroke-current stroke-2 text-slate hover:text-lagoon transition" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
       </button>
     </div>

@@ -80,14 +80,24 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
             except Exception as e:
                 logger.error("Error auto-subscribing Viber user on conversation_started: %s", e)
 
+        ctx = str(event_data.get("context") or "").strip()
+        if user_id and (ctx.startswith("link_") or (len(ctx) == 6 and ctx.isdigit())):
+            c_tok = ctx[5:].strip() if ctx.startswith("link_") else ctx
+            try:
+                with get_db() as conn:
+                    from services.channel_linking_service import verify_and_link_channel
+                    verify_and_link_channel(conn, "viber", c_tok, user_id, user_name)
+            except Exception:
+                pass
+
         welcome_text = (
-            f"Assalaamu Alaikum, {user_name}! 🇲🇻\n\n"
+            f"Assalaamu Alaikum, {user_name}!\n\n"
             f"Welcome to Khulaasaa! You are automatically subscribed to real-time Maldives alerts:\n"
-            f"• 🔴 Breaking & Verified News\n"
-            f"• 🕌 Janaza & Funeral Notices (ކަށުނަމާދު)\n"
-            f"• 📑 Government Gazette Tenders (ބީލަން)\n"
-            f"• 💼 Job Vacancies & Free CV Builder (ވަޒީފާ)\n\n"
-            f"🆔 Your Viber ID:\n{user_id}\n\n"
+            f"- Breaking & Verified News\n"
+            f"- Janaza & Funeral Notices\n"
+            f"- Government Gazette Tenders\n"
+            f"- Job Vacancies & Free CV Builder\n\n"
+            f"Your Viber ID:\n{user_id}\n\n"
             f"Tap an option below to browse news, funeral notices, tenders, or jobs:"
         )
         return {
@@ -113,7 +123,7 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                 )
             send_viber_message(
                 user_id,
-                f"✅ Subscribed to Khulaasaa alerts!\n\n🆔 Your Viber ID: {user_id}\n\nYou will receive real-time news, Janaza announcements, tenders, and job postings.",
+                f"Subscribed to Khulaasaa alerts!\n\nYour Viber ID: {user_id}\n\nYou will receive real-time news, Janaza announcements, tenders, and job postings.",
                 keyboard=keyboard,
             )
         return {"status": 0}
@@ -132,10 +142,28 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         user_id = sender.get("id")
         user_name = sender.get("name", "Reader")
         msg = event_data.get("message") or {}
-        msg_text = (msg.get("text") or "").strip().lower()
+        raw_msg = (msg.get("text") or "").strip()
+        msg_text = raw_msg.lower()
 
         if not user_id:
             return {"status": 0}
+
+        # Check for channel verification linking token
+        if msg_text.startswith("link ") or (len(raw_msg) == 6 and raw_msg.isdigit()):
+            tok = raw_msg.split(maxsplit=1)[1].strip() if msg_text.startswith("link ") else raw_msg
+            with get_db() as conn:
+                from services.channel_linking_service import verify_and_link_channel
+                ok, res_msg, uid = verify_and_link_channel(conn, "viber", tok, user_id, user_name)
+            if ok:
+                send_viber_message(
+                    user_id,
+                    "Khulaasaa Account Linked\n\nYour Viber channel is successfully verified and linked to your Khulaasaa account.",
+                    keyboard=keyboard,
+                )
+                return {"status": 0}
+            else:
+                send_viber_message(user_id, f"Linking Failed: {res_msg}", keyboard=keyboard)
+                return {"status": 0}
 
         # Auto-subscribe if from Viber first
         try:
@@ -282,7 +310,7 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
             # Default Help response
             with get_db() as conn:
                 paid = is_viber_subscriber_paid(conn, user_id)
-            plan_str = "⭐️ Pro Tier (Active)" if paid else "Free Tier (Normal Feed — /pro to customize)"
+            plan_str = "Pro Tier (Active)" if paid else "Free Tier (Normal Feed — /pro to customize)"
             help_text = (
                 f"Khulaasaa Bot Commands:\n\n"
                 f"• Plan: {plan_str}\n"
@@ -308,28 +336,23 @@ def dispatch_viber_news_alerts(
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> int:
-    """
-    Broadcast major breaking news articles to all active Viber subscribers.
-    """
+    """Broadcast major breaking news articles to all active Viber subscribers."""
     token, _, _ = get_viber_credentials(bot_token)
     if not token or not articles:
         return 0
 
     with get_db() as conn:
         subscribers = get_viber_subscribers(conn, active_only=True)
-
     if not subscribers:
         return 0
 
     keyboard = build_viber_main_keyboard(base_url)
     delivered = 0
-
     for art in articles[:2]:
         for sub in subscribers:
             res = send_viber_news_post(sub["viber_user_id"], art, base_url=base_url, keyboard=keyboard, bot_token=token)
             if res.get("status") == 0:
                 delivered += 1
-
     return delivered
 
 
@@ -338,29 +361,24 @@ def dispatch_viber_obituary_alerts(
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> int:
-    """
-    Broadcast new funeral announcements to all active Viber subscribers.
-    """
+    """Broadcast new funeral announcements to all active Viber subscribers."""
     token, _, _ = get_viber_credentials(bot_token)
     if not token or not obituaries:
         return 0
 
     with get_db() as conn:
         subscribers = get_viber_subscribers(conn, active_only=True)
-
     if not subscribers:
         return 0
 
     keyboard = build_viber_main_keyboard(base_url)
     delivered = 0
-
     for ob in obituaries:
         msg_text = format_viber_obituary(ob, base_url)
         for sub in subscribers:
             res = send_viber_message(sub["viber_user_id"], msg_text, keyboard=keyboard, bot_token=token)
             if res.get("status") == 0:
                 delivered += 1
-
     return delivered
 
 
@@ -369,29 +387,24 @@ def dispatch_viber_job_alerts(
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> int:
-    """
-    Broadcast new job announcements to all active Viber subscribers.
-    """
+    """Broadcast new job announcements to all active Viber subscribers."""
     token, _, _ = get_viber_credentials(bot_token)
     if not token or not jobs:
         return 0
 
     with get_db() as conn:
         subscribers = get_viber_subscribers(conn, active_only=True)
-
     if not subscribers:
         return 0
 
     keyboard = build_viber_main_keyboard(base_url)
     delivered = 0
-
     for job in jobs[:2]:
         msg_text = format_viber_job(job, base_url)
         for sub in subscribers:
             res = send_viber_message(sub["viber_user_id"], msg_text, keyboard=keyboard, bot_token=token)
             if res.get("status") == 0:
                 delivered += 1
-
     return delivered
 
 
@@ -400,9 +413,7 @@ def dispatch_viber_bid_alerts(
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> int:
-    """
-    Broadcast new tender/bid announcements to all active Viber subscribers.
-    """
+    """Broadcast new tender/bid announcements to all active Viber subscribers."""
     token, _, _ = get_viber_credentials(bot_token)
     if not token or not bids:
         return 0
@@ -414,7 +425,6 @@ def dispatch_viber_bid_alerts(
 
         keyboard = build_viber_main_keyboard(base_url)
         delivered = 0
-
         for bid in bids[:2]:
             msg_text = format_viber_bid(bid, base_url)
             for sub in subscribers:
@@ -422,11 +432,10 @@ def dispatch_viber_bid_alerts(
                 paid = is_viber_subscriber_paid(conn, v_uid)
                 sub_msg = msg_text
                 if not paid:
-                    sub_msg += "\n\n💡 Free normal feed. Upgrade to Pro (MVR 50/mo) for custom alerts: Send /pro"
+                    sub_msg += "\n\nFree normal feed. Upgrade to Pro (MVR 50/mo) for custom alerts: Send /pro"
                 res = send_viber_message(v_uid, sub_msg, keyboard=keyboard, bot_token=token)
                 if res.get("status") == 0:
                     delivered += 1
-
     return delivered
 
 
@@ -440,9 +449,7 @@ def dispatch_viber_sponsored_broadcast(
     bot_token: Optional[str] = None,
     base_url: str = "https://khulaasaa.tech",
 ) -> dict[str, Any]:
-    """
-    Broadcast a dedicated sponsored message campaign to active Viber subscribers.
-    """
+    """Broadcast a dedicated sponsored message campaign to active Viber subscribers."""
     import re
     token, _, _ = get_viber_credentials(bot_token)
     if not token:
@@ -456,12 +463,12 @@ def dispatch_viber_sponsored_broadcast(
     clean_content = clean_content.replace("&bull;", "•").replace("&mdash;", "—").replace("&rarr;", "→")
 
     lines = [
-        f"📢 SPONSORED DISPATCH — {sponsor_name}",
+        f"SPONSORED DISPATCH — {sponsor_name}",
         "━━━━━━━━━━━━━━━━━━━━━━",
         clean_content,
     ]
     if link_url:
-        lines.extend(["", f"🔗 Learn More: {link_url}"])
+        lines.extend(["", f"Learn More: {link_url}"])
     lines.extend([
         "",
         "━━━━━━━━━━━━━━━━━━━━━━",
@@ -483,5 +490,4 @@ def dispatch_viber_sponsored_broadcast(
             fail_count += 1
 
     return {"delivered": sent_count, "failed": fail_count, "status": "ok"}
-
 

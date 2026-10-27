@@ -265,7 +265,6 @@ def update_user_alert_settings(
 
     return True
 
-
 # =====================================================================
 # User Sessions
 # =====================================================================
@@ -306,4 +305,122 @@ def delete_user_session(conn: sqlite3.Connection, token: str) -> bool:
 
 
 # =====================================================================
-# User CV Management
+# Password Recovery & Profile Management
+# =====================================================================
+
+def create_password_reset_token(conn: sqlite3.Connection, email: str, expiry_hours: int = 1) -> Optional[str]:
+    """
+    Generate a secure random password reset token.
+    Stores the SHA-256 hash of the token and expiry timestamp in the database.
+    Returns the plaintext raw token for transmission, or None if user not found.
+    """
+    clean_email = email.strip().lower()
+    user = get_user_by_email(conn, clean_email)
+    if not user:
+        return None
+
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    expires = (datetime.now(timezone.utc) + timedelta(hours=expiry_hours)).isoformat()
+
+    conn.execute(
+        "UPDATE users SET reset_token_hash = ?, reset_token_expires = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+        (token_hash, expires, user["id"]),
+    )
+    return raw_token
+
+
+def verify_and_consume_password_reset_token(
+    conn: sqlite3.Connection,
+    raw_token: str,
+    new_password: str,
+) -> bool:
+    """
+    Verify and consume a password reset token.
+    Enforces single-use and expiration check. Resets password and revokes all active sessions.
+    """
+    if not raw_token or not new_password or len(new_password) < 6:
+        return False
+
+    token_hash = hashlib.sha256(raw_token.strip().encode("utf-8")).hexdigest()
+    row = conn.execute(
+        "SELECT id, reset_token_expires FROM users WHERE reset_token_hash = ?;",
+        (token_hash,),
+    ).fetchone()
+    if not row:
+        return False
+
+    user_id = row["id"] if hasattr(row, "keys") else row[0]
+    expires_str = row["reset_token_expires"] if hasattr(row, "keys") else row[1]
+
+    if expires_str:
+        try:
+            # Handle ISO string with or without timezone
+            exp_clean = expires_str.replace("Z", "+00:00")
+            exp_dt = datetime.fromisoformat(exp_clean)
+            if exp_dt.tzinfo is None:
+                exp_dt = exp_dt.replace(tzinfo=timezone.utc)
+            if datetime.now(timezone.utc) > exp_dt:
+                return False
+        except Exception:
+            return False
+
+    # Update password and invalidate reset token
+    new_hash = hash_password(new_password)
+    conn.execute(
+        """
+        UPDATE users
+        SET password_hash = ?, reset_token_hash = NULL, reset_token_expires = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?;
+        """,
+        (new_hash, user_id),
+    )
+    # Revoke all existing sessions for security
+    conn.execute("DELETE FROM user_sessions WHERE user_id = ?;", (user_id,))
+    return True
+
+def update_user_profile(
+    conn: sqlite3.Connection,
+    user_id: int,
+    full_name: Optional[str] = None,
+    phone: Optional[str] = None,
+) -> bool:
+    """Update user's profile information."""
+    updates = ["updated_at = CURRENT_TIMESTAMP"]
+    params: list[Any] = []
+    if full_name is not None and full_name.strip():
+        updates.append("full_name = ?")
+        params.append(full_name.strip())
+    if phone is not None:
+        updates.append("phone = ?")
+        params.append(phone.strip() if phone.strip() else None)
+
+    if not params:
+        return False
+    params.append(user_id)
+    cursor = conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?;", tuple(params))
+    return cursor.rowcount > 0
+
+
+def change_user_password(
+    conn: sqlite3.Connection,
+    user_id: int,
+    old_password: str,
+    new_password: str,
+) -> bool:
+    """Change authenticated user password after verifying old password."""
+    if not new_password or len(new_password) < 6:
+        return False
+    row = conn.execute("SELECT password_hash FROM users WHERE id = ?;", (user_id,)).fetchone()
+    if not row:
+        return False
+    current_hash = row["password_hash"] if hasattr(row, "keys") else row[0]
+    if not verify_password(old_password, current_hash):
+        return False
+
+    new_hash = hash_password(new_password)
+    conn.execute(
+        "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+        (new_hash, user_id),
+    )
+    return True

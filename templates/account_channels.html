@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Connected Channels — Khulaasaa Intelligence{% endblock %}
+
+{% block content %}
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <!-- Page Header -->
+  <div class="mb-8 pb-6 border-b border-hairline">
+    <nav class="text-xs text-slate mb-1 flex items-center gap-1.5">
+      <a href="/" class="hover:text-ink">Home</a>
+      <span>/</span>
+      <a href="/account" class="hover:text-ink">My Account</a>
+      <span>/</span>
+      <span class="text-ink font-medium">Connected Channels</span>
+    </nav>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Connected Alert Channels</h1>
+        <p class="text-sm text-slate mt-1">Verify messaging destinations for secure delivery of your personalized alerts.</p>
+      </div>
+      <div>
+        <a href="/account/alerts" class="px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink flex items-center gap-1.5 shadow-xs">
+          <span>Configure Alert Preferences</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <!-- 1. Telegram Channel Card -->
+    <section class="bg-paper rounded-xl border border-hairline p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-hairline">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#229ED9]/10 text-[#229ED9] flex items-center justify-center font-bold text-lg">
+            TG
+          </div>
+          <div>
+            <div class="font-bold text-base text-ink">Telegram Channel</div>
+            <div class="text-xs text-slate">Direct instant notifications and command interaction via Khulaasaa Telegram Bot.</div>
+          </div>
+        </div>
+
+        <div id="telegramStatusBadge">
+          {% if channels.telegram.connected %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              VERIFIED &amp; CONNECTED
+            </span>
+          {% else %}
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate/10 text-slate border border-slate/20">
+              NOT CONNECTED
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-4" id="telegramContent">
+        {% if channels.telegram.connected %}
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-paper-soft border border-hairline">
+            <div>
+              <div class="text-xs text-slate">Bound Telegram Chat ID</div>
+              <div class="font-mono text-sm font-bold text-ink mt-0.5">{{ channels.telegram.chat_id }}</div>
+              <div class="text-[11px] text-emerald-700 mt-1">This channel is verified and ready to receive configured alerts.</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="sendTestAlert('telegram', '{{ channels.telegram.chat_id }}')"
+                class="px-3 py-1.5 text-xs font-semibold text-ink bg-paper border border-hairline hover:bg-white rounded transition shadow-xs"
+              >
+                Send Test Alert
+              </button>
+              <button
+                type="button"
+                onclick="disconnectChannel('telegram')"
+                class="px-3 py-1.5 text-xs font-semibold text-flag hover:bg-flag/10 border border-hairline rounded transition"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        {% else %}
+          <div class="space-y-4">
+            <p class="text-xs text-slate leading-relaxed">
+              To connect your Telegram account, click below to generate a secure single-use linking token.
+              Opening the link in Telegram will automatically verify and bind your chat ID.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onclick="initiateTelegramLink()"
+                id="btnConnectTelegram"
+                class="px-4 py-2 text-xs font-bold text-white bg-[#229ED9] hover:bg-[#229ED9]/90 rounded transition shadow-xs flex items-center gap-2"
+              >
+                <span>Connect via Telegram Bot</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+            <div id="telegramLinkArea" class="hidden p-4 rounded-lg bg-paper-soft border border-hairline space-y-2 text-xs">
+              <div class="font-bold text-ink">Verification Link Generated (Valid for 15 minutes)</div>
+              <p class="text-slate">Click the button below to launch Telegram, or send <code id="telegramTokenCode" class="bg-paper px-1.5 py-0.5 rounded font-mono text-ink font-bold">/link TOKEN</code> to @KhulaasaaBot:</p>
+              <div class="pt-2">
+                <a id="telegramDeepLinkBtn" href="#" target="_blank" class="px-4 py-2 text-xs font-bold text-white bg-[#229ED9] hover:bg-[#229ED9]/90 rounded inline-block">
+                  Open Khulaasaa Bot in Telegram
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- 2. Viber Channel Card -->
+    <section class="bg-paper rounded-xl border border-hairline p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-hairline">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#7360F2]/10 text-[#7360F2] flex items-center justify-center font-bold text-lg">
+            VB
+          </div>
+          <div>
+            <div class="font-bold text-base text-ink">Viber Channel</div>
+            <div class="text-xs text-slate">Real-time alerts delivered to the Viber messaging app.</div>
+          </div>
+        </div>
+
+        <div id="viberStatusBadge">
+          {% if channels.viber.connected %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              VERIFIED &amp; CONNECTED
+            </span>
+          {% else %}
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate/10 text-slate border border-slate/20">
+              NOT CONNECTED
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-4" id="viberContent">
+        {% if channels.viber.connected %}
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-paper-soft border border-hairline">
+            <div>
+              <div class="text-xs text-slate">Bound Viber User ID</div>
+              <div class="font-mono text-sm font-bold text-ink mt-0.5">{{ channels.viber.user_id }}</div>
+              <div class="text-[11px] text-emerald-700 mt-1">This channel is verified and ready to receive configured alerts.</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="sendTestAlert('viber', '{{ channels.viber.user_id }}')"
+                class="px-3 py-1.5 text-xs font-semibold text-ink bg-paper border border-hairline hover:bg-white rounded transition shadow-xs"
+              >
+                Send Test Alert
+              </button>
+              <button
+                type="button"
+                onclick="disconnectChannel('viber')"
+                class="px-3 py-1.5 text-xs font-semibold text-flag hover:bg-flag/10 border border-hairline rounded transition"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        {% else %}
+          <div class="space-y-4">
+            <p class="text-xs text-slate leading-relaxed">
+              Due to Viber platform limitations, deep-linking cannot reliably pass authentication tokens automatically across all devices.
+              To link Viber, generate a 6-digit verification code below and send it to the Khulaasaa Viber bot.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onclick="initiateViberLink()"
+                id="btnConnectViber"
+                class="px-4 py-2 text-xs font-bold text-white bg-[#7360F2] hover:bg-[#7360F2]/90 rounded transition shadow-xs flex items-center gap-2"
+              >
+                <span>Generate 6-Digit Viber PIN</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+            <div id="viberLinkArea" class="hidden p-4 rounded-lg bg-paper-soft border border-hairline space-y-3 text-xs">
+              <div class="font-bold text-ink">Your 6-Digit Linking Code (Valid for 15 minutes)</div>
+              <div class="font-mono text-xl font-extrabold tracking-widest text-[#7360F2] bg-paper px-3 py-2 rounded inline-block border border-hairline" id="viberPinDisplay">
+                ------
+              </div>
+              <p class="text-slate">Send <code class="font-bold text-ink">link &lt;CODE&gt;</code> or just the 6-digit code in the Khulaasaa Viber chat to verify.</p>
+              <div class="pt-1">
+                <a id="viberAppBtn" href="viber://pa?chatURI=khulaasaa" class="px-4 py-2 text-xs font-bold text-white bg-[#7360F2] hover:bg-[#7360F2]/90 rounded inline-block">
+                  Open Viber Bot
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Status Message Display -->
+    <div id="channelActionStatus" class="hidden text-xs py-2.5 px-3.5 rounded font-medium"></div>
+  </div>
+</main>
+
+<script>
+async function initiateTelegramLink() {
+  const btn = document.getElementById('btnConnectTelegram');
+  btn.disabled = true;
+  btn.textContent = 'Generating link...';
+
+  try {
+    const res = await fetch('/api/channels/telegram/token', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok && data.status === 'ok') {
+      const area = document.getElementById('telegramLinkArea');
+      const deepBtn = document.getElementById('telegramDeepLinkBtn');
+      const codeSpan = document.getElementById('telegramTokenCode');
+      deepBtn.href = data.deep_link;
+      codeSpan.textContent = '/link ' + data.token;
+      area.classList.remove('hidden');
+      btn.classList.add('hidden');
+      // Automatically attempt to open deep link in new tab
+      window.open(data.deep_link, '_blank');
+    } else {
+      showStatus(data.detail || 'Failed to generate Telegram token', true);
+      btn.disabled = false;
+      btn.textContent = 'Connect via Telegram Bot';
+    }
+  } catch (err) {
+    showStatus('Error: ' + err.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Connect via Telegram Bot';
+  }
+}
+
+async function initiateViberLink() {
+  const btn = document.getElementById('btnConnectViber');
+  btn.disabled = true;
+  btn.textContent = 'Generating PIN...';
+
+  try {
+    const res = await fetch('/api/channels/viber/token', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok && data.status === 'ok') {
+      const area = document.getElementById('viberLinkArea');
+      const pinDisp = document.getElementById('viberPinDisplay');
+      pinDisp.textContent = data.token;
+      area.classList.remove('hidden');
+      btn.classList.add('hidden');
+    } else {
+      showStatus(data.detail || 'Failed to generate Viber PIN', true);
+      btn.disabled = false;
+      btn.textContent = 'Generate 6-Digit Viber PIN';
+    }
+  } catch (err) {
+    showStatus('Error: ' + err.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Generate 6-Digit Viber PIN';
+  }
+}
+
+async function disconnectChannel(channel) {
+  if (!confirm('Are you sure you want to disconnect ' + channel.toUpperCase() + '?')) return;
+  try {
+    const res = await fetch('/api/channels/' + channel + '/disconnect', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok && data.status === 'ok') {
+      showStatus(channel.toUpperCase() + ' disconnected successfully.', false);
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      showStatus(data.detail || 'Failed to disconnect ' + channel, true);
+    }
+  } catch (err) {
+    showStatus('Error: ' + err.message, true);
+  }
+}
+
+async function sendTestAlert(channel, targetId) {
+  try {
+    const res = await fetch('/api/alerts/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: channel, target_id: targetId })
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      showStatus('Test alert sent to ' + channel.toUpperCase() + ' successfully.', false);
+    } else {
+      showStatus(data.detail || 'Failed to deliver test alert.', true);
+    }
+  } catch (err) {
+    showStatus('Error: ' + err.message, true);
+  }
+}
+
+function showStatus(msg, isError) {
+  const el = document.getElementById('channelActionStatus');
+  el.className = isError
+    ? 'text-xs py-2.5 px-3.5 rounded bg-red-50 text-red-800 border border-red-200 block'
+    : 'text-xs py-2.5 px-3.5 rounded bg-green-50 text-green-800 border border-green-200 block';
+  el.textContent = msg;
+  setTimeout(() => { el.className = 'hidden'; }, 4000);
+}
+</script>
+{% endblock %}

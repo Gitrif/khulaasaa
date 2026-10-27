@@ -59,6 +59,25 @@
       <span class="text-slate">({{ (sections.major|length) + (sections.breaking|length) + (sections.general|length) }} stories matching)</span>
     </div>
     <div class="flex items-center gap-2">
+      {% if active_topic %}
+      <button type="button"
+              class="follow-btn inline-flex items-center gap-1 rounded text-xs px-2.5 py-1"
+              data-follow-type="topic"
+              data-follow-id="{{ active_topic }}"
+              data-follow-title="{{ active_topic_obj.label if active_topic_obj else active_topic|capitalize }}"
+              onclick="toggleFollow('topic', '{{ active_topic }}', '{{ (active_topic_obj.label if active_topic_obj else active_topic)|replace("'", "\\'") }}', this)">
+        <span class="follow-label">Follow Topic</span>
+      </button>
+      {% elif active_tag %}
+      <button type="button"
+              class="follow-btn inline-flex items-center gap-1 rounded text-xs px-2.5 py-1"
+              data-follow-type="story"
+              data-follow-id="{{ active_tag }}"
+              data-follow-title="{{ active_tag_obj.label if active_tag_obj else active_tag }}"
+              onclick="toggleFollow('story', '{{ active_tag }}', '{{ (active_tag_obj.label if active_tag_obj else active_tag)|replace("'", "\\'") }}', this)">
+        <span class="follow-label">Follow Story</span>
+      </button>
+      {% endif %}
       <a href="/" class="px-3 py-1.5 bg-ink text-white hover:bg-ink-soft text-xs font-semibold rounded transition flex items-center gap-1 shadow-xs">
         <span>&larr; See All News</span>
       </a>

@@ -166,6 +166,16 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_time TEXT;")
             if ob_cols and "funeral_datetime" not in ob_cols:
                 conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_datetime TIMESTAMP;")
+
+            usr_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
+            if usr_cols and "reset_token_hash" not in usr_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN reset_token_hash TEXT;")
+            if usr_cols and "reset_token_expires" not in usr_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN reset_token_expires TIMESTAMP;")
+            if usr_cols and "telegram_verified" not in usr_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN telegram_verified INTEGER DEFAULT 0;")
+            if usr_cols and "viber_verified" not in usr_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN viber_verified INTEGER DEFAULT 0;")
         except Exception:
             pass
 

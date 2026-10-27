@@ -287,9 +287,52 @@ CREATE TABLE IF NOT EXISTS users (
     tender_alert_sources TEXT DEFAULT '["all"]', -- JSON array e.g. ["Gazette", "HDC", "STO"]
     alerts_enabled INTEGER DEFAULT 1,
     is_paid INTEGER DEFAULT 0, -- 0 for Free tier, 1 for Pro/Paid tier
+    telegram_verified INTEGER DEFAULT 0,
+    viber_verified INTEGER DEFAULT 0,
+    reset_token_hash TEXT,
+    reset_token_expires TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS user_follows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_type TEXT NOT NULL, -- 'story', 'topic', 'section', 'source'
+    target_id TEXT NOT NULL,   -- canonical slug / id
+    target_title TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, target_type, target_id)
+);
+CREATE INDEX IF NOT EXISTS idx_user_follows_lookup ON user_follows(user_id, target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_user_follows_target ON user_follows(target_type, target_id);
+
+CREATE TABLE IF NOT EXISTS user_notification_preferences (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    breaking_alerts INTEGER NOT NULL DEFAULT 1,
+    followed_content_alerts INTEGER NOT NULL DEFAULT 1,
+    telegram_enabled INTEGER NOT NULL DEFAULT 1,
+    viber_enabled INTEGER NOT NULL DEFAULT 1,
+    frequency TEXT NOT NULL DEFAULT 'instant', -- 'instant', 'digest'
+    quiet_hours_enabled INTEGER NOT NULL DEFAULT 0,
+    quiet_hours_start TEXT DEFAULT '23:00',
+    quiet_hours_end TEXT DEFAULT '07:00',
+    timezone TEXT NOT NULL DEFAULT 'Indian/Maldives',
+    is_paused INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS channel_link_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL, -- 'telegram', 'viber'
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_token ON channel_link_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_user ON channel_link_tokens(user_id, channel);
 
 CREATE TABLE IF NOT EXISTS user_sessions (
     token TEXT PRIMARY KEY,

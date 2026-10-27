@@ -200,6 +200,30 @@ def handle_incoming_telegram_update(update: dict[str, Any]) -> None:
         pro_text, pro_kb = format_pro_tier_message(paid, chat_id)
         tg.send_telegram_message(pro_text, chat_id=chat_id, reply_markup=pro_kb)
 
+    elif text.startswith("/link") or (text.startswith("/start") and len(text.split(maxsplit=1)) > 1 and text.split(maxsplit=1)[1].startswith("link_")):
+        parts = text.split(maxsplit=1)
+        raw_token = parts[1].strip()
+        if raw_token.startswith("link_"):
+            raw_token = raw_token[5:].strip()
+
+        with get_db() as conn:
+            from services.channel_linking_service import verify_and_link_channel
+            ok, msg, uid = verify_and_link_channel(conn, "telegram", raw_token, chat_id, name)
+
+        if ok:
+            tg.send_telegram_message(
+                "<b>Khulaasaa Account Linked</b>\n\n"
+                "Your Telegram channel is successfully verified and linked to your Khulaasaa account. "
+                "You will receive alerts according to your notification preferences.",
+                chat_id=chat_id,
+            )
+        else:
+            tg.send_telegram_message(
+                f"<b>Linking Failed</b>\n\n{msg}",
+                chat_id=chat_id,
+            )
+        return
+
     elif text.startswith("/start"):
         # Check for deep linking payload (e.g. /start alerts_breaking_followed or /start tenders)
         parts = text.split(maxsplit=1)
