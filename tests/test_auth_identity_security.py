@@ -83,3 +83,22 @@ def test_identity_stats_distinguish_linked_people_from_raw_channel_ids(tmp_path:
         assert stats["viber_identities"] >= 1
         assert stats["people_with_multiple_linked_channels"] >= 1
         assert stats["unlinked_telegram_identities"] >= 1
+
+
+
+def test_hooks85_transient_session_failure_is_briefly_cached(monkeypatch):
+    from urllib.error import URLError
+    from services import hooks85_service
+
+    calls = []
+
+    def offline_urlopen(request, timeout):
+        calls.append(request.full_url)
+        raise URLError("gateway offline")
+
+    hooks85_service._SESSION_CACHE.clear()
+    monkeypatch.setattr(hooks85_service.urllib.request, "urlopen", offline_urlopen)
+    assert hooks85_service.verify_hooks85_session("offline-session-token") is None
+    assert hooks85_service.verify_hooks85_session("offline-session-token") is None
+    assert len(calls) == 1
+    hooks85_service._SESSION_CACHE.clear()
