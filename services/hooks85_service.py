@@ -25,6 +25,7 @@ HOOKS85_INTERNAL_TOKEN = os.environ.get(
 # 30-second TTL session cache per essentials-v1 contract
 _SESSION_CACHE: dict[str, dict[str, Any]] = {}
 SESSION_CACHE_TTL = 30.0
+SESSION_FAILURE_CACHE_TTL = 5.0
 
 
 def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, Any]]:
@@ -34,8 +35,11 @@ def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, A
 
     now = time.time()
     cached = _SESSION_CACHE.get(session_cookie_or_token)
-    if cached and (now - cached["cached_at"] < SESSION_CACHE_TTL):
-        return cached["user"]
+    if cached:
+        ttl = cached.get("ttl", SESSION_CACHE_TTL)
+        if now - cached["cached_at"] < ttl:
+            return cached["user"]
+        _SESSION_CACHE.pop(session_cookie_or_token, None)
 
     url = f"{HOOKS85_GATEWAY_URL}/api/v1/auth/session"
     headers = {"Accept": "application/json"}
@@ -67,7 +71,22 @@ def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, A
                     "user": user_info,
                 }
                 return user_info
+    except urllib.error.HTTPError as e:
+        # Do not cache an explicit invalid/expired session; other Gateway errors may be transient.
+        if e.code not in (401, 403):
+            _SESSION_CACHE[session_cookie_or_token] = {
+                "cached_at": now,
+                "user": None,
+                "ttl": SESSION_FAILURE_CACHE_TTL,
+            }
+        logger.debug("hooks85 Gateway session check returned HTTP %s", e.code)
     except Exception as e:
+        # Avoid repeating a slow timeout for every page/API request when Gateway is offline.
+        _SESSION_CACHE[session_cookie_or_token] = {
+            "cached_at": now,
+            "user": None,
+            "ttl": SESSION_FAILURE_CACHE_TTL,
+        }
         logger.debug("hooks85 Gateway session check skipped or offline: %s", e)
 
     return None
