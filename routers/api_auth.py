@@ -291,11 +291,13 @@ async def api_telegram_login(request: Request):
 
     with get_db() as conn:
         identity = get_platform_identity(conn, "telegram", telegram_id)
-        user = (
-            get_user_by_id(conn, identity["user_id"])
-            if identity and identity.get("user_id") is not None
-            else get_user_by_telegram_id(conn, telegram_id)
-        )
+        if identity and identity.get("user_id") is not None:
+            user = get_user_by_id(conn, identity["user_id"])
+        else:
+            legacy_candidate = get_user_by_telegram_id(conn, telegram_id)
+            # Legacy user rows may contain unverified IDs supplied during registration.
+            # Only honor them if the old record already marked the channel verified.
+            user = legacy_candidate if legacy_candidate and legacy_candidate.get("telegram_verified") else None
         if not user:
             # Use an unguessable, non-routable internal address. Never resolve an
             # arbitrary account by a predictable synthetic email during provider login.
