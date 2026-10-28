@@ -1,0 +1,71 @@
+name: Auth and Identity Regression Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "routers/api_auth.py"
+      - "routers/api_channels.py"
+      - "routers/webhooks.py"
+      - "routers/api_jobs.py"
+      - "services/provider_auth_service.py"
+      - "services/channel_linking_service.py"
+      - "services/hooks85_service.py"
+      - "data/repos/identities.py"
+      - "data/repos/users.py"
+      - "data/init_db.py"
+      - "data/schema.py"
+      - "supabase/schema.sql"
+      - "alerts/telegram_bot.py"
+      - "alerts/viber.py"
+      - "tests/test_auth_identity_security.py"
+      - "tests/test_preferences_and_channel_linking.py"
+      - "tests/test_viber.py"
+      - ".github/workflows/auth-regression.yml"
+  push:
+    branches: [fix/auth-registration-and-page-performance]
+    paths:
+      - "routers/api_auth.py"
+      - "routers/api_channels.py"
+      - "routers/webhooks.py"
+      - "routers/api_jobs.py"
+      - "services/provider_auth_service.py"
+      - "services/channel_linking_service.py"
+      - "services/hooks85_service.py"
+      - "data/repos/identities.py"
+      - "data/repos/users.py"
+      - "data/init_db.py"
+      - "data/schema.py"
+      - "supabase/schema.sql"
+      - "alerts/telegram_bot.py"
+      - "alerts/viber.py"
+      - "tests/test_auth_identity_security.py"
+      - "tests/test_preferences_and_channel_linking.py"
+      - "tests/test_viber.py"
+      - ".github/workflows/auth-regression.yml"
+
+jobs:
+  auth-identity-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      KHULAASAA_DB_PATH: ${{ runner.temp }}/khulaasaa-auth-test.db
+      EDITOR_USERNAME: editor
+      EDITOR_PASSWORD: test-editor-password
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run auth, identity, and Viber regression tests
+        run: |
+          pytest -q tests/test_auth_identity_security.py tests/test_preferences_and_channel_linking.py tests/test_viber.py
