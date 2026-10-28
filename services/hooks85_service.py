@@ -25,7 +25,7 @@ HOOKS85_INTERNAL_TOKEN = os.environ.get(
 # 30-second TTL session cache per essentials-v1 contract
 _SESSION_CACHE: dict[str, dict[str, Any]] = {}
 SESSION_CACHE_TTL = 30.0
-SESSION_FAILURE_CACHE_TTL = 5.0
+SESSION_FAILURE_CACHE_TTL = 15.0
 
 
 def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, Any]]:
