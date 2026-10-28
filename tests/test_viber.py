@@ -292,6 +292,7 @@ def test_viber_api_subscribe_and_job_alert(monkeypatch):
     resp_job = client.post(
         "/api/jobs/test-viber-alert",
         json={"viber_user_id": "viber_api_test_user"},
+        auth=(EDITOR_USER, EDITOR_PASS),
     )
     assert resp_job.status_code == 200
     assert resp_job.json().get("ok") is True
