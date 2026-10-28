@@ -14,6 +14,12 @@ from data.init_db import init_db
 from data.utils import slugify, detect_entity_type
 from data.taxonomy import ATOLL_TAXONOMY, extract_atoll_and_island
 from data.repos.entities import resolve_or_create_entity, list_entities
+from data.repos.identities import (
+    upsert_platform_identity,
+    get_platform_identity,
+    link_platform_identity,
+    mark_platform_identity_inactive,
+)
 
 # Re-exported Domain Repositories (< 500 lines per module)
 from data.repos.bids import (
