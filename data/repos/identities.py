@@ -125,7 +125,9 @@ def get_platform_identity_stats(conn: Any) -> dict[str, int]:
             return int(row[0] if not isinstance(row, dict) else next(iter(row.values())) or 0)
         return int(row[0] or 0)
 
-    web_accounts = count("SELECT COUNT(*) FROM users;")
+    all_accounts = count("SELECT COUNT(*) FROM users;")
+    web_accounts = count("SELECT COUNT(*) FROM users WHERE account_origin = 'web';")
+    telegram_accounts = count("SELECT COUNT(*) FROM users WHERE account_origin = 'telegram';")
     telegram = count("SELECT COUNT(*) FROM user_identities WHERE provider = 'telegram';")
     viber = count("SELECT COUNT(*) FROM user_identities WHERE provider = 'viber';")
     unlinked_telegram = count(
@@ -147,7 +149,9 @@ def get_platform_identity_stats(conn: Any) -> dict[str, int]:
         """
     )
     return {
+        "all_person_accounts": all_accounts,
         "web_accounts": web_accounts,
+        "telegram_mini_app_accounts": telegram_accounts,
         "telegram_identities": telegram,
         "viber_identities": viber,
         "linked_people_with_channels": linked_people,
