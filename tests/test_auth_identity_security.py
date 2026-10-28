@@ -5,9 +5,11 @@ import hashlib
 import hmac
 import json
 import time
+from pathlib import Path
 from urllib.parse import urlencode
 
 from routers.api_auth import _validate_telegram_webapp_init_data
+from data.database import create_user, get_db, get_platform_identity, get_platform_identity_stats, init_db, link_platform_identity, upsert_platform_identity
 
 
 def _signed_init_data(bot_token: str, user: dict, auth_date: int | None = None) -> str:
@@ -38,3 +40,46 @@ def test_telegram_init_data_rejects_stale_signature():
     stale_date = int(time.time()) - 86401
     payload = _signed_init_data("test-bot-token", {"id": 987654321}, stale_date)
     assert _validate_telegram_webapp_init_data(payload, "test-bot-token") is None
+
+
+def test_platform_identity_upsert_is_idempotent_and_tracks_last_seen(tmp_path: Path):
+    db_path = tmp_path / "identity-upsert.db"
+    init_db(db_path)
+    with get_db(db_path) as conn:
+        first = upsert_platform_identity(conn, "telegram", "test-tg-identity-1", provider_username="reader_one", display_name="Reader One")
+        second = upsert_platform_identity(conn, "telegram", "test-tg-identity-1", provider_username="reader_one", display_name="Reader One Updated")
+        count = conn.execute("SELECT COUNT(*) FROM user_identities WHERE provider = ? AND provider_user_id = ?;", ("telegram", "test-tg-identity-1")).fetchone()[0]
+        assert first["id"] == second["id"]
+        assert second["display_name"] == "Reader One Updated"
+        assert count == 1
+
+
+def test_platform_identity_cannot_be_linked_to_two_people(tmp_path: Path):
+    db_path = tmp_path / "identity-owner.db"
+    init_db(db_path)
+    with get_db(db_path) as conn:
+        user_a = create_user(conn, "identity_a@example.test", "password123", "Identity A")
+        user_b = create_user(conn, "identity_b@example.test", "password123", "Identity B")
+        upsert_platform_identity(conn, "viber", "test-viber-identity-1", display_name="Viber Reader")
+        ok_a, _ = link_platform_identity(conn, "viber", "test-viber-identity-1", user_a)
+        ok_b, message = link_platform_identity(conn, "viber", "test-viber-identity-1", user_b)
+        assert ok_a is True
+        assert ok_b is False
+        assert "already linked" in message.lower()
+        identity = get_platform_identity(conn, "viber", "test-viber-identity-1")
+        assert identity["user_id"] == user_a
+
+
+def test_identity_stats_distinguish_linked_people_from_raw_channel_ids(tmp_path: Path):
+    db_path = tmp_path / "identity-stats.db"
+    init_db(db_path)
+    with get_db(db_path) as conn:
+        user = create_user(conn, "identity_stats@example.test", "password123", "Identity Stats")
+        upsert_platform_identity(conn, "telegram", "test-stats-tg", user_id=user, verified=True)
+        upsert_platform_identity(conn, "viber", "test-stats-viber", user_id=user, verified=True)
+        upsert_platform_identity(conn, "telegram", "test-stats-unlinked")
+        stats = get_platform_identity_stats(conn)
+        assert stats["telegram_identities"] >= 2
+        assert stats["viber_identities"] >= 1
+        assert stats["people_with_multiple_linked_channels"] >= 1
+        assert stats["unlinked_telegram_identities"] >= 1
