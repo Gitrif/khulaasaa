@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import secrets
 import time
 from pathlib import Path
 from urllib.parse import urlencode
@@ -102,3 +103,28 @@ def test_hooks85_transient_session_failure_is_briefly_cached(monkeypatch):
     assert hooks85_service.verify_hooks85_session("offline-session-token") is None
     assert len(calls) == 1
     hooks85_service._SESSION_CACHE.clear()
+
+
+
+def test_duplicate_registration_returns_conflict_not_existing_account_session(monkeypatch):
+    from fastapi.testclient import TestClient
+    from main import app
+    from routers import api_auth as auth_module
+
+    init_db()
+    monkeypatch.setattr(auth_module, "register_via_hooks85", lambda *args: None)
+    email = f"identity-register-{secrets.token_hex(6)}@example.test"
+    client = TestClient(app)
+    payload = {"email": email, "password": "password123", "full_name": "Registration Test"}
+
+    first = client.post("/api/auth/register", json=payload)
+    assert first.status_code == 200
+    second = client.post("/api/auth/register", json=payload)
+    assert second.status_code == 409
+    assert "token" not in second.json()
+
+    with get_db() as conn:
+        user = conn.execute("SELECT id FROM users WHERE email = ?;", (email,)).fetchone()
+        assert user is not None
+        conn.execute("DELETE FROM user_sessions WHERE user_id = ?;", (user["id"],))
+        conn.execute("DELETE FROM users WHERE id = ?;", (user["id"],))
