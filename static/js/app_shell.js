@@ -458,9 +458,7 @@ async function handleTelegramMiniAppUser(user) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: String(user.id),
-        username: user.username || '',
-        first_name: user.first_name || '',
+        init_data: (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || '',
       })
     });
     const d = await res.json();
