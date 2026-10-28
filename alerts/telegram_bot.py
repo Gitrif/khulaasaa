@@ -19,6 +19,7 @@ from data.database import (
     get_db,
     register_or_update_telegram_subscriber,
     get_telegram_subscriber,
+    upsert_platform_identity,
     update_telegram_subscriber_plan,
     is_subscriber_paid,
     query_bids,
@@ -261,6 +262,14 @@ def handle_incoming_telegram_update(update: dict[str, Any]) -> None:
                 keywords=keywords,
                 is_active=1,
                 reset_start_time=True,
+            )
+            upsert_platform_identity(
+                conn,
+                "telegram",
+                str(from_user.get("id") or chat_id),
+                provider_username=username or None,
+                display_name=name,
+                is_active=True,
             )
             sub = get_telegram_subscriber(conn, chat_id)
             paid = is_subscriber_paid(conn, chat_id)
