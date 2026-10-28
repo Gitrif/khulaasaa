@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import html
 import json
+import os
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -125,7 +126,17 @@ async def telegram_subscribe(request: Request):
 
 @router.post("/api/alerts/telegram/webhook")
 async def telegram_webhook(request: Request):
-    """Webhook endpoint to process incoming Telegram messages, commands, and callback queries."""
+    """Process Telegram webhooks only when a configured provider secret matches."""
+    secret = (os.environ.get("TELEGRAM_WEBHOOK_SECRET") or "").strip()
+    if not secret:
+        raise HTTPException(
+            status_code=503,
+            detail="Telegram webhook mode is disabled; configure TELEGRAM_WEBHOOK_SECRET first.",
+        )
+    supplied = (request.headers.get("X-Telegram-Bot-Api-Secret-Token") or "").strip()
+    if not supplied or not hmac.compare_digest(secret, supplied):
+        raise HTTPException(status_code=401, detail="Invalid Telegram webhook secret")
+
     try:
         update = await request.json()
         handle_incoming_telegram_update(update)
