@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import json
 import pytest
 from fastapi.testclient import TestClient
 from main import app
@@ -155,11 +158,27 @@ def test_viber_webhook_event_handling():
     assert msg_resp.get("status") == 0
 
 
-def test_viber_webhook_fastapi_route():
+def test_viber_webhook_fastapi_route(monkeypatch):
     payload = {"event": "webhook"}
-    resp = client.post("/webhook/viber", json=payload)
+    raw_body = json.dumps(payload).encode("utf-8")
+    bot_token = "test-viber-bot-token"
+    monkeypatch.setattr("routers.webhooks.get_viber_credentials", lambda: (bot_token, "TestBot", ""))
+    signature = hmac.new(bot_token.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+    resp = client.post(
+        "/webhook/viber",
+        content=raw_body,
+        headers={
+            "Content-Type": "application/json",
+            "X-Viber-Content-Signature": signature,
+        },
+    )
     assert resp.status_code == 200
     assert resp.json().get("status") == 0
+
+
+def test_viber_webhook_rejects_missing_signature():
+    resp = client.post("/webhook/viber", json={"event": "webhook"})
+    assert resp.status_code == 401
 
 
 def test_viber_auto_subscribe_on_first_interaction():
