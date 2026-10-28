@@ -34,19 +34,31 @@ def _backfill_platform_identities(conn) -> None:
         for row in rows:
             item = dict(row)
             if item.get("telegram_chat_id"):
+                is_verified = bool(item.get("telegram_verified"))
                 upsert_platform_identity(
                     conn, "telegram", item["telegram_chat_id"],
                     display_name=item.get("full_name"),
-                    user_id=item["id"],
-                    verified=bool(item.get("telegram_verified")),
+                    user_id=item["id"] if is_verified else None,
+                    verified=is_verified,
                 )
+                if not is_verified:
+                    conn.execute(
+                        "UPDATE user_identities SET user_id = NULL, verified_at = NULL WHERE provider = 'telegram' AND provider_user_id = ? AND user_id = ?;",
+                        (item["telegram_chat_id"], item["id"]),
+                    )
             if item.get("viber_user_id"):
+                is_verified = bool(item.get("viber_verified"))
                 upsert_platform_identity(
                     conn, "viber", item["viber_user_id"],
                     display_name=item.get("full_name"),
-                    user_id=item["id"],
-                    verified=bool(item.get("viber_verified")),
+                    user_id=item["id"] if is_verified else None,
+                    verified=is_verified,
                 )
+                if not is_verified:
+                    conn.execute(
+                        "UPDATE user_identities SET user_id = NULL, verified_at = NULL WHERE provider = 'viber' AND provider_user_id = ? AND user_id = ?;",
+                        (item["viber_user_id"], item["id"]),
+                    )
     except Exception:
         logger.exception("Could not backfill linked platform identities from users")
 
