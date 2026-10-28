@@ -7,7 +7,6 @@ from __future__ import annotations
 import os
 from typing import Any
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
 
 from core.deps import get_current_user
 from data.database import get_db
@@ -16,7 +15,6 @@ from services.channel_linking_service import (
     disconnect_channel,
     get_channel_connection_status,
     get_telegram_deep_link,
-    verify_and_link_channel,
 )
 
 router = APIRouter(prefix="/api/channels", tags=["channels"])
@@ -94,33 +92,17 @@ def api_create_viber_token(request: Request):
 
 @router.post("/viber/verify")
 async def api_verify_viber_token(request: Request):
-    """Verify Viber channel using token and user's Viber ID."""
+    """Reject client-supplied Viber IDs; verification must come from a signed bot webhook."""
     user = get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
-
-    try:
-        payload = await request.json()
-    except Exception:
-        payload = {}
-
-    token = (payload.get("token") or "").strip()
-    viber_user_id = (payload.get("viber_user_id") or payload.get("viber_id") or "").strip()
-
-    if not token or not viber_user_id:
-        raise HTTPException(status_code=400, detail="Both token and viber_user_id are required")
-
-    with get_db() as conn:
-        ok, msg, uid = verify_and_link_channel(conn, "viber", token, viber_user_id, user.get("full_name"))
-        if not ok:
-            raise HTTPException(status_code=400, detail=msg)
-        status = get_channel_connection_status(conn, user["id"])
-
-    return {
-        "status": "ok",
-        "message": msg,
-        "channels": status,
-    }
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "For secure verification, send the generated PIN to the Khulaasaa Viber bot. "
+            "The bot will verify your Viber identity directly."
+        ),
+    )
 
 
 @router.post("/viber/disconnect")
