@@ -17,6 +17,8 @@ load_dotenv()
 from data.database import (
     get_db,
     register_or_update_viber_subscriber,
+    upsert_platform_identity,
+    mark_platform_identity_inactive,
     get_viber_subscribers,
     unsubscribe_viber_subscriber,
     is_viber_subscriber_paid,
@@ -77,6 +79,12 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                         categories=["all", "news", "janaza", "bids", "jobs"],
                         is_active=1,
                     )
+                    upsert_platform_identity(
+                        conn, "viber", user_id,
+                        provider_username=None,
+                        display_name=user_name,
+                        is_active=True,
+                    )
             except Exception as e:
                 logger.error("Error auto-subscribing Viber user on conversation_started: %s", e)
 
@@ -121,6 +129,11 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                     categories=["all", "news", "janaza", "bids", "jobs"],
                     is_active=1,
                 )
+                upsert_platform_identity(
+                    conn, "viber", user_id,
+                    display_name=user_name,
+                    is_active=True,
+                )
             send_viber_message(
                 user_id,
                 f"Subscribed to Khulaasaa alerts!\n\nYour Viber ID: {user_id}\n\nYou will receive real-time news, Janaza announcements, tenders, and job postings.",
@@ -134,6 +147,7 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         if user_id:
             with get_db() as conn:
                 unsubscribe_viber_subscriber(conn, user_id)
+                mark_platform_identity_inactive(conn, "viber", user_id)
         return {"status": 0}
 
     # 5. Incoming Message Event
@@ -175,6 +189,11 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                     avatar=sender.get("avatar"),
                     categories=["all", "news", "janaza", "bids", "jobs"],
                     is_active=1,
+                )
+                upsert_platform_identity(
+                    conn, "viber", user_id,
+                    display_name=user_name,
+                    is_active=True,
                 )
         except Exception as e:
             logger.error("Error auto-subscribing Viber user on message: %s", e)
