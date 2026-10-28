@@ -42,6 +42,7 @@ def create_user(
     job_alert_categories: Optional[list[str]] = None,
     is_paid: int = 0,
     viber_user_id: Optional[str] = None,
+    account_origin: str = "web",
 ) -> int:
     """Create a new registered user. Returns user ID."""
     clean_email = email.strip().lower()
@@ -49,11 +50,11 @@ def create_user(
     cats_json = json.dumps(job_alert_categories or ["all"])
     cursor = conn.execute(
         """
-        INSERT INTO users (email, password_hash, full_name, phone, telegram_chat_id, viber_user_id, job_alert_categories, is_paid)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password_hash, full_name, account_origin, phone, telegram_chat_id, viber_user_id, job_alert_categories, is_paid)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id;
         """,
-        (clean_email, hashed, full_name.strip(), phone.strip() if phone else None, telegram_chat_id.strip() if telegram_chat_id else None, viber_user_id.strip() if viber_user_id else None, cats_json, is_paid),
+        (clean_email, hashed, full_name.strip(), account_origin if account_origin in {"web", "telegram"} else "web", phone.strip() if phone else None, telegram_chat_id.strip() if telegram_chat_id else None, viber_user_id.strip() if viber_user_id else None, cats_json, is_paid),
     )
     row = cursor.fetchone()
     return row[0] if row else 0
