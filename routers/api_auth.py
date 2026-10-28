@@ -57,44 +57,43 @@ async def api_register(request: Request):
     if not full_name:
         raise HTTPException(status_code=400, detail="Full name is required")
 
+    # Registration must never become an alternate sign-in path for an existing account.
+    # Channel IDs are intentionally not accepted here: linking requires provider verification.
+    with get_db() as conn:
+        if get_user_by_email(conn, email):
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email already exists. Please sign in instead.",
+            )
+
     h85_session_cookie = ""
-    # Attempt registration via hooks85 Gateway
+    # Attempt registration via hooks85 Gateway. If the Gateway is unavailable,
+    # preserve the established local-registration fallback.
     h85_res = register_via_hooks85(email, password, full_name)
     if h85_res and h85_res.get("status") == "ok":
         h85_session_cookie = h85_res.get("cookie_val") or ""
+    elif h85_res and h85_res.get("code") == 409:
+        raise HTTPException(
+            status_code=409,
+            detail="An account with this email already exists. Please sign in instead.",
+        )
 
     with get_db() as conn:
-        existing = get_user_by_email(conn, email)
-        if existing:
-            user_id = existing["id"]
-        else:
-            user_id = create_user(
-                conn,
-                email=email,
-                password=password,
-                full_name=full_name,
-                phone=phone,
-                telegram_chat_id=telegram_chat_id,
-                viber_user_id=viber_user_id,
-                job_alert_categories=cats,
-                is_paid=0,
+        # Recheck inside the write transaction to close the registration race.
+        if get_user_by_email(conn, email):
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email already exists. Please sign in instead.",
             )
-        if telegram_chat_id:
-            register_or_update_telegram_subscriber(
-                conn,
-                chat_id=str(telegram_chat_id).strip(),
-                name=full_name,
-                disciplines=cats,
-                keywords=["jobs"] + cats,
-            )
-        if viber_user_id:
-            register_or_update_viber_subscriber(
-                conn,
-                viber_user_id=str(viber_user_id).strip(),
-                name=full_name,
-                categories=["jobs"] + cats,
-                is_active=1,
-            )
+        user_id = create_user(
+            conn,
+            email=email,
+            password=password,
+            full_name=full_name,
+            phone=phone,
+            job_alert_categories=cats,
+            is_paid=0,
+        )
         token = create_user_session(conn, user_id)
         user = get_user_by_id(conn, user_id)
 
