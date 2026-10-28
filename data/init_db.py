@@ -115,7 +115,6 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
 
     with get_db(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
-        _backfill_platform_identities(conn)
 
         # Migration: ensure title_en, sources, and procurement_nature columns exist on existing bids tables
         columns = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
@@ -522,6 +521,8 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception:
             pass
 
+        # Run after legacy-column migrations so old databases have verification fields.
+        _backfill_platform_identities(conn)
 
 
 # ---------------------------------------------------------------------
