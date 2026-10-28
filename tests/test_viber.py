@@ -4,6 +4,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from main import app
+from core.deps import EDITOR_USER, EDITOR_PASS
 from data.database import (
     get_db,
     register_or_update_viber_subscriber,
@@ -273,6 +274,7 @@ def test_viber_api_subscribe_and_job_alert(monkeypatch):
             "name": "Zuhair",
             "categories": ["all", "jobs"],
         },
+        auth=(EDITOR_USER, EDITOR_PASS),
     )
     assert resp.status_code == 200
     assert resp.json().get("ok") is True
@@ -281,6 +283,7 @@ def test_viber_api_subscribe_and_job_alert(monkeypatch):
     resp_test = client.post(
         "/api/alerts/viber/test",
         json={"viber_user_id": "viber_api_test_user"},
+        auth=(EDITOR_USER, EDITOR_PASS),
     )
     assert resp_test.status_code == 200
     assert resp_test.json().get("ok") is True
