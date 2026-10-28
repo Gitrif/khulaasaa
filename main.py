@@ -220,7 +220,7 @@ async def lifespan(app: FastAPI):
             pass
     if not os.environ.get("PYTEST_CURRENT_TEST"):
         trigger_bids_background_sync(force=False)
-        trigger_jobs_background_sync(force=False)
+        threading.Thread(target=lambda: (time.sleep(3), trigger_jobs_background_sync(force=False)), daemon=True, name="StartupJobsTrigger").start()
         start_telegram_bot_polling()
         set_telegram_chat_menu_button()
         try:
