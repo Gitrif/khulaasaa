@@ -78,6 +78,8 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                             cur.execute(f"ALTER TABLE user_notification_preferences ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 1;")
                         for col in ["telegram_verified", "viber_verified"]:
                             cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} INTEGER DEFAULT 0;")
+                        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS account_origin TEXT NOT NULL DEFAULT 'web';")
+                        cur.execute("UPDATE users SET account_origin = 'telegram' WHERE account_origin = 'web' AND telegram_chat_id IS NOT NULL AND email LIKE 'telegram_%@khulaasaa.tech';")
                     _backfill_platform_identities(pg_conn)
                     pg_conn.commit()
             except Exception as e:
@@ -244,6 +246,11 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 conn.execute("ALTER TABLE users ADD COLUMN telegram_verified INTEGER DEFAULT 0;")
             if usr_cols and "viber_verified" not in usr_cols:
                 conn.execute("ALTER TABLE users ADD COLUMN viber_verified INTEGER DEFAULT 0;")
+            if usr_cols and "account_origin" not in usr_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN account_origin TEXT NOT NULL DEFAULT 'web';")
+            conn.execute(
+                "UPDATE users SET account_origin = 'telegram' WHERE account_origin = 'web' AND telegram_chat_id IS NOT NULL AND email LIKE 'telegram_%@khulaasaa.tech';"
+            )
 
             nd_cols = [row[1] for row in conn.execute("PRAGMA table_info(notification_deliveries);").fetchall()]
             if nd_cols and "claim_token" not in nd_cols:
