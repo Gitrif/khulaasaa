@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 import sqlite3
 from pathlib import Path
 from typing import Optional
@@ -64,6 +65,39 @@ def _backfill_platform_identities(conn) -> None:
         except Exception:
             logger.exception("Could not backfill %s subscriber identities", provider)
 
+def _rotate_legacy_gateway_passwords(conn) -> None:
+    """One-time invalidation of the historical, fixed password used for gateway-only accounts."""
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS auth_security_migrations (migration_key TEXT PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
+    )
+    marker = conn.execute(
+        "SELECT migration_key FROM auth_security_migrations WHERE migration_key = ?;",
+        ("rotate_fixed_gateway_password_v1",),
+    ).fetchone()
+    if marker:
+        return
+
+    from data.repos.users import hash_password, verify_password
+
+    rows = conn.execute("SELECT id, password_hash FROM users;").fetchall()
+    rotated = 0
+    for row in rows:
+        item = dict(row)
+        if verify_password("sso_managed_by_hooks85", item.get("password_hash") or ""):
+            conn.execute(
+                "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+                (hash_password(secrets.token_urlsafe(32)), item["id"]),
+            )
+            rotated += 1
+
+    conn.execute(
+        "INSERT INTO auth_security_migrations (migration_key) VALUES (?) ON CONFLICT(migration_key) DO NOTHING;",
+        ("rotate_fixed_gateway_password_v1",),
+    )
+    if rotated:
+        logger.warning("Rotated %s legacy gateway-managed accounts away from a fixed local password", rotated)
+
+
 def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
     """Initialize SQLite schema and seed canonical entity dictionary."""
     if db_path is None and (os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")):
@@ -80,6 +114,7 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                             cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} INTEGER DEFAULT 0;")
                         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS account_origin TEXT NOT NULL DEFAULT 'web';")
                         cur.execute("UPDATE users SET account_origin = 'telegram' WHERE account_origin = 'web' AND telegram_chat_id IS NOT NULL AND email LIKE 'telegram_%@khulaasaa.tech';")
+                    _rotate_legacy_gateway_passwords(pg_conn)
                     _backfill_platform_identities(pg_conn)
                     pg_conn.commit()
             except Exception as e:
@@ -528,7 +563,8 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception:
             pass
 
-        # Run after legacy-column migrations so old databases have verification fields.
+        # Run one-time auth hardening and identity backfill after legacy migrations.
+        _rotate_legacy_gateway_passwords(conn)
         _backfill_platform_identities(conn)
 
 
