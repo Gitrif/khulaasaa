@@ -263,14 +263,17 @@ def handle_incoming_telegram_update(update: dict[str, Any]) -> None:
                 is_active=1,
                 reset_start_time=True,
             )
-            upsert_platform_identity(
-                conn,
-                "telegram",
-                str(from_user.get("id") or chat_id),
-                provider_username=username or None,
-                display_name=name,
-                is_active=True,
-            )
+            # Private Telegram chats use the stable user ID as the bot chat ID.
+            # Do not mistake group chat IDs for individual people.
+            if chat.get("type") == "private" or str(from_user.get("id") or "") == chat_id:
+                upsert_platform_identity(
+                    conn,
+                    "telegram",
+                    chat_id,
+                    provider_username=username or None,
+                    display_name=name,
+                    is_active=True,
+                )
             sub = get_telegram_subscriber(conn, chat_id)
             paid = is_subscriber_paid(conn, chat_id)
 
