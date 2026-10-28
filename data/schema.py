@@ -331,6 +331,25 @@ CREATE TABLE IF NOT EXISTS channel_link_tokens (
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Stable cross-channel identity registry. Unlinked bot users have NULL user_id.
+CREATE TABLE IF NOT EXISTS user_identities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    provider TEXT NOT NULL CHECK (provider IN ('telegram', 'viber')),
+    provider_user_id TEXT NOT NULL,
+    provider_username TEXT,
+    display_name TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    first_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    verified_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_identities_provider_seen ON user_identities(provider, last_seen_at);
 CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_token ON channel_link_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_channel_link_tokens_user ON channel_link_tokens(user_id, channel);
 
