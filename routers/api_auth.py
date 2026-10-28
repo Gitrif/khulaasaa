@@ -52,8 +52,6 @@ async def api_register(request: Request):
     password = payload.get("password", "")
     full_name = payload.get("full_name", "").strip()
     phone = payload.get("phone", "").strip() or None
-    telegram_chat_id = payload.get("telegram_chat_id", "").strip() or None
-    viber_user_id = payload.get("viber_user_id", "").strip() or None
     cats = payload.get("job_alert_categories") or ["all"]
 
     if not email or "@" not in email:
