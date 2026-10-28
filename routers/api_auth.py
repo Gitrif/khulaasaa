@@ -53,6 +53,8 @@ async def api_register(request: Request):
 
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="A valid email address is required")
+    if email.rsplit("@", 1)[-1].lower().endswith((".invalid", ".internal")):
+        raise HTTPException(status_code=400, detail="This email domain is reserved for internal system accounts.")
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     if not full_name:
@@ -295,18 +297,18 @@ async def api_telegram_login(request: Request):
             else get_user_by_telegram_id(conn, telegram_id)
         )
         if not user:
-            clean_email = f"telegram_{telegram_id}@khulaasaa.tech"
-            user = get_user_by_email(conn, clean_email)
-            if not user:
-                uid = create_user(
-                    conn,
-                    email=clean_email,
-                    password=secrets.token_urlsafe(32),
-                    full_name=name,
-                    telegram_chat_id=telegram_id,
-                    job_alert_categories=["all"],
-                )
-                user = get_user_by_id(conn, uid)
+            # Use an unguessable, non-routable internal address. Never resolve an
+            # arbitrary account by a predictable synthetic email during provider login.
+            clean_email = f"telegram_{telegram_id}_{secrets.token_hex(8)}@users.khulaasaa.invalid"
+            uid = create_user(
+                conn,
+                email=clean_email,
+                password=secrets.token_urlsafe(32),
+                full_name=name,
+                telegram_chat_id=telegram_id,
+                job_alert_categories=["all"],
+            )
+            user = get_user_by_id(conn, uid)
 
         if not user:
             raise HTTPException(status_code=500, detail="Unable to resolve Telegram account")
