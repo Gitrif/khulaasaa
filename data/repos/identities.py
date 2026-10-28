@@ -108,3 +108,46 @@ def mark_platform_identity_inactive(conn: Any, provider: str, provider_user_id: 
         """,
         ((provider or "").strip().lower(), str(provider_user_id or "").strip()),
     )
+
+
+
+def get_platform_identity_stats(conn: Any) -> dict[str, int]:
+    """Return exact account and channel-identity counts without guessing cross-channel matches."""
+    def count(sql: str, params: tuple[Any, ...] = ()) -> int:
+        row = conn.execute(sql, params).fetchone()
+        if not row:
+            return 0
+        if hasattr(row, "keys"):
+            return int(row[0] if not isinstance(row, dict) else next(iter(row.values())) or 0)
+        return int(row[0] or 0)
+
+    web_accounts = count("SELECT COUNT(*) FROM users;")
+    telegram = count("SELECT COUNT(*) FROM user_identities WHERE provider = 'telegram';")
+    viber = count("SELECT COUNT(*) FROM user_identities WHERE provider = 'viber';")
+    unlinked_telegram = count(
+        "SELECT COUNT(*) FROM user_identities WHERE provider = 'telegram' AND user_id IS NULL;"
+    )
+    unlinked_viber = count(
+        "SELECT COUNT(*) FROM user_identities WHERE provider = 'viber' AND user_id IS NULL;"
+    )
+    linked_people = count(
+        "SELECT COUNT(DISTINCT user_id) FROM user_identities WHERE user_id IS NOT NULL;"
+    )
+    multi_channel_people = count(
+        """
+        SELECT COUNT(*) FROM (
+            SELECT user_id FROM user_identities
+            WHERE user_id IS NOT NULL
+            GROUP BY user_id HAVING COUNT(DISTINCT provider) >= 2
+        ) AS multi_channel;
+        """
+    )
+    return {
+        "web_accounts": web_accounts,
+        "telegram_identities": telegram,
+        "viber_identities": viber,
+        "linked_people_with_channels": linked_people,
+        "people_with_multiple_linked_channels": multi_channel_people,
+        "unlinked_telegram_identities": unlinked_telegram,
+        "unlinked_viber_identities": unlinked_viber,
+    }
