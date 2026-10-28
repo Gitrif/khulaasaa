@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from core.deps import require_editor, templates
 from data.database import (
@@ -21,6 +21,7 @@ from data.database import (
     extend_sponsored_ad,
     get_db,
     get_sponsored_ad,
+    get_platform_identity_stats,
     list_obituaries,
     list_sponsored_ads,
     toggle_obituary,
@@ -40,6 +41,21 @@ from alerts.viber import dispatch_viber_sponsored_broadcast, set_viber_webhook
 from data.modules import list_service_modules, get_service_module, update_service_module_status
 
 router = APIRouter()
+
+
+@router.get("/admin/api/identity-stats")
+def admin_identity_stats(editor: str = Depends(require_editor)):
+    """Expose aggregate user/channel counts to authorized editors only."""
+    with get_db() as conn:
+        stats = get_platform_identity_stats(conn)
+    return JSONResponse({
+        "status": "ok",
+        "counts": stats,
+        "note": (
+            "Unlinked Telegram and Viber identities cannot be reliably deduplicated across platforms. "
+            "The counts distinguish known linked people from raw channel identities."
+        ),
+    })
 
 
 @router.get("/admin", response_class=HTMLResponse)
