@@ -3,7 +3,10 @@ Telegram & Viber Bot Webhooks and Alert Subscriptions Router.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import html
+import json
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -25,6 +28,7 @@ from alerts.telegram import (
 from alerts.viber import (
     handle_viber_webhook_event,
     send_viber_message,
+    get_viber_credentials,
 )
 
 router = APIRouter()
@@ -209,10 +213,23 @@ def viber_list_subscribers():
 
 @router.post("/webhook/viber")
 async def viber_webhook(request: Request):
-    """Public webhook endpoint for Viber Bot API events."""
+    """Process Viber events only after validating the provider's body signature."""
+    raw_body = await request.body()
+    signature = (request.headers.get("X-Viber-Content-Signature") or "").strip().lower()
+    bot_token, _, _ = get_viber_credentials()
+    if not bot_token or not signature:
+        raise HTTPException(status_code=401, detail="Viber webhook signature is required")
+    expected = hmac.new(
+        bot_token.encode("utf-8"),
+        raw_body,
+        hashlib.sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        raise HTTPException(status_code=401, detail="Invalid Viber webhook signature")
+
     try:
-        payload = await request.json()
-    except Exception:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
         return JSONResponse({"status": 1, "message": "Invalid JSON"}, status_code=400)
 
     base_url = str(request.base_url).rstrip("/")
