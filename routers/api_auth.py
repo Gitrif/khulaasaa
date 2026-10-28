@@ -9,7 +9,6 @@ import json
 import os
 import secrets
 import time
-from datetime import datetime
 from urllib.parse import parse_qsl
 from typing import Any, Optional
 
@@ -27,10 +26,6 @@ from data.database import (
     get_user_by_email,
     get_user_by_id,
     get_user_by_telegram_id,
-    get_user_by_viber_id,
-    register_or_update_telegram_subscriber,
-    register_or_update_viber_subscriber,
-    update_user_job_alerts,
     update_user_plan,
     create_password_reset_token,
     verify_and_consume_password_reset_token,
