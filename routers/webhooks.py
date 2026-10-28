@@ -10,9 +10,10 @@ import json
 import os
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from core.deps import require_editor
 from data.database import (
     get_db,
     get_telegram_subscribers,
@@ -36,7 +37,7 @@ router = APIRouter()
 
 
 @router.post("/api/alerts/telegram/test")
-async def telegram_test_alert(request: Request):
+async def telegram_test_alert(request: Request, editor: str = Depends(require_editor)):
     """Send a test tender alert to the specified Telegram chat ID."""
     try:
         body = await request.json()
@@ -81,7 +82,7 @@ async def telegram_test_alert(request: Request):
 
 
 @router.post("/api/alerts/telegram/subscribe")
-async def telegram_subscribe(request: Request):
+async def telegram_subscribe(request: Request, editor: str = Depends(require_editor)):
     """Register or update Telegram alert preferences."""
     try:
         body = await request.json()
@@ -146,14 +147,14 @@ async def telegram_webhook(request: Request):
 
 
 @router.get("/api/alerts/telegram/subscribers")
-def telegram_list_subscribers():
+def telegram_list_subscribers(editor: str = Depends(require_editor)):
     """List active Telegram subscribers."""
     with get_db() as conn:
         return get_telegram_subscribers(conn)
 
 
 @router.post("/api/alerts/viber/subscribe")
-async def viber_subscribe(request: Request):
+async def viber_subscribe(request: Request, editor: str = Depends(require_editor)):
     """Register or update Viber alert preferences."""
     try:
         body = await request.json()
@@ -192,7 +193,7 @@ async def viber_subscribe(request: Request):
 
 
 @router.post("/api/alerts/viber/test")
-async def viber_test_alert(request: Request):
+async def viber_test_alert(request: Request, editor: str = Depends(require_editor)):
     """Send a test alert to the specified Viber user ID."""
     try:
         body = await request.json()
@@ -216,7 +217,7 @@ async def viber_test_alert(request: Request):
 
 
 @router.get("/api/alerts/viber/subscribers")
-def viber_list_subscribers():
+def viber_list_subscribers(editor: str = Depends(require_editor)):
     """List active Viber subscribers."""
     with get_db() as conn:
         return get_viber_subscribers(conn)
