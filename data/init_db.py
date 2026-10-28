@@ -21,6 +21,49 @@ from data.repos.jobs import upsert_job
 
 logger = logging.getLogger(__name__)
 
+
+def _backfill_platform_identities(conn) -> None:
+    """Backfill the identity registry from existing users and bot subscriber records."""
+    from data.repos.identities import upsert_platform_identity
+
+    try:
+        rows = conn.execute(
+            "SELECT id, full_name, telegram_chat_id, viber_user_id, telegram_verified, viber_verified FROM users;"
+        ).fetchall()
+        for row in rows:
+            item = dict(row)
+            if item.get("telegram_chat_id"):
+                upsert_platform_identity(
+                    conn, "telegram", item["telegram_chat_id"],
+                    display_name=item.get("full_name"),
+                    user_id=item["id"],
+                    verified=bool(item.get("telegram_verified")),
+                )
+            if item.get("viber_user_id"):
+                upsert_platform_identity(
+                    conn, "viber", item["viber_user_id"],
+                    display_name=item.get("full_name"),
+                    user_id=item["id"],
+                    verified=bool(item.get("viber_verified")),
+                )
+    except Exception:
+        logger.exception("Could not backfill linked platform identities from users")
+
+    for provider, query, id_field in (
+        ("telegram", "SELECT chat_id, name, is_active FROM telegram_subscribers;", "chat_id"),
+        ("viber", "SELECT viber_user_id, name, is_active FROM viber_subscribers;", "viber_user_id"),
+    ):
+        try:
+            for row in conn.execute(query).fetchall():
+                item = dict(row)
+                upsert_platform_identity(
+                    conn, provider, item[id_field],
+                    display_name=item.get("name"),
+                    is_active=bool(item.get("is_active", 1)),
+                )
+        except Exception:
+            logger.exception("Could not backfill %s subscriber identities", provider)
+
 def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
     """Initialize SQLite schema and seed canonical entity dictionary."""
     if db_path is None and (os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")):
@@ -35,6 +78,7 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                             cur.execute(f"ALTER TABLE user_notification_preferences ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 1;")
                         for col in ["telegram_verified", "viber_verified"]:
                             cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} INTEGER DEFAULT 0;")
+                    _backfill_platform_identities(pg_conn)
                     pg_conn.commit()
             except Exception as e:
                 logger.warning(f"Error applying Postgres schema: {e}")
@@ -71,7 +115,7 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
 
     with get_db(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
-
+        _backfill_platform_identities(conn)
 
         # Migration: ensure title_en, sources, and procurement_nature columns exist on existing bids tables
         columns = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
