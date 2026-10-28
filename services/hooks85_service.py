@@ -49,6 +49,7 @@ def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, A
         headers["Cookie"] = f"hooks85_session={session_cookie_or_token}"
 
     req = urllib.request.Request(url, headers=headers)
+    started = time.perf_counter()
     try:
         with urllib.request.urlopen(req, timeout=3.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -88,6 +89,10 @@ def verify_hooks85_session(session_cookie_or_token: str) -> Optional[dict[str, A
             "ttl": SESSION_FAILURE_CACHE_TTL,
         }
         logger.debug("hooks85 Gateway session check skipped or offline: %s", e)
+    finally:
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        if elapsed_ms >= 1000:
+            logger.warning("Slow hooks85 session verification: %.1fms", elapsed_ms)
 
     return None
 
