@@ -307,6 +307,7 @@ async def api_telegram_login(request: Request):
                 full_name=name,
                 telegram_chat_id=telegram_id,
                 job_alert_categories=["all"],
+                account_origin="telegram",
             )
             user = get_user_by_id(conn, uid)
 
