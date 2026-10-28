@@ -95,6 +95,10 @@ def link_platform_identity(
         user_id=user_id,
         verified=True,
     )
+    # Re-read after the unique-key upsert to close a concurrent linking race.
+    final_identity = get_platform_identity(conn, provider, provider_user_id)
+    if not final_identity or int(final_identity.get("user_id") or 0) != int(user_id):
+        return False, "This channel was linked to another Khulaasaa account at the same time. Generate a new code and try again."
     return True, "Identity linked successfully."
 
 
