@@ -3,15 +3,21 @@ Authentication API Router (Registration, Login, Sessions, OAuth / Telegram / Vib
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import os
 import secrets
+import time
 from datetime import datetime
+from urllib.parse import parse_qsl
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from core.deps import get_current_user
+from alerts.telegram_client import get_telegram_credentials
 from data.database import (
     authenticate_user,
     create_user,
@@ -215,43 +221,107 @@ async def api_demo_login(request: Request):
     return response
 
 
+def _validate_telegram_webapp_init_data(
+    init_data: str,
+    bot_token: str,
+    max_age_seconds: int = 86400,
+) -> Optional[dict[str, Any]]:
+    """Validate Telegram Mini App initData using Telegram's documented HMAC scheme."""
+    if not init_data or not bot_token:
+        return None
+
+    fields = dict(parse_qsl(init_data, keep_blank_values=True))
+    received_hash = fields.pop("hash", "")
+    if not received_hash:
+        return None
+
+    data_check_string = "\n".join(
+        f"{key}={value}" for key, value in sorted(fields.items())
+    )
+    secret_key = hmac.new(
+        b"WebAppData",
+        bot_token.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    calculated_hash = hmac.new(
+        secret_key,
+        data_check_string.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(calculated_hash, received_hash):
+        return None
+
+    try:
+        auth_date = int(fields.get("auth_date", "0"))
+    except (TypeError, ValueError):
+        return None
+
+    now = int(time.time())
+    if auth_date <= 0 or now - auth_date > max_age_seconds or auth_date > now + 60:
+        return None
+
+    try:
+        user_data = json.loads(fields.get("user") or "{}")
+    except (TypeError, json.JSONDecodeError):
+        return None
+    if not isinstance(user_data, dict) or not user_data.get("id"):
+        return None
+    return user_data
+
+
 @router.post("/api/auth/telegram-login")
 async def api_telegram_login(request: Request):
-    """Authenticate or auto-register a user via Telegram web connect or Mini App."""
+    """Authenticate a Telegram Mini App only from a valid signed initData payload."""
     try:
         body = await request.json()
     except Exception:
         body = {}
 
-    chat_id = str(body.get("chat_id") or body.get("id") or "").strip()
-    username = (body.get("username") or "").strip().lstrip("@")
-    name = body.get("name") or body.get("first_name") or username or "Telegram User"
+    init_data = str(body.get("init_data") or "").strip()
+    bot_token, _ = get_telegram_credentials()
+    telegram_user = _validate_telegram_webapp_init_data(init_data, bot_token)
+    if not telegram_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Telegram authentication could not be verified. Reopen Khulaasaa from Telegram.",
+        )
 
-    if not chat_id and username:
-        chat_id = f"tg_{username.lower()}"
-
-    if not chat_id:
-        raise HTTPException(status_code=400, detail="Telegram Chat ID or @username is required")
+    telegram_id = str(telegram_user["id"]).strip()
+    username = str(telegram_user.get("username") or "").strip().lstrip("@")
+    first_name = str(telegram_user.get("first_name") or "").strip()
+    last_name = str(telegram_user.get("last_name") or "").strip()
+    name = " ".join(part for part in (first_name, last_name) if part) or username or "Telegram User"
 
     with get_db() as conn:
-        user = get_user_by_telegram_id(conn, chat_id)
+        user = get_user_by_telegram_id(conn, telegram_id)
         if not user:
-            clean_email = f"telegram_{chat_id.replace('tg_', '')}@khulaasaa.tech"
+            clean_email = f"telegram_{telegram_id}@khulaasaa.tech"
             user = get_user_by_email(conn, clean_email)
             if not user:
                 uid = create_user(
                     conn,
                     email=clean_email,
-                    password=secrets.token_urlsafe(16),
+                    password=secrets.token_urlsafe(32),
                     full_name=name,
-                    telegram_chat_id=chat_id,
+                    telegram_chat_id=telegram_id,
                     job_alert_categories=["all"],
                 )
                 user = get_user_by_id(conn, uid)
-            else:
-                conn.execute("UPDATE users SET telegram_chat_id = ? WHERE id = ?;", (chat_id, user["id"]))
-                user["telegram_chat_id"] = chat_id
+            elif not user.get("telegram_chat_id"):
+                conn.execute(
+                    "UPDATE users SET telegram_chat_id = ?, telegram_verified = 1 WHERE id = ?;",
+                    (telegram_id, user["id"]),
+                )
+                user = get_user_by_id(conn, user["id"])
 
+        if not user:
+            raise HTTPException(status_code=500, detail="Unable to resolve Telegram account")
+
+        conn.execute(
+            "UPDATE users SET telegram_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+            (user["id"],),
+        )
+        user = get_user_by_id(conn, user["id"])
         token = create_user_session(conn, user["id"])
 
     response = JSONResponse({"status": "ok", "user": user, "token": token})
@@ -261,62 +331,21 @@ async def api_telegram_login(request: Request):
         max_age=30 * 24 * 3600,
         httponly=True,
         samesite="lax",
+        secure=request.url.scheme == "https",
     )
     return response
 
 
 @router.post("/api/auth/viber-login")
 async def api_viber_login(request: Request):
-    """Authenticate or auto-register a user via Viber web connect."""
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
-
-    viber_id = str(body.get("viber_user_id") or body.get("phone") or "").strip()
-    name = body.get("name") or "Viber Subscriber"
-
-    if not viber_id:
-        raise HTTPException(status_code=400, detail="Viber User ID or phone number is required")
-
-    with get_db() as conn:
-        user = get_user_by_viber_id(conn, viber_id)
-        if not user:
-            clean_email = f"viber_{viber_id.replace('+', '')}@khulaasaa.tech"
-            user = get_user_by_email(conn, clean_email)
-            if not user:
-                uid = create_user(
-                    conn,
-                    email=clean_email,
-                    password=secrets.token_urlsafe(16),
-                    full_name=name,
-                    phone=viber_id if viber_id.replace("+", "").isdigit() else None,
-                    viber_user_id=viber_id,
-                    job_alert_categories=["all"],
-                )
-                user = get_user_by_id(conn, uid)
-            else:
-                conn.execute("UPDATE users SET viber_user_id = ? WHERE id = ?;", (viber_id, user["id"]))
-                user["viber_user_id"] = viber_id
-
-        register_or_update_viber_subscriber(
-            conn,
-            viber_user_id=viber_id,
-            name=name,
-            categories=["all", "news", "janaza", "bids", "jobs"],
-            is_active=1,
-        )
-        token = create_user_session(conn, user["id"])
-
-    response = JSONResponse({"status": "ok", "user": user, "token": token})
-    response.set_cookie(
-        key="session_token",
-        value=token,
-        max_age=30 * 24 * 3600,
-        httponly=True,
-        samesite="lax",
+    """Reject unverified Viber-ID login; Viber IDs alone do not prove account ownership."""
+    raise HTTPException(
+        status_code=403,
+        detail=(
+            "Viber IDs cannot be used to sign in directly. Sign in with your Khulaasaa "
+            "account, then connect Viber through Account → Connected Channels."
+        ),
     )
-    return response
 
 
 @router.post("/api/auth/logout")
