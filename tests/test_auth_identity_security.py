@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from urllib.parse import urlencode
 
-from routers.api_auth import _validate_telegram_webapp_init_data
+from services.provider_auth_service import validate_telegram_webapp_init_data
 from data.database import create_user, get_db, get_platform_identity, get_platform_identity_stats, init_db, link_platform_identity, upsert_platform_identity
 
 
@@ -27,7 +27,7 @@ def _signed_init_data(bot_token: str, user: dict, auth_date: int | None = None) 
 def test_telegram_init_data_accepts_valid_signature():
     user = {"id": 987654321, "first_name": "Test"}
     payload = _signed_init_data("test-bot-token", user)
-    assert _validate_telegram_webapp_init_data(payload, "test-bot-token") == user
+    assert validate_telegram_webapp_init_data(payload, "test-bot-token") == user
 
 
 def test_telegram_init_data_rejects_tampered_payload():
