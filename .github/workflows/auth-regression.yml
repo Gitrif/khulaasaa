@@ -1,48 +1,13 @@
 name: Auth and Identity Regression Tests
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "routers/api_auth.py"
-      - "routers/api_channels.py"
-      - "routers/webhooks.py"
-      - "routers/api_jobs.py"
-      - "services/provider_auth_service.py"
-      - "services/channel_linking_service.py"
-      - "services/hooks85_service.py"
-      - "data/repos/identities.py"
-      - "data/repos/users.py"
-      - "data/init_db.py"
-      - "data/schema.py"
-      - "supabase/schema.sql"
-      - "alerts/telegram_bot.py"
-      - "alerts/viber.py"
-      - "tests/test_auth_identity_security.py"
-      - "tests/test_preferences_and_channel_linking.py"
-      - "tests/test_viber.py"
-      - ".github/workflows/auth-regression.yml"
   push:
-    branches: [fix/auth-registration-and-page-performance]
-    paths:
-      - "routers/api_auth.py"
-      - "routers/api_channels.py"
-      - "routers/webhooks.py"
-      - "routers/api_jobs.py"
-      - "services/provider_auth_service.py"
-      - "services/channel_linking_service.py"
-      - "services/hooks85_service.py"
-      - "data/repos/identities.py"
-      - "data/repos/users.py"
-      - "data/init_db.py"
-      - "data/schema.py"
-      - "supabase/schema.sql"
-      - "alerts/telegram_bot.py"
-      - "alerts/viber.py"
-      - "tests/test_auth_identity_security.py"
-      - "tests/test_preferences_and_channel_linking.py"
-      - "tests/test_viber.py"
-      - ".github/workflows/auth-regression.yml"
+    branches:
+      - main
+      - fix/auth-registration-and-page-performance
+  pull_request:
+    branches:
+      - main
 
 jobs:
   auth-identity-regression:
