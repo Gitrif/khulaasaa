@@ -26,6 +26,8 @@ from data.database import (
     get_user_by_email,
     get_user_by_id,
     get_user_by_telegram_id,
+    get_platform_identity,
+    upsert_platform_identity,
     update_user_plan,
     create_password_reset_token,
     verify_and_consume_password_reset_token,
@@ -286,7 +288,12 @@ async def api_telegram_login(request: Request):
     name = " ".join(part for part in (first_name, last_name) if part) or username or "Telegram User"
 
     with get_db() as conn:
-        user = get_user_by_telegram_id(conn, telegram_id)
+        identity = get_platform_identity(conn, "telegram", telegram_id)
+        user = (
+            get_user_by_id(conn, identity["user_id"])
+            if identity and identity.get("user_id") is not None
+            else get_user_by_telegram_id(conn, telegram_id)
+        )
         if not user:
             clean_email = f"telegram_{telegram_id}@khulaasaa.tech"
             user = get_user_by_email(conn, clean_email)
@@ -300,19 +307,22 @@ async def api_telegram_login(request: Request):
                     job_alert_categories=["all"],
                 )
                 user = get_user_by_id(conn, uid)
-            elif not user.get("telegram_chat_id"):
-                conn.execute(
-                    "UPDATE users SET telegram_chat_id = ?, telegram_verified = 1 WHERE id = ?;",
-                    (telegram_id, user["id"]),
-                )
-                user = get_user_by_id(conn, user["id"])
 
         if not user:
             raise HTTPException(status_code=500, detail="Unable to resolve Telegram account")
 
+        # A valid signed Telegram payload proves control of this provider identity.
+        # Keep the canonical identity mapping and legacy user fields synchronized.
         conn.execute(
-            "UPDATE users SET telegram_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
-            (user["id"],),
+            "UPDATE users SET telegram_chat_id = ?, telegram_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+            (telegram_id, user["id"]),
+        )
+        upsert_platform_identity(
+            conn, "telegram", telegram_id,
+            provider_username=username or None,
+            display_name=name,
+            user_id=user["id"],
+            verified=True,
         )
         user = get_user_by_id(conn, user["id"])
         token = create_user_session(conn, user["id"])
