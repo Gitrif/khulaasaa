@@ -1279,3 +1279,16 @@ header, .site-header {
   color: var(--ink);
   text-decoration: underline;
 }
+
+
+/* ==========================================================================
+   MULTI-PAGE CORPORATE DOCUMENT SCREEN SHEET
+   ========================================================================== */
+.page-sheet {
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5E7EB;
+  min-height: 840px;
+  position: relative;
+  box-sizing: border-box;
+}

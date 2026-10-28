@@ -18,7 +18,7 @@ The global stylesheet was being loaded through two paths:
 1. **One global CSS entry point:** `templates/base.html` now links only `/static/css/style.css` for stylesheets.
 2. **Shared layers loaded once:** `style.css` remains the single global entry point and imports `base.css`, `components.css`, `modals.css`, and `print.css` once each.
 3. **CV CSS page-scoped:** Removed the global `cv.css` import. `templates/cv_creator.html` retains its explicit `/static/css/cv.css` link in `extra_head`.
-4. **Print behavior preserved:** `print.css` remains in the global bundle because `.page-sheet` has non-print styling in addition to its `@media print` rules. The redundant direct `media="print"` link was removed.
+4. **Print behavior strictly media-scoped:** Screen-only `.page-sheet` rules were moved into `components.css`. Removed `@import url('/static/css/print.css')` from `style.css`. `templates/base.html` retains the dedicated `<link rel="stylesheet" href="/static/css/print.css" media="print">`, ensuring `print.css` is only loaded during print operations and never duplicated.
 
 ## Files changed
 
@@ -26,6 +26,8 @@ The global stylesheet was being loaded through two paths:
 |---|---|
 | `templates/base.html` | Removed duplicate direct links to base/components/modals/print; retained the single global bundle |
 | `static/css/style.css` | Removed the global CV stylesheet import |
+| `static/css/print.css` | Extracted screen `.page-sheet` rule to components.css |
+| `static/css/components.css` | Houses screen `.page-sheet` rule for multi-page corporate documents |
 | `docs/css_refactor_report.md` | This report |
 
 ## Source-level measurements before the change

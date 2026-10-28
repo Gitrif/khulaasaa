@@ -3,15 +3,6 @@
    Clean document rendering for CV Creator and Corporate Profiles
    ========================================================================== */
 
-/* Screen layout for multi-page corporate sheets */
-.page-sheet {
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #E5E7EB;
-  min-height: 840px;
-  position: relative;
-  box-sizing: border-box;
-}
 
 @page {
   size: A4 portrait;
