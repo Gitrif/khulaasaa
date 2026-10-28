@@ -139,6 +139,7 @@ from alerts.viber import (
 
 from routers.admin import router as admin_router
 from routers.api_ads import router as api_ads_router
+from routers.api_auth import router as api_auth_router
 from routers.api_channels import router as api_channels_router
 from routers.api_feedback import router as api_feedback_router
 from routers.api_follows import router as api_follows_router
@@ -275,6 +276,7 @@ app.include_router(api_channels_router)
 app.include_router(api_rfq_router)
 app.include_router(api_jobs_router)
 app.include_router(api_ads_router)
+app.include_router(api_auth_router)
 app.include_router(api_feedback_router)
 app.include_router(admin_router)
 app.include_router(webhooks_router)
