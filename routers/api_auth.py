@@ -78,24 +78,37 @@ async def api_register(request: Request):
             detail="An account with this email already exists. Please sign in instead.",
         )
 
-    with get_db() as conn:
-        # Recheck inside the write transaction to close the registration race.
-        if get_user_by_email(conn, email):
-            raise HTTPException(
-                status_code=409,
-                detail="An account with this email already exists. Please sign in instead.",
+    try:
+        with get_db() as conn:
+            # Recheck before writing. The unique email constraint remains the final race guard.
+            if get_user_by_email(conn, email):
+                raise HTTPException(
+                    status_code=409,
+                    detail="An account with this email already exists. Please sign in instead.",
+                )
+            user_id = create_user(
+                conn,
+                email=email,
+                password=password,
+                full_name=full_name,
+                phone=phone,
+                job_alert_categories=cats,
+                is_paid=0,
             )
-        user_id = create_user(
-            conn,
-            email=email,
-            password=password,
-            full_name=full_name,
-            phone=phone,
-            job_alert_categories=cats,
-            is_paid=0,
-        )
-        token = create_user_session(conn, user_id)
-        user = get_user_by_id(conn, user_id)
+            token = create_user_session(conn, user_id)
+            user = get_user_by_id(conn, user_id)
+    except HTTPException:
+        raise
+    except Exception:
+        # Concurrent registrations can both pass the initial check. Convert the
+        # unique-email race into a clear conflict instead of an internal server error.
+        with get_db() as conn:
+            if get_user_by_email(conn, email):
+                raise HTTPException(
+                    status_code=409,
+                    detail="An account with this email already exists. Please sign in instead.",
+                )
+        raise
 
     response = JSONResponse({"status": "ok", "user": user, "token": token})
     response.set_cookie(
