@@ -140,7 +140,7 @@ async def api_login(request: Request):
                 uid = create_user(
                     conn,
                     email=email,
-                    password="sso_managed_by_hooks85",
+                    password=secrets.token_urlsafe(32),
                     full_name=h85_user.get("full_name") or email.split("@")[0],
                     is_paid=h85_user.get("is_paid", 0),
                 )
