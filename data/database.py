@@ -19,6 +19,7 @@ from data.repos.identities import (
     get_platform_identity,
     link_platform_identity,
     mark_platform_identity_inactive,
+    get_platform_identity_stats,
 )
 
 # Re-exported Domain Repositories (< 500 lines per module)
