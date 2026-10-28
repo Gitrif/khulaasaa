@@ -66,7 +66,7 @@ def get_current_user(request: Request) -> Optional[dict[str, Any]]:
                         uid = create_user(
                             conn,
                             email=h85_user["email"],
-                            password="sso_managed_by_hooks85",
+                            password=secrets.token_urlsafe(32),
                             full_name=h85_user.get("full_name") or h85_user["email"].split("@")[0],
                             is_paid=h85_user.get("is_paid", 0),
                         )
