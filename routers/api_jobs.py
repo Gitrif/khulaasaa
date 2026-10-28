@@ -6,10 +6,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from core.deps import get_current_user
+from core.deps import get_current_user, require_editor
 from data.database import (
     EDUCATION_LEVELS,
     LANGUAGE_PROFICIENCIES,
@@ -183,7 +183,7 @@ def api_jobs_sync():
 
 
 @router.post("/api/jobs/test-alert")
-async def api_jobs_test_alert(request: Request):
+async def api_jobs_test_alert(request: Request, editor: str = Depends(require_editor)):
     """Send a test job alert to the provided Telegram chat ID."""
     payload = await request.json()
     chat_id = payload.get("chat_id")
@@ -214,7 +214,7 @@ async def api_jobs_test_alert(request: Request):
 
 
 @router.post("/api/jobs/test-viber-alert")
-async def api_jobs_test_viber_alert(request: Request):
+async def api_jobs_test_viber_alert(request: Request, editor: str = Depends(require_editor)):
     """Send a test job alert to the provided Viber user ID."""
     payload = await request.json()
     viber_user_id = payload.get("viber_user_id")
