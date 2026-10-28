@@ -182,34 +182,26 @@ def test_channel_token_expiration():
         assert "expired" in msg.lower()
 
 
-def test_channel_ownership_and_conflict_transfer():
-    """Verify that linking a channel already claimed by User A unlinks A and assigns to User B."""
+def test_channel_ownership_conflict_fails_safely():
+    """A provider identity already linked to User A must not silently transfer to User B."""
     with get_db() as conn:
         u1 = create_user(conn, email="phase2_user_a@example.com", password="password1", full_name="User One")
         u2 = create_user(conn, email="phase2_user_b@example.com", password="password2", full_name="User Two")
 
-        # User One claims chat_id 55555
         tok1 = create_channel_link_token(conn, u1, "telegram")
-        verify_and_link_channel(conn, "telegram", tok1, "chat_55555")
+        ok1, _, _ = verify_and_link_channel(conn, "telegram", tok1, "chat_55555")
+        assert ok1 is True
+
+        tok2 = create_channel_link_token(conn, u2, "telegram")
+        ok2, msg, _ = verify_and_link_channel(conn, "telegram", tok2, "chat_55555")
+        assert ok2 is False
+        assert "already linked" in msg.lower()
 
         status1 = get_channel_connection_status(conn, u1)
+        status2 = get_channel_connection_status(conn, u2)
         assert status1["telegram"]["connected"] is True
         assert status1["telegram"]["chat_id"] == "chat_55555"
-
-        # Now User Two connects with the same chat_id 55555
-        tok2 = create_channel_link_token(conn, u2, "telegram")
-        ok, msg, _ = verify_and_link_channel(conn, "telegram", tok2, "chat_55555")
-        assert ok is True
-
-        # User Two now owns chat_55555
-        status2 = get_channel_connection_status(conn, u2)
-        assert status2["telegram"]["connected"] is True
-        assert status2["telegram"]["chat_id"] == "chat_55555"
-
-        # User One must be unlinked
-        status1_after = get_channel_connection_status(conn, u1)
-        assert status1_after["telegram"]["connected"] is False
-        assert status1_after["telegram"]["chat_id"] is None
+        assert status2["telegram"]["connected"] is False
 
 
 def test_channel_disconnection():
