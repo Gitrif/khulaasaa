@@ -259,6 +259,24 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+@app.middleware("http")
+async def request_timing_middleware(request, call_next):
+    """Expose server-side request duration and log slow requests for diagnosis."""
+    started = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - started) * 1000
+    response.headers["Server-Timing"] = f"app;dur={duration_ms:.1f}"
+    if duration_ms >= 1000:
+        logger.warning(
+            "Slow HTTP request: %s %s -> %s in %.1fms",
+            request.method,
+            request.url.path,
+            response.status_code,
+            duration_ms,
+        )
+    return response
+
+
 @app.get("/healthz")
 def healthz():
     """Liveness/readiness probe for Docker/orchestrators."""
