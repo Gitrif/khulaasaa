@@ -17,6 +17,7 @@ from data.repos.subscribers import (
     register_or_update_viber_subscriber,
 )
 from data.repos.users import get_user_by_id
+from data.repos.identities import link_platform_identity, mark_platform_identity_inactive
 
 logger = logging.getLogger(__name__)
 
@@ -113,17 +114,25 @@ def verify_and_link_channel(
         conn.execute("DELETE FROM channel_link_tokens WHERE token = ?;", (clean_token,))
         return False, "User account no longer exists.", None
 
-    # Enforce ownership: Unbind this provider channel from any other user
+    # Provider identity ownership is exclusive. Never silently transfer an identity
+    # already linked to a different Khulaasaa account.
+    linked, link_message = link_platform_identity(
+        conn,
+        clean_channel,
+        clean_id,
+        user_id,
+        provider_username=provider_username,
+        display_name=provider_username or user.get("full_name"),
+    )
+    if not linked:
+        conn.execute("DELETE FROM channel_link_tokens WHERE token = ?;", (clean_token,))
+        return False, link_message, None
+
     if clean_channel == "telegram":
-        conn.execute(
-            "UPDATE users SET telegram_chat_id = NULL, telegram_verified = 0 WHERE telegram_chat_id = ? AND id != ?;",
-            (clean_id, user_id),
-        )
         conn.execute(
             "UPDATE users SET telegram_chat_id = ?, telegram_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
             (clean_id, user_id),
         )
-        # Synchronize to subscribers registry
         register_or_update_telegram_subscriber(
             conn,
             chat_id=clean_id,
@@ -135,10 +144,6 @@ def verify_and_link_channel(
         )
 
     elif clean_channel == "viber":
-        conn.execute(
-            "UPDATE users SET viber_user_id = NULL, viber_verified = 0 WHERE viber_user_id = ? AND id != ?;",
-            (clean_id, user_id),
-        )
         conn.execute(
             "UPDATE users SET viber_user_id = ?, viber_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
             (clean_id, user_id),
@@ -181,6 +186,11 @@ def disconnect_channel(
         )
         if chat_id:
             conn.execute("UPDATE telegram_subscribers SET is_active = 0 WHERE chat_id = ?;", (chat_id,))
+            mark_platform_identity_inactive(conn, "telegram", chat_id)
+            conn.execute(
+                "UPDATE user_identities SET user_id = NULL, verified_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE provider = 'telegram' AND provider_user_id = ? AND user_id = ?;",
+                (chat_id, user_id),
+            )
 
     elif clean_channel == "viber":
         viber_id = user.get("viber_user_id")
@@ -190,6 +200,11 @@ def disconnect_channel(
         )
         if viber_id:
             conn.execute("UPDATE viber_subscribers SET is_active = 0 WHERE viber_user_id = ?;", (viber_id,))
+            mark_platform_identity_inactive(conn, "viber", viber_id)
+            conn.execute(
+                "UPDATE user_identities SET user_id = NULL, verified_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE provider = 'viber' AND provider_user_id = ? AND user_id = ?;",
+                (viber_id, user_id),
+            )
 
     return True
 
