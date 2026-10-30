@@ -16,7 +16,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
       <div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Connected Alert Channels</h1>
-        <p class="text-sm text-slate mt-1">Verify messaging destinations for secure delivery of your personalized alerts.</p>
+        <p class="text-sm text-slate mt-1">Link Telegram or Viber to this Khulaasaa account so your personalized alerts and settings stay in sync.</p>
       </div>
       <div>
         <a href="/account/alerts" class="px-3 py-1.5 text-xs font-semibold rounded bg-paper border border-hairline hover:bg-paper-soft text-ink flex items-center gap-1.5 shadow-xs">
@@ -25,6 +25,11 @@
         </a>
       </div>
     </div>
+  </div>
+
+  <div class="mb-5 rounded-xl border border-hairline bg-paper-soft px-4 py-3 text-xs leading-relaxed text-slate">
+    <strong class="text-ink">Public bot information remains available without linking.</strong>
+    Starting the Khulaasaa bot in Telegram or Viber lets you receive general public information. Connect a channel here only when you want it associated with your web account for personal alerts and preferences.
   </div>
 
   <div class="space-y-6">
@@ -83,7 +88,7 @@
           <div class="space-y-4">
             <p class="text-xs text-slate leading-relaxed">
               To connect your Telegram account, click below to generate a secure single-use linking token.
-              Opening the link in Telegram will automatically verify and bind your chat ID.
+              Open the bot and send the generated single-use link command. The bot verifies the Telegram account and links it to your Khulaasaa profile.
             </p>
             <div class="flex flex-wrap items-center gap-3">
               <button
@@ -165,7 +170,7 @@
           <div class="space-y-4">
             <p class="text-xs text-slate leading-relaxed">
               Due to Viber platform limitations, deep-linking cannot reliably pass authentication tokens automatically across all devices.
-              To link Viber, generate a 6-digit verification code below and send it to the Khulaasaa Viber bot.
+              To link Viber, generate a 6-digit verification code below and send it to the Khulaasaa Viber bot. The bot confirms your Viber identity directly; the web page never accepts a Viber ID typed by the user.
             </p>
             <div class="flex flex-wrap items-center gap-3">
               <button
