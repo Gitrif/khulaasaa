@@ -2,32 +2,38 @@
 {% block title %}Khulaasaa — Maldives news, cross-checked{% endblock %}
 
 {% block content %}
-<!-- Sub-Appbar Filter & Sort Bar (Heading removed, Sort menu directly below App Bar) -->
-<div class="filter-toolbar border-b border-hairline py-2">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-    <!-- Category / Narrative Filter Pills -->
-    <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar filter-pills flex-1 min-w-0">
-      <a href="/" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}" title="See all news stories">
-        All Stories
-      </a>
-      <span class="text-hairline mx-1">|</span>
-      <a href="/?tag=ras-male" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
-      <a href="/?tag=sultan-park" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
-      <a href="/?tag=tgst-tax" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
-      <a href="/?tag=green-tax" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
-      <a href="/?tag=traffic-reform" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
-      <a href="/?tag=bridge-safety" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
-      <button id="toggleFilterBtn" type="button" class="filter-pill filter-toggle border-dashed" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()"><span>Filters</span><svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+<!-- Shared responsive filter section: top on desktop, bottom dock on mobile. -->
+<div class="filter-toolbar" id="pageFilterToolbar">
+  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+    <div class="filter-row filter-row-stories">
+      <span class="filter-row-label">All stories</span>
+      <div class="filter-pills" aria-label="Story filters">
+        <a href="/" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}">All stories</a>
+        <a href="/?tag=ras-male" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
+        <a href="/?tag=sultan-park" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
+        <a href="/?tag=tgst-tax" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
+        <a href="/?tag=green-tax" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
+        <a href="/?tag=traffic-reform" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
+        <a href="/?tag=bridge-safety" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
+      </div>
+      <button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="More filters">
+        <svg class="filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
     </div>
-
-
+    <div class="filter-row filter-row-topics">
+      <span class="filter-row-label">All topics</span>
+      <div class="filter-pills" aria-label="Topic filters">
+        <a href="/" class="filter-pill {{ 'active' if not active_topic else '' }}">All topics</a>
+        {% for tp in all_topics %}
+        <a href="/?topic={{ tp.id }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
   </div>
-
-  <!-- Expandable Detailed Filter Drawer -->
-  <div id="filterDrawer" class="max-w-5xl mx-auto px-4 pt-3 pb-1 border-t border-hairline mt-2 hidden">
+  <div id="filterDrawer" class="filter-drawer max-w-5xl mx-auto px-4 hidden">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
-        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">Tracked National Narratives &amp; Projects:</span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">Tracked national narratives &amp; projects</span>
         <div class="flex flex-wrap gap-1.5">
           {% for t in all_tags %}
           <a href="/?tag={{ t.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_tag == t.id else 'color:' + t.color + ';' }}">{{ t.label }}</a>
@@ -35,7 +41,7 @@
         </div>
       </div>
       <div>
-        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">News Topics &amp; Disciplines:</span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">News topics &amp; disciplines</span>
         <div class="flex flex-wrap gap-1.5">
           {% for tp in all_topics %}
           <a href="/?topic={{ tp.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_topic == tp.id else 'color:' + tp.color + ';' }}">{{ tp.label }}</a>
