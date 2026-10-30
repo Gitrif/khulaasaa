@@ -9,10 +9,14 @@
           <span class="brand-mark" aria-hidden="true">ކ</span>
           <div>
             <h3 id="modalAuthTitle" class="font-serif-display text-xl font-bold text-ink">Sign In to Khulaasaa</h3>
-            <p id="modalAuthSubtitle" class="text-xs text-slate mt-0.5">Access saved CVs, company bids, and real-time Telegram &amp; Viber alerts.</p>
+            <p id="modalAuthSubtitle" class="text-xs text-slate mt-0.5">Create one Khulaasaa account to save preferences and connect web, Telegram, and Viber.</p>
           </div>
         </div>
 
+        <div class="mb-3 rounded-lg border border-hairline bg-paper-soft px-3 py-2.5 text-xs leading-relaxed text-slate">
+          <strong class="text-ink">Public bot access stays free.</strong>
+          You can open the Khulaasaa bots and receive general public information without signing in here. A Khulaasaa account is for linking channels and managing personal alert preferences.
+        </div>
         <div class="modal-tab-bar">
           <button type="button" id="authModeLoginBtn" class="modal-tab-btn active" onclick="toggleAuthMode('login')">Sign In</button>
           <button type="button" id="authModeRegisterBtn" class="modal-tab-btn" onclick="toggleAuthMode('register')">Create Account</button>
@@ -153,14 +157,14 @@
         if (loginBtn) loginBtn.className = 'modal-tab-btn';
         if (regBtn) regBtn.className = 'modal-tab-btn active';
         if (title) title.textContent = 'Create Free Account';
-        if (subtitle) subtitle.textContent = 'Register to create & download CVs and receive instant tender & job alerts.';
+        if (subtitle) subtitle.textContent = 'Use one account for your web profile and verified Telegram/Viber alert channels.';
       } else {
         if (regForm) regForm.classList.add('hidden');
         if (loginForm) loginForm.classList.remove('hidden');
         if (regBtn) regBtn.className = 'modal-tab-btn';
         if (loginBtn) loginBtn.className = 'modal-tab-btn active';
         if (title) title.textContent = 'Sign In to Khulaasaa';
-        if (subtitle) subtitle.textContent = 'Access saved CVs, company tender profiles, and real-time alerts.';
+        if (subtitle) subtitle.textContent = 'Sign in to manage your profile, saved items, and connected alert channels.';
       }
     }
 
