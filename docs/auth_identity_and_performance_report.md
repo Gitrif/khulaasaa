@@ -32,6 +32,15 @@ This change set addresses web registration/login safety, Telegram/Viber identity
 - Gateway-managed local shadow accounts no longer use a fixed known password. A one-time migration rotates legacy hashes matching the historical fixed password.
 - Transient Hooks85 session-verification failures are briefly cached to avoid repeating slow gateway timeouts for every page/API request. Explicit 401/403 invalid-session responses are not cached.
 
+## UI work completed in this branch
+
+- Corrected the sign-in form to send the backend's expected `email` field (the old UI sent `identifier`, which caused login failure).
+- Changed the login field to an email input with browser autofill semantics; registration fields now have matching autocomplete hints.
+- Replaced stale Telegram/Viber linking actions inside the global modal (which called endpoints that are no longer the supported verification flow) with accurate connection status and links to `/account/channels`.
+- Replaced stale alert-preference controls inside the modal (which posted to an outdated API) with a link to the dedicated `/account/alerts` page.
+- Clarified that public Telegram/Viber bot information remains accessible without a Khulaasaa web account; channel linking is only for connecting that provider identity to the account and personalizing alerts.
+- Kept the avatar menu, connected-channel badges, and existing dedicated account pages.
+
 ## Page-load diagnostics
 
 - Added a `Server-Timing: app;dur=...` response header.
@@ -39,7 +48,7 @@ This change set addresses web registration/login safety, Telegram/Viber identity
 - Hooks85 session verification logs slow calls and temporarily caches transport/temporary server failures.
 - Deferred Google Fonts loading to reduce render blocking while retaining Inter and Noto Sans Thaana.
 
-These changes provide a way to determine whether slow pages are waiting on FastAPI/server-side work or browser-side resources. They do **not** prove the 15-second issue is fully resolved; that requires deployed response timings and a browser network waterfall.
+These changes provide a way to determine whether slow pages are waiting on FastAPI/server-side work or browser-side resources. They do **not** prove the 15-second issue is fully resolved; that requires deployed response timings and a browser network waterfall. The latest workflow run is reported failed but the GitHub Actions API returned no job records, so there is no usable test log to diagnose from this integration. Do not treat the test suite as passing.
 
 ## Data safety and migration
 
