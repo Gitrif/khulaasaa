@@ -1,12 +1,11 @@
-/**
- * Khulaasaa Bid Preparation Suite — Powered by hooks85 Tender ERP
- * Interactive Bidder Correspondence, Proposal, Quotation, BOQ, & MIRA Invoice Suite.
- * Strictly under 500 lines. Zero emojis.
- */
-
 let currentLang = 'en';
 let activePrintDocId = 'printableLetterContainer';
-
+const _bwBoot = document.getElementById('bidWorkspaceBootstrap');
+if (_bwBoot) {
+  try { window.BID_CONTEXT = JSON.parse(_bwBoot.getAttribute('data-bid') || '{}'); } catch (e) {}
+  try { window.SERVER_PROFILE = JSON.parse(_bwBoot.getAttribute('data-profile') || 'null'); } catch (e) {}
+  window.SERVER_IS_PAID = _bwBoot.getAttribute('data-is-paid') === 'true';
+}
 const fmtMvr = val => (parseFloat(val) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
 

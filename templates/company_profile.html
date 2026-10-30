@@ -317,22 +317,8 @@
 </div>
 
 <!-- Client PDF Engine (Print styles handled by /static/css/print.css) -->
+<div id="companyProfileBootstrap" class="hidden" data-profile="{{ (profile.profile_data if profile and profile.profile_data else None)|tojson|forceescape }}"></div>
 <script src="/static/js/html2pdf.bundle.min.js"></script>
-
 <script src="/static/js/company_profile_form.js"></script>
 <script src="/static/js/company_profile_preview.js"></script>
-<script>
-  // Initialize from server state on DOM load
-  document.addEventListener('DOMContentLoaded', function() {
-    {% if profile and profile.profile_data %}
-      try {
-        companyState = {{ profile.profile_data | tojson }};
-      } catch(e) {
-        console.error('Error loading server profile', e);
-      }
-    {% endif %}
-    populateFormFromState();
-    renderProfilePreview();
-  });
-</script>
 {% endblock %}

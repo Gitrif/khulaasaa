@@ -693,16 +693,10 @@
 </div>
 
 <!-- Client PDF Engine (Print styles handled by /static/css/print.css) -->
+<div id="cvCreatorBootstrap" class="hidden"
+  data-user="{{ (current_user if current_user else None)|tojson|forceescape }}"
+  data-saved-cv="{{ (saved_cv if saved_cv else None)|tojson|forceescape }}"></div>
 <script src="/static/js/html2pdf.bundle.min.js"></script>
-
-<script>
-  window.currentUser = {{ current_user|tojson if current_user else 'null' }};
-  window.savedCvRecord = {{ saved_cv|tojson if saved_cv else 'null' }};
-  let currentUser = window.currentUser;
-  let currentTemplate = 'standard';
-  let userIsPaid = currentUser ? Boolean(currentUser.is_paid) : false;
-  if (!currentUser) { document.addEventListener('DOMContentLoaded', function() { setTimeout(function() { if (typeof openGlobalAlertsModal === 'function') openGlobalAlertsModal('auth'); }, 400); }); }
-</script>
 <script src="/static/js/cv_constants_samples.js"></script>
 <script src="/static/js/cv_form.js"></script>
 <script src="/static/js/cv_templates_classic.js"></script>

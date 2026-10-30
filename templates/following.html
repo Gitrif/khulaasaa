@@ -227,34 +227,5 @@
   </div>
 </main>
 
-<script>
-async function removeFollowCard(targetType, targetId) {
-  if (!confirm('Unfollow ' + targetType + ' ' + targetId + '?')) return;
-  try {
-    const res = await fetch('/api/follows?target_type=' + encodeURIComponent(targetType) + '&target_id=' + encodeURIComponent(targetId), {
-      method: 'DELETE'
-    });
-    const data = await res.json();
-    if (data.status === 'ok') {
-      const card = document.getElementById('follow-item-' + targetType + '-' + targetId);
-      if (card) {
-        card.style.opacity = '0';
-        setTimeout(() => card.remove(), 250);
-      }
-      if (data.counts) {
-        const totalEl = document.getElementById('countTotal');
-        const storiesEl = document.getElementById('countStories');
-        const topicsEl = document.getElementById('countTopics');
-        const sourcesEl = document.getElementById('countSources');
-        if (totalEl) totalEl.textContent = data.counts.total || 0;
-        if (storiesEl) storiesEl.textContent = data.counts.story || 0;
-        if (topicsEl) topicsEl.textContent = data.counts.topic || 0;
-        if (sourcesEl) sourcesEl.textContent = data.counts.source || 0;
-      }
-    }
-  } catch (err) {
-    alert('Failed to unfollow: ' + err.message);
-  }
-}
-</script>
+<script src="/static/js/account_pages.js" defer></script>
 {% endblock %}

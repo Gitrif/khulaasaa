@@ -20,6 +20,7 @@ from data.database import (
     get_user_by_id,
     get_user_from_session,
 )
+from core.icons import svg_icon
 from data.utils import format_tender_date, normalize_tender_info
 from services.hooks85_service import verify_hooks85_session
 
@@ -35,6 +36,7 @@ templates = Jinja2Templates(directory="templates")
 templates.env.filters["format_tender_date"] = format_tender_date
 templates.env.filters["normalize_tender_info"] = normalize_tender_info
 templates.env.globals["build_filter_url"] = build_filter_url
+templates.env.globals["svg_icon"] = svg_icon
 
 security = HTTPBasic()
 EDITOR_USER = os.environ.get("EDITOR_USERNAME", "editor")

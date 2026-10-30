@@ -1,8 +1,11 @@
-"""Static and runtime guards for the responsive filter dock, URL helpers, and Janaza icon."""
+"""Static and runtime guards for the responsive filter dock, URL helpers, SVG dictionary, and estimator service."""
+import re
 from pathlib import Path
 from fastapi.testclient import TestClient
 
 from core.deps import build_filter_url
+from core.icons import ICON_PATHS, svg_icon
+from services.estimator_service import calculate_full_boq
 from main import app
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -106,3 +109,54 @@ def test_all_primary_routes_render_single_filter_dock_and_preserve_shell():
         assert 'id="userAvatarMenuContainer"' in res.text
         assert 'id="headerTelegramBtn"' in res.text
         assert 'id="headerViberBtn"' in res.text
+
+
+def test_zero_executable_inline_scripts_or_style_tags_in_templates():
+    for tpl_path in (ROOT / "templates").rglob("*.html"):
+        raw = tpl_path.read_text(encoding="utf-8")
+        rel = tpl_path.relative_to(ROOT).as_posix()
+        assert not re.search(r"<style\b", raw, re.I), f"{rel} contains an inline <style> tag"
+        for match in re.finditer(r"<script\b([^>]*)>", raw, re.I):
+            attrs = match.group(1) or ""
+            is_external = bool(re.search(r"\bsrc\s*=", attrs, re.I))
+            is_json_ld = bool(re.search(r'type\s*=\s*["\']application/(ld\+)?json["\']', attrs, re.I))
+            assert is_external or is_json_ld, f"{rel} contains an inline executable <script> tag: <script{attrs}>"
+
+
+def test_svg_icon_dictionary_synchronized_between_python_and_js():
+    icons_js = _read("static/js/icons.js")
+    for icon_name, svg_body in ICON_PATHS.items():
+        assert svg_body in icons_js, f"Icon '{icon_name}' path missing from static/js/icons.js"
+    rendered = str(svg_icon("chevron-down", "filter-chevron", 15, 15, 2))
+    assert 'class="filter-chevron"' in rendered
+    assert 'width="15"' in rendered
+    assert ICON_PATHS["chevron-down"] in rendered
+
+
+def test_estimator_business_service_and_api_endpoint():
+    boq = calculate_full_boq({
+        "conc_length": 20,
+        "conc_width": 15,
+        "conc_thick": 6,
+        "conc_mix": "1:2:4",
+        "block_length": 30,
+        "block_height": 10,
+        "block_size": "6in",
+        "plaster_area": 600,
+        "plaster_thick": 12,
+        "paint_area": 800,
+        "paint_type": "interior",
+    })
+    assert boq["concrete"]["cement_bags"] == 27
+    assert boq["blocks"]["total_blocks"] == 355
+    assert boq["paint"]["total_paint_litres"] == 24
+    assert boq["summary"]["total_cement_bags"] > 30
+    assert boq["summary"]["est_min_mvr"] > 0
+
+    client = TestClient(app)
+    res = client.post("/api/bids/estimate-boq", json={"conc_length": 10, "conc_width": 10, "conc_thick": 6})
+    assert res.status_code == 200
+    data = res.json()
+    assert "concrete" in data and "summary" in data
+    assert data["concrete"]["wet_volume_cuft"] == 50.0
+

@@ -293,3 +293,18 @@ function readFormIntoState() {
   companyProfile.clients = rawClients.map(c => c.trim()).filter(Boolean);
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+  const boot = document.getElementById("companyProfileBootstrap");
+  if (boot) {
+    try {
+      const parsed = JSON.parse(boot.getAttribute("data-profile") || "null");
+      if (parsed && typeof parsed === "object") {
+        window.companyState = parsed;
+        companyProfile = parsed;
+      }
+    } catch (e) {}
+  }
+  if (typeof populateFormFromState === "function") populateFormFromState();
+  if (typeof renderProfilePreview === "function") renderProfilePreview();
+});
+

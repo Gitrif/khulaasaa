@@ -1,7 +1,7 @@
 /**
  * Global App Shell and User Interface Controller for Khulaasaa.
  * Manages Telegram WebApp integration, user authentication state,
- * avatar menu, notifications dropdown, story sharing, and following.
+ * avatar menu, story sharing, following, and filter drawer state.
  * Strictly under 500 lines. Zero emojis.
  */
 
@@ -16,12 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.documentElement.classList.add('telegram-webapp');
 
-      // Auto-sign in if launched inside Telegram Mini App
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         handleTelegramMiniAppUser(tg.initDataUnsafe.user);
       }
 
-      // Intercept external links
       document.addEventListener('click', function(e) {
         const a = e.target.closest('a');
         if (a && a.href) {
@@ -37,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(e) {}
   }
 
-  // Check current session on load
   refreshGlobalAuthPill();
 });
 
@@ -68,13 +65,6 @@ function closeUserAvatarMenu() {
   }
 }
 
-function closeNotificationsMenu() {
-  const menu = document.getElementById('userNotifDropdown');
-  if (menu && !menu.classList.contains('hidden')) {
-    menu.classList.add('hidden');
-  }
-}
-
 document.addEventListener('click', function(e) {
   const avatarContainer = document.getElementById('userAvatarMenuContainer');
   if (avatarContainer && !avatarContainer.contains(e.target)) {
@@ -82,14 +72,14 @@ document.addEventListener('click', function(e) {
   }
   const notifContainer = document.getElementById('userNotificationsContainer');
   if (notifContainer && !notifContainer.contains(e.target)) {
-    closeNotificationsMenu();
+    if (typeof closeNotificationsMenu === 'function') closeNotificationsMenu();
   }
 });
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     closeUserAvatarMenu();
-    closeNotificationsMenu();
+    if (typeof closeNotificationsMenu === 'function') closeNotificationsMenu();
     if (typeof closeGlobalAlertsModal === 'function') closeGlobalAlertsModal();
     if (typeof closeSourcesModal === 'function') closeSourcesModal();
     if (typeof closeJobAlertModal === 'function') closeJobAlertModal();
@@ -106,158 +96,9 @@ function handleHeaderChannelClick(channel) {
   const avatarContainer = document.getElementById('userAvatarMenuContainer');
   if (avatarContainer) {
     window.location.href = '/account/channels';
-  } else {
+  } else if (typeof openGlobalAlertsModal === 'function') {
     openGlobalAlertsModal(channel);
   }
-}
-
-async function refreshNotificationBadge() {
-  try {
-    const res = await fetch('/api/account/notifications?limit=5');
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data && data.status === 'ok') {
-      const badge = document.getElementById('headerNotifBadge');
-      const unread = data.unread_count || 0;
-      if (badge) {
-        if (unread > 0) {
-          badge.textContent = unread > 99 ? '99+' : unread;
-          badge.classList.remove('hidden');
-        } else {
-          badge.classList.add('hidden');
-        }
-      }
-    }
-  } catch (err) {}
-}
-
-async function toggleNotificationsMenu(e) {
-  if (e) {
-    e.stopPropagation();
-    e.preventDefault();
-  }
-  closeUserAvatarMenu();
-  const menu = document.getElementById('userNotifDropdown');
-  if (!menu) return;
-  const isHidden = menu.classList.contains('hidden');
-  if (isHidden) {
-    menu.classList.remove('hidden');
-    await loadNotificationsList();
-  } else {
-    menu.classList.add('hidden');
-  }
-}
-
-async function loadNotificationsList() {
-  const listEl = document.getElementById('userNotifList');
-  if (!listEl) return;
-  listEl.textContent = '';
-  const loadingEl = document.createElement('div');
-  loadingEl.className = 'py-6 text-center text-xs text-slate';
-  loadingEl.textContent = 'Loading notifications...';
-  listEl.appendChild(loadingEl);
-
-  try {
-    const res = await fetch('/api/account/notifications?limit=15');
-    const data = await res.json();
-    listEl.textContent = '';
-    if (!res.ok || data.status !== 'ok') {
-      const errEl = document.createElement('div');
-      errEl.className = 'py-6 text-center text-xs text-red-600';
-      errEl.textContent = 'Failed to load notifications.';
-      listEl.appendChild(errEl);
-      return;
-    }
-    const notifs = data.notifications || [];
-    if (notifs.length === 0) {
-      const emptyEl = document.createElement('div');
-      emptyEl.className = 'py-8 text-center text-xs text-slate';
-      emptyEl.textContent = 'No notifications yet.';
-      listEl.appendChild(emptyEl);
-      return;
-    }
-
-    notifs.forEach(n => {
-      const notifId = parseInt(n.id, 10);
-      if (isNaN(notifId) || notifId <= 0) return;
-
-      let safeUrl = null;
-      if (typeof n.url === 'string' && n.url.startsWith('/') && !n.url.startsWith('//') && !n.url.includes('\\')) {
-        safeUrl = n.url;
-      }
-
-      const itemEl = document.createElement('div');
-      itemEl.className = 'p-3 hover:bg-paper cursor-pointer transition flex items-start gap-2.5 ' + (n.is_read ? 'bg-white' : 'bg-paper-soft');
-
-      if (!n.is_read) {
-        const dot = document.createElement('span');
-        dot.className = 'w-2 h-2 rounded-full bg-lagoon shrink-0 mt-1';
-        itemEl.appendChild(dot);
-      }
-
-      const contentCol = document.createElement('div');
-      contentCol.className = 'min-w-0 flex-1';
-
-      const titleEl = document.createElement('div');
-      titleEl.className = 'text-xs font-semibold text-ink line-clamp-2 leading-tight';
-      titleEl.textContent = n.title || 'Alert Notification';
-      contentCol.appendChild(titleEl);
-
-      if (n.summary) {
-        const sumEl = document.createElement('div');
-        sumEl.className = 'text-[11px] text-slate line-clamp-2 mt-0.5';
-        sumEl.textContent = n.summary;
-        contentCol.appendChild(sumEl);
-      }
-
-      const metaEl = document.createElement('div');
-      metaEl.className = 'text-[10px] text-slate/70 mt-1 flex items-center gap-2';
-
-      const typeSpan = document.createElement('span');
-      typeSpan.className = 'uppercase tracking-wider font-semibold';
-      typeSpan.textContent = n.content_type || 'alert';
-      metaEl.appendChild(typeSpan);
-
-      if (n.created_at) {
-        const timeSpan = document.createElement('span');
-        timeSpan.textContent = '• ' + n.created_at.slice(0, 16).replace('T', ' ');
-        metaEl.appendChild(timeSpan);
-      }
-
-      contentCol.appendChild(metaEl);
-      itemEl.appendChild(contentCol);
-
-      itemEl.addEventListener('click', (e) => handleNotificationClick(e, notifId, safeUrl));
-      listEl.appendChild(itemEl);
-    });
-  } catch (err) {
-    listEl.textContent = '';
-    const netErrEl = document.createElement('div');
-    netErrEl.className = 'py-6 text-center text-xs text-red-600';
-    netErrEl.textContent = 'Network error.';
-    listEl.appendChild(netErrEl);
-  }
-}
-
-async function handleNotificationClick(e, notifId, url) {
-  if (e) e.stopPropagation();
-  try {
-    await fetch(`/api/account/notifications/${notifId}/read`, { method: 'POST' });
-    refreshNotificationBadge();
-  } catch (err) {}
-  if (url && typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
-    window.location.href = url;
-  } else {
-    await loadNotificationsList();
-  }
-}
-
-async function markAllNotificationsAsRead() {
-  try {
-    await fetch('/api/account/notifications/read-all', { method: 'POST' });
-    refreshNotificationBadge();
-    await loadNotificationsList();
-  } catch (err) {}
 }
 
 async function refreshGlobalAuthPill() {
@@ -275,7 +116,6 @@ async function refreshGlobalAuthPill() {
     }
   } catch (err) {}
 
-  // Truthful verification status derived strictly from verified backend records
   const isTgConnected = Boolean(user && user.telegram_verified && user.telegram_chat_id);
   const isViberConnected = Boolean(user && user.viber_verified && user.viber_user_id);
 
@@ -299,11 +139,10 @@ async function refreshGlobalAuthPill() {
     }
   }
 
-  // In-app notifications indicator
   if (notifContainer) {
     if (user) {
       notifContainer.classList.remove('hidden');
-      refreshNotificationBadge();
+      if (typeof refreshNotificationBadge === 'function') refreshNotificationBadge();
     } else {
       notifContainer.classList.add('hidden');
     }
@@ -495,7 +334,6 @@ function shareStory(evt, headline, url) {
     window.open(tgShareUrl, '_blank');
   }
 }
-
 
 /* Shared accessible filter drawer controller used by page filter toolbars. */
 function toggleFilterDrawer() {

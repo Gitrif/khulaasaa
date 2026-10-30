@@ -99,9 +99,9 @@
           </div>
         </div>
 
-                <template id="userAvatarMenuTemplate">
+        <template id="userAvatarMenuTemplate">
           <div class="relative inline-block text-left" id="userAvatarMenuContainer">
-            <button id="userAvatarTrigger" type="button" class="user-avatar-btn" aria-haspopup="true" aria-expanded="false">
+            <button id="userAvatarTrigger" type="button" onclick="toggleUserAvatarMenu(event)" class="user-avatar-btn" aria-haspopup="true" aria-expanded="false">
               <span class="user-avatar-circle" id="userAvatarInitials"></span>
               <span class="hidden sm:inline max-w-[100px] truncate text-slate-800" id="userAvatarDisplayName"></span>
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
@@ -287,86 +287,12 @@
   </nav>
 
   {% include "components/global_auth_modal.html" %}
-  <script src="/static/js/app.js"></script>
   {% include "components/global_sources_modal.html" %}
   {% include "components/job_alert_modal.html" %}
   {% include "components/feedback_modal.html" %}
 
-  <script>
-    function toggleUserAvatarMenu(e) {
-      if (e) {
-        e.stopPropagation();
-        e.preventDefault();
-      }
-      const menu = document.getElementById('userAvatarDropdown');
-      if (menu) {
-        menu.classList.toggle('hidden');
-      }
-    }
-
-    function renderUserAvatarMenu(container, u) {
-      container.textContent = '';
-      if (u.is_paid) {
-        localStorage.setItem('khulaasaa_is_paid', '1');
-      }
-
-      const tpl = document.getElementById('userAvatarMenuTemplate');
-      if (!tpl) return;
-      const clone = tpl.content.cloneNode(true);
-
-      const initials = typeof getUserInitials === 'function' ? getUserInitials(u.full_name, u.email) : ((u.full_name || u.email || 'U').trim().substring(0, 2).toUpperCase());
-      const displayName = (u.full_name || (u.email ? u.email.split('@')[0] : 'Member')).trim();
-
-      const triggerBtn = clone.querySelector('#userAvatarTrigger');
-      if (triggerBtn) {
-        triggerBtn.title = 'Account Menu for ' + displayName;
-        triggerBtn.addEventListener('click', toggleUserAvatarMenu);
-      }
-
-      const initEl = clone.querySelector('#userAvatarInitials');
-      if (initEl) initEl.textContent = initials;
-
-      const nameEl = clone.querySelector('#userAvatarDisplayName');
-      if (nameEl) nameEl.textContent = displayName;
-
-      const dropInitEl = clone.querySelector('#userDropdownInitials');
-      if (dropInitEl) dropInitEl.textContent = initials;
-
-      const dropFullEl = clone.querySelector('#userDropdownFullName');
-      if (dropFullEl) dropFullEl.textContent = (u.full_name || displayName).trim();
-
-      const dropEmailEl = clone.querySelector('#userDropdownEmail');
-      if (dropEmailEl) dropEmailEl.textContent = (u.email || '').trim();
-
-      const tierBadge = clone.querySelector('#userDropdownTierBadge');
-      if (tierBadge) {
-        tierBadge.textContent = u.is_paid ? 'PRO' : 'Free';
-        tierBadge.className = u.is_paid
-          ? 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300'
-          : 'px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200';
-      }
-
-      container.appendChild(clone);
-    }
-
-    function renderGuestAvatarButton(container) {
-      container.textContent = '';
-      const guestBtn = document.createElement('button');
-      guestBtn.className = 'app-icon-btn app-icon-btn-round';
-      guestBtn.title = 'Sign In / Register';
-      guestBtn.setAttribute('aria-label', 'Sign In');
-      guestBtn.addEventListener('click', () => openGlobalAlertsModal('auth'));
-
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('class', 'w-4 h-4 text-slate fill-current');
-      svg.setAttribute('viewBox', '0 0 24 24');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z');
-      svg.appendChild(path);
-      guestBtn.appendChild(svg);
-      container.appendChild(guestBtn);
-    }
-  </script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/modals.js" defer></script>
   <script src="/static/js/icons.js" defer></script>
 
 </body>

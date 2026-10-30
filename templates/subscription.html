@@ -343,16 +343,5 @@
 
 </main>
 
-<script>
-function selectPlan(planKey) {
-  const sel = document.getElementById('planTierSelect');
-  if (sel) {
-    sel.value = planKey;
-  }
-  const formSection = document.getElementById('subscription-form-section');
-  if (formSection) {
-    formSection.scrollIntoView({ behavior: 'smooth' });
-  }
-}
-</script>
+<script src="/static/js/account_pages.js" defer></script>
 {% endblock %}

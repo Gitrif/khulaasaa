@@ -16,6 +16,6 @@
 
 {% macro filter_more_btn(label='More filters') -%}
 <button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="{{ label }}">
-  <svg class="filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  {{ svg_icon('chevron-down', 'filter-chevron', 15, 15, 2) }}
 </button>
 {%- endmacro %}
