@@ -126,20 +126,15 @@ def fetch_mvcrisis_posts(source_key: str = "mvcrisis", url: str = "https://t.me/
             link = link_el.get("href") if link_el else url
 
             if is_obituary:
-                try:
-                    from data.database import get_db, upsert_scraped_obituary
-                    with get_db() as db_conn:
-                        upsert_scraped_obituary(db_conn, txt, link)
-                except Exception:
-                    pass
+                # Exclude obituary notices from general news feed; obituary ingestion handles persistence.
                 continue
 
             post_id = link.rstrip("/").split("/")[-1] if link else str(abs(hash(txt)))
 
-            # Clean first line as headline: strip breaking prefixes and emojis
+            # Clean first line as headline: strip breaking prefixes and symbols
             headline = txt.split("\n")[0].strip()
-            headline = re.sub(r"^🚨\s*#Breaking\s*:\s*", "", headline, flags=re.I)
-            headline = re.sub(r"^[🚨⚠️📢✅\s]+", "", headline).strip()
+            headline = re.sub(r"^\uD83D\uDEA8\s*#Breaking\s*:\s*", "", headline, flags=re.I)
+            headline = re.sub(r"^[\uD83D\uDEA8\u26A0\uFE0F\uD83D\uDCE2\u2705\s]+", "", headline).strip()
 
             if len(headline) > 110:
                 headline = headline[:107] + "..."

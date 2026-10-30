@@ -25,7 +25,7 @@ from data.database import (
     update_user_job_alerts,
     update_user_plan,
 )
-from scrapers.jobs import sync_jobs
+from services.ingestion.jobs_ingestion import sync_jobs
 from alerts.telegram import format_job_alert_html, send_telegram_message
 from alerts.viber import format_viber_job, send_viber_message
 

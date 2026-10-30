@@ -51,8 +51,18 @@ class TestHooks85GatewayIntegration(unittest.TestCase):
         self.assertEqual(res.get("status"), "error")
         self.assertEqual(res.get("code"), 401)
 
-    def test_api_login_fallback_to_local_when_hooks85_rejects(self):
+    @patch("routers.api_auth.register_via_hooks85", return_value=None)
+    @patch("routers.api_auth.login_via_hooks85", return_value=None)
+    def test_api_login_fallback_to_local_when_hooks85_rejects(self, mock_login, mock_reg):
         """Verify /api/auth/login falls back seamlessly to local SQLite accounts."""
+        from data.database import get_db, get_user_by_email, init_db
+        init_db()
+        with get_db() as conn:
+            u = get_user_by_email(conn, "local_fallback_user@example.mv")
+            if u:
+                conn.execute("DELETE FROM user_sessions WHERE user_id = ?;", (u["id"],))
+                conn.execute("DELETE FROM users WHERE id = ?;", (u["id"],))
+
         # 1. Register a user locally
         reg_payload = {
             "email": "local_fallback_user@example.mv",

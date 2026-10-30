@@ -45,9 +45,11 @@ def _execute_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str,
 
     try:
         from data.database import get_db
-        from scrapers.jobs import sync_jobs
+        from services.ingestion.jobs_ingestion import sync_jobs
         with get_db() as conn:
             result = sync_jobs(conn, pages=pages, trigger_alerts=trigger_alerts)
+            if isinstance(result, int):
+                result = {"fetched": result, "new": result, "updated": 0, "alerts_sent": 0}
 
         _JOBS_SYNC_STATUS.update({
             "status": "success",
@@ -263,7 +265,7 @@ def enrich_job(job: dict[str, Any]) -> dict[str, Any]:
     salary = j.get("salary_raw")
     if salary == "Civil Service Remuneration Matrix" and j.get("notice_id", "").isdigit():
         try:
-            from scrapers.jobs_enricher import enrich_gazette_job_notice
+            from scrapers.jobs import enrich_gazette_job_notice
             enr = enrich_gazette_job_notice(j["notice_id"])
             if enr.get("salary_raw") and enr["salary_raw"] != "Pay not listed":
                 salary = enr["salary_raw"]

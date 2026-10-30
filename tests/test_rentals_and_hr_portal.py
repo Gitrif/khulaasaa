@@ -13,8 +13,8 @@ os.environ["PYTEST_CURRENT_TEST"] = "1"
 
 from main import app
 from data.connection import get_db
-from data.rentals import init_rentals_schema, seed_initial_rentals, list_rentals
-from data.scrapers.rentals_scraper import (
+from data.repos.rentals import init_rentals_schema, seed_initial_rentals, list_rentals
+from scrapers.rentals import (
     RENTAL_SOURCES,
     COMMON_FURNISHED_ITEMS,
     extract_rooms_and_toilets,

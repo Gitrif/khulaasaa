@@ -93,7 +93,7 @@ def test_news_pipeline_e2e(client):
 # -----------------------------------------------------------------------------
 def test_tenders_pipeline_e2e(client):
     """Verify complete Tender pipeline from source parsing through enrichment, DB persistence, and UI."""
-    from scrapers.gazette import BidNotice
+    from scrapers.tenders.gazette import BidNotice
 
     mock_notices = [
         BidNotice(

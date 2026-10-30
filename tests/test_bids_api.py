@@ -80,6 +80,7 @@ def test_bids_language_modes_and_milestones():
 
 def test_telegram_api_subscribe_and_list(monkeypatch):
     from unittest.mock import MagicMock
+    from core.deps import EDITOR_USER, EDITOR_PASS
     monkeypatch.setattr("routers.webhooks.send_telegram_message", MagicMock(return_value=(True, "ok")))
     payload = {
         "chat_id": "test_chat_888",
@@ -87,14 +88,14 @@ def test_telegram_api_subscribe_and_list(monkeypatch):
         "disciplines": ["Construction", "IT"],
         "keywords": ["harbour", "solar"],
     }
-    res = client.post("/api/alerts/telegram/subscribe", json=payload)
+    res = client.post("/api/alerts/telegram/subscribe", json=payload, auth=(EDITOR_USER, EDITOR_PASS))
     assert res.status_code == 200
     data = res.json()
     assert data["ok"] is True
     assert "test_chat_888" in data["message"]
 
     # Verify via subscriber list endpoint
-    sub_res = client.get("/api/alerts/telegram/subscribers")
+    sub_res = client.get("/api/alerts/telegram/subscribers", auth=(EDITOR_USER, EDITOR_PASS))
     assert sub_res.status_code == 200
     subs = sub_res.json()
     chat_ids = [s["chat_id"] for s in subs]
@@ -103,14 +104,15 @@ def test_telegram_api_subscribe_and_list(monkeypatch):
 
 def test_telegram_api_test_alert(monkeypatch):
     from unittest.mock import MagicMock
+    from core.deps import EDITOR_USER, EDITOR_PASS
     mock_send = MagicMock(return_value=(True, "Alert sent successfully"))
-    monkeypatch.setattr("main.send_telegram_message", mock_send)
+    monkeypatch.setattr("main.send_telegram_message", mock_send, raising=False)
 
     payload = {
         "chat_id": "test_chat_888",
         "bot_token": "mock_token_123",
     }
-    res = client.post("/api/alerts/telegram/test", json=payload)
+    res = client.post("/api/alerts/telegram/test", json=payload, auth=(EDITOR_USER, EDITOR_PASS))
     assert res.status_code == 200
     data = res.json()
     assert data["ok"] is True

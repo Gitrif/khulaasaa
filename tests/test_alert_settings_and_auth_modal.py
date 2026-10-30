@@ -17,8 +17,23 @@ from data.database import (
 @pytest.fixture
 def client():
     init_db()
+    test_emails = ["developer.test.alerts@example.mv", "ibrahim.arif@example.mv"]
+    with get_db() as conn:
+        for em in test_emails:
+            row = conn.execute("SELECT id FROM users WHERE email = ?;", (em,)).fetchone()
+            if row:
+                uid = row["id"]
+                conn.execute("DELETE FROM user_sessions WHERE user_id = ?;", (uid,))
+                conn.execute("DELETE FROM users WHERE id = ?;", (uid,))
     with TestClient(main.app) as c:
         yield c
+    with get_db() as conn:
+        for em in test_emails:
+            row = conn.execute("SELECT id FROM users WHERE email = ?;", (em,)).fetchone()
+            if row:
+                uid = row["id"]
+                conn.execute("DELETE FROM user_sessions WHERE user_id = ?;", (uid,))
+                conn.execute("DELETE FROM users WHERE id = ?;", (uid,))
 
 
 def test_user_alert_settings_lifecycle(client):

@@ -10,6 +10,7 @@ import datetime
 import json
 import sqlite3
 from typing import Any, Optional
+
 from data.seed_rentals import seed_initial_rentals
 
 
@@ -102,8 +103,7 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
         ("source_id", "INTEGER REFERENCES sources(id)"),
         ("address_id", "INTEGER REFERENCES addresses(id)"),
         ("landlord_person_id", "INTEGER REFERENCES people(id)"),
-        ("posted_date", "TEXT"),
-        ("posted_time", "TEXT")
+        ("posted_date", "TEXT"), ("posted_time", "TEXT"),
     ]
     for c, ctype in cols_to_check:
         _ensure_column(conn, "rentals", c, ctype)
@@ -149,7 +149,7 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
         ("apartment_unit", "TEXT"), ("late_fine_mvr_per_day", "INTEGER DEFAULT 100"),
         ("advance_amount_mvr", "INTEGER DEFAULT 0"), ("notice_period_days", "INTEGER DEFAULT 30"),
         ("maintenance_clause", "TEXT"), ("illegal_activities_clause", "TEXT"),
-        ("inventory_items", "TEXT"), ("contract_language", "TEXT DEFAULT 'en'")
+        ("inventory_items", "TEXT"), ("contract_language", "TEXT DEFAULT 'en'"),
     ]
     for c, ctype in contract_cols:
         _ensure_column(conn, "rental_contracts", c, ctype)
@@ -158,6 +158,85 @@ def init_rentals_schema(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_rentals_rent ON rentals(rent_mvr);")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_rentals_beds ON rentals(bedrooms);")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_rentals_leased ON rentals(is_leased);")
+
+
+def upsert_rental_listing(conn: sqlite3.Connection, item: dict[str, Any]) -> tuple[bool, int]:
+    """
+    Idempotently upsert a rental listing by canonical source_url.
+    Never overwrites or deletes direct user-submitted listings (is_direct = 1).
+    Returns (created: bool, rental_id: int).
+    """
+    url = item.get("source_url")
+    if not url:
+        return False, 0
+
+    row = conn.execute(
+        "SELECT id, is_direct FROM rentals WHERE source_url = ? LIMIT 1;",
+        (url,),
+    ).fetchone()
+
+    beds = item.get("bedrooms", 1)
+    att = item.get("attached_toilets") or beds
+    tot = item.get("total_toilets") or att
+
+    if row:
+        r_id, is_direct = row[0], row[1]
+        if is_direct == 1:
+            return False, r_id
+
+        conn.execute(
+            """
+            UPDATE rentals SET
+                title = ?, location = ?, district = ?, bedrooms = ?,
+                attached_toilets = ?, total_toilets = ?, rent_mvr = ?,
+                deposit_mvr = ?, furnished = ?, contact_phone = ?,
+                description = ?, is_active = 1
+            WHERE id = ?;
+            """,
+            (
+                item["title"], item["location"], item["district"],
+                beds, att, tot, item["rent_mvr"], item["deposit_mvr"],
+                item["furnished"], item["contact_phone"], item["description"],
+                r_id,
+            ),
+        )
+        return False, r_id
+
+    cur = conn.execute(
+        """
+        INSERT INTO rentals (
+            title, address, location, district, road, plot_building, building_total_floors,
+            floor_num, floor, apartment_unit, bedrooms, attached_toilets, total_toilets,
+            sqft_size, lift, kitchen_type, living_dining_type, ac_details, water_heaters_count,
+            furnished, furnished_items, is_serviced, garbage_management, maintenance_terms,
+            rent_mvr, secondary_rent_mvr, secondary_rent_source, deposit_mvr, advance_months,
+            late_fine_mvr_per_day, available_date, source_name, source_url, secondary_sources,
+            is_direct, photo_count, image_url, parking_type,
+            contact_name, contact_phone, contact_whatsapp, contact_email,
+            description, amenities, building_facilities, is_leased, is_active
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1
+        );
+        """,
+        (
+            item["title"],
+            item.get("address") or f"{item['plot_building']}, {item['road']}, {item['district']}, {item['location']}",
+            item["location"], item["district"], item["road"], item["plot_building"],
+            item["building_total_floors"], item["floor_num"], item["floor"], item["apartment_unit"],
+            beds, att, tot, item["sqft_size"],
+            item["lift"], item["kitchen_type"], item["living_dining_type"], item["ac_details"],
+            item["water_heaters_count"], item["furnished"], item["furnished_items"], item["is_serviced"],
+            item["garbage_management"], item["maintenance_terms"], item["rent_mvr"],
+            item.get("secondary_rent_mvr"), item.get("secondary_rent_source"),
+            item["deposit_mvr"], item["advance_months"], item["late_fine_mvr_per_day"],
+            item["available_date"], item["source_name"], item["source_url"], item["secondary_sources"],
+            item.get("is_direct", 0), item.get("photo_count", 8), item.get("image_url", ""),
+            item.get("parking_type", "No In-Building Parking (Street Parking Only)"),
+            item["contact_name"], item["contact_phone"], item["contact_whatsapp"], item["contact_email"],
+            item["description"], item["amenities"], item["building_facilities"], item["is_leased"],
+        ),
+    )
+    return True, cur.lastrowid or 0
 
 
 def redact_contact_name(name: Optional[str]) -> str:
@@ -175,6 +254,21 @@ def redact_contact_name(name: Optional[str]) -> str:
         else:
             redacted.append(w[0] + "*" * (len(w) - 1))
     return " ".join(redacted)
+
+
+def _parse_json_or_csv(val: Any) -> list[str]:
+    """Parse JSON array or comma-separated string into list of strings."""
+    if not val:
+        return []
+    if isinstance(val, list):
+        return val
+    try:
+        loaded = json.loads(val)
+        if isinstance(loaded, list):
+            return [str(x) for x in loaded]
+    except Exception:
+        pass
+    return [x.strip() for x in str(val).split(",") if x.strip()]
 
 
 def list_rentals(
@@ -196,28 +290,21 @@ def list_rentals(
     if location and location not in ("All Locations", "All"):
         query += " AND (location LIKE ? OR district LIKE ?)"
         params.extend([f"%{location}%", f"%{location}%"])
-
     if bedrooms and bedrooms > 0:
         query += " AND bedrooms = ?"
         params.append(bedrooms)
-
     if max_rent and max_rent > 0:
         query += " AND rent_mvr <= ?"
         params.append(max_rent)
-
     if furnished and furnished not in ("All Furnishing", "All"):
         query += " AND furnished = ?"
         params.append(furnished)
-
     if has_lift == 1:
         query += " AND lift = 1"
-
     if has_ac == 1:
         query += " AND (ac_details IS NOT NULL AND ac_details != 'None' AND ac_details != '')"
-
     if has_water_heater == 1:
         query += " AND water_heaters_count > 0"
-
     if search_q:
         q_clean = f"%{search_q.strip()}%"
         query += " AND (title LIKE ? OR location LIKE ? OR address LIKE ? OR plot_building LIKE ? OR description LIKE ?)"
@@ -226,11 +313,9 @@ def list_rentals(
     query += " ORDER BY id DESC LIMIT ?"
     params.append(limit)
 
-    cur = conn.execute(query, tuple(params))
-    rows = cur.fetchall()
+    rows = conn.execute(query, tuple(params)).fetchall()
     results = []
 
-    # Calculate building unit density across the active database
     bld_cur = conn.execute("SELECT plot_building, COUNT(*) FROM rentals WHERE is_active = 1 AND is_leased = 0 GROUP BY plot_building;")
     bld_counts = {row[0]: row[1] for row in bld_cur.fetchall() if row[0]}
 
@@ -253,30 +338,13 @@ def list_rentals(
             d["updated_ago"] = format_relative_time(mins, ts)
         else:
             d["updated_ago"] = "Recently"
-
         results.append(d)
     return results
 
 
-def _parse_json_or_csv(val: Any) -> list[str]:
-    """Parse JSON array or comma-separated string into list of strings."""
-    if not val:
-        return []
-    if isinstance(val, list):
-        return val
-    try:
-        loaded = json.loads(val)
-        if isinstance(loaded, list):
-            return [str(x) for x in loaded]
-    except Exception:
-        pass
-    return [x.strip() for x in str(val).split(",") if x.strip()]
-
-
 def get_rental_by_id(conn: sqlite3.Connection, rental_id: int) -> Optional[dict[str, Any]]:
     """Fetch single rental property by ID with structured lists."""
-    cur = conn.execute("SELECT * FROM rentals WHERE id = ? LIMIT 1;", (rental_id,))
-    row = cur.fetchone()
+    row = conn.execute("SELECT * FROM rentals WHERE id = ? LIMIT 1;", (rental_id,)).fetchone()
     if not row:
         return None
     d = dict(row)
@@ -319,34 +387,34 @@ def save_rental_contract(conn: sqlite3.Connection, contract_data: dict[str, Any]
                 contract_data.get("monthly_rent_mvr", 0), contract_data.get("security_deposit_mvr", 0), contract_data.get("late_fine_mvr_per_day", 100),
                 contract_data.get("advance_amount_mvr", 0), start_date, contract_data.get("lease_duration_months", 12),
                 contract_data.get("notice_period_days", 30), contract_data.get("utilities_clause", ""), contract_data.get("maintenance_clause", ""),
-                contract_data.get("illegal_activities_clause", ""), inv_json, lang, c_json, contract_data.get("status", "draft"), c_id
-            )
+                contract_data.get("illegal_activities_clause", ""), inv_json, lang, c_json, contract_data.get("status", "draft"), c_id,
+            ),
         )
         return c_id
-    else:
-        cur = conn.execute(
-            """
-            INSERT INTO rental_contracts (
-                user_id, rental_id, landlord_name, landlord_nid, landlord_phone, landlord_address,
-                tenant_name, tenant_nid, tenant_phone, tenant_address,
-                property_address, plot_building, apartment_unit,
-                monthly_rent_mvr, security_deposit_mvr, late_fine_mvr_per_day, advance_amount_mvr,
-                lease_start_date, lease_duration_months, notice_period_days,
-                utilities_clause, maintenance_clause, illegal_activities_clause,
-                inventory_items, contract_language, contract_json, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING id;
-            """,
-            (
-                contract_data.get("user_id"), contract_data.get("rental_id"),
-                contract_data.get("landlord_name"), contract_data.get("landlord_nid"), contract_data.get("landlord_phone"), contract_data.get("landlord_address", ""),
-                contract_data.get("tenant_name"), contract_data.get("tenant_nid"), contract_data.get("tenant_phone"), contract_data.get("tenant_address", ""),
-                contract_data.get("property_address"), contract_data.get("plot_building", ""), contract_data.get("apartment_unit", ""),
-                contract_data.get("monthly_rent_mvr", 0), contract_data.get("security_deposit_mvr", 0), contract_data.get("late_fine_mvr_per_day", 100), contract_data.get("advance_amount_mvr", 0),
-                start_date, contract_data.get("lease_duration_months", 12), contract_data.get("notice_period_days", 30),
-                contract_data.get("utilities_clause", ""), contract_data.get("maintenance_clause", ""), contract_data.get("illegal_activities_clause", ""),
-                inv_json, lang, c_json, contract_data.get("status", "draft")
-            )
-        )
-        row = cur.fetchone()
-        return row[0] if row else 0
+
+    cur = conn.execute(
+        """
+        INSERT INTO rental_contracts (
+            user_id, rental_id, landlord_name, landlord_nid, landlord_phone, landlord_address,
+            tenant_name, tenant_nid, tenant_phone, tenant_address,
+            property_address, plot_building, apartment_unit,
+            monthly_rent_mvr, security_deposit_mvr, late_fine_mvr_per_day, advance_amount_mvr,
+            lease_start_date, lease_duration_months, notice_period_days,
+            utilities_clause, maintenance_clause, illegal_activities_clause,
+            inventory_items, contract_language, contract_json, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id;
+        """,
+        (
+            contract_data.get("user_id"), contract_data.get("rental_id"),
+            contract_data.get("landlord_name"), contract_data.get("landlord_nid"), contract_data.get("landlord_phone"), contract_data.get("landlord_address", ""),
+            contract_data.get("tenant_name"), contract_data.get("tenant_nid"), contract_data.get("tenant_phone"), contract_data.get("tenant_address", ""),
+            contract_data.get("property_address"), contract_data.get("plot_building", ""), contract_data.get("apartment_unit", ""),
+            contract_data.get("monthly_rent_mvr", 0), contract_data.get("security_deposit_mvr", 0), contract_data.get("late_fine_mvr_per_day", 100), contract_data.get("advance_amount_mvr", 0),
+            start_date, contract_data.get("lease_duration_months", 12), contract_data.get("notice_period_days", 30),
+            contract_data.get("utilities_clause", ""), contract_data.get("maintenance_clause", ""), contract_data.get("illegal_activities_clause", ""),
+            inv_json, lang, c_json, contract_data.get("status", "draft"),
+        ),
+    )
+    row = cur.fetchone()
+    return row[0] if row else 0

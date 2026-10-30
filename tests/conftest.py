@@ -2,9 +2,18 @@ import os
 from pathlib import Path
 import pytest
 from scrapers.dedupe import SourceRecord
-from scrapers.gazette import BidNotice
+from scrapers.tenders.gazette import BidNotice
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+@pytest.fixture(autouse=True)
+def isolate_hooks85_gateway_during_tests(monkeypatch, request):
+    """Prevent tests from hitting a live local hooks85 Gateway unless testing hooks85_service directly."""
+    if "test_hooks85_gateway_integration" in request.node.nodeid:
+        return
+    monkeypatch.setattr("routers.api_auth.register_via_hooks85", lambda *a, **kw: None)
+    monkeypatch.setattr("routers.api_auth.login_via_hooks85", lambda *a, **kw: None)
+
 
 @pytest.fixture
 def fixtures_dir() -> Path:

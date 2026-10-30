@@ -11,7 +11,7 @@ from scrapers.dedupe import (
     SourceRecord,
     MergedBid,
 )
-from scrapers.gazette import BidNotice, classify_discipline
+from scrapers.tenders.gazette import BidNotice, classify_discipline
 
 
 # ---------------------------------------------------------------------

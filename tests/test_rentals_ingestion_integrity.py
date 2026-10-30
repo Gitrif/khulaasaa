@@ -14,12 +14,13 @@ import pytest
 from unittest.mock import patch
 
 from data.connection import get_db
-from data.rentals import init_rentals_schema, list_rentals
-from data.scrapers.rentals_scraper import (
+from data.repos.rentals import init_rentals_schema, list_rentals, upsert_rental_listing
+from scrapers.rentals import (
     _item,
-    upsert_rental_listing,
-    rescrape_and_sync_all_rentals,
     scrape_ibay_rentals,
+)
+from services.ingestion.rentals_ingestion import (
+    rescrape_and_sync_all_rentals,
     get_rentals_sync_status,
 )
 

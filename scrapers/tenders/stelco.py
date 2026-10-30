@@ -10,7 +10,7 @@ import bs4
 
 from scrapers.dedupe import SourceRecord
 from scrapers.tenders.base import get_soup
-from scrapers.gazette import ALL_MONTHS
+from scrapers.tenders.gazette import ALL_MONTHS
 
 logger = logging.getLogger(__name__)
 

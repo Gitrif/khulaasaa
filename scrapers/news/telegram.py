@@ -96,12 +96,7 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
                 "ކަށުކަމާކެމީގެ", "إِنَّا لِلَّهِ", "އިންނާލިއްލާހި", "އާސަހަރާ މިސްކިތް"
             ])
             if is_obituary:
-                try:
-                    from data.database import get_db, upsert_scraped_obituary
-                    with get_db() as db_conn:
-                        upsert_scraped_obituary(db_conn, txt, link_el.get("href") if link_el else url)
-                except Exception:
-                    pass
+                # Exclude obituary notices from general news feed; obituary ingestion handles persistence.
                 continue
             date_iso = date_el.get("datetime") if date_el else None
             link = link_el.get("href") if link_el else url
@@ -111,7 +106,7 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
 
             # Clean first line as headline
             headline = txt.split("\n")[0].strip()
-            headline = re.sub(r"^🚨\s*#Breaking\s*:\s*", "", headline, flags=re.I)
+            headline = re.sub(r"^\uD83D\uDEA8\s*#Breaking\s*:\s*", "", headline, flags=re.I)
             if len(headline) > 110:
                 headline = headline[:107] + "..."
 

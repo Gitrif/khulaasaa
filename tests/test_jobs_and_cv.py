@@ -254,8 +254,9 @@ def test_jobs_web_and_api_endpoints(client):
     assert res.status_code == 200
 
     # 9. Test alert endpoint
-    with patch("main.send_telegram_message", return_value=(True, "Message delivered")):
-        res = client.post("/api/jobs/test-alert", json={"chat_id": "987654321"})
+    from core.deps import EDITOR_USER, EDITOR_PASS
+    with patch("main.send_telegram_message", return_value=(True, "Message delivered"), create=True):
+        res = client.post("/api/jobs/test-alert", json={"chat_id": "987654321"}, auth=(EDITOR_USER, EDITOR_PASS))
         assert res.status_code == 200
         assert res.json()["ok"] is True
 
