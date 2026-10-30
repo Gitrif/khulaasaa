@@ -13,7 +13,8 @@
     search: '<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
     'external-link': '<path d="M14 3h7v7M10 14 21 3"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/>',
-    close: '<path d="m6 6 12 12M18 6 6 18"/>'
+    close: '<path d="m6 6 12 12M18 6 6 18"/>',
+    moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
   };
   function svg(name, className) {
     const body = paths[name];

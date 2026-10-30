@@ -5,25 +5,33 @@
 <!-- Shared responsive filter section: top on desktop, bottom dock on mobile. -->
 <div class="filter-toolbar" id="pageFilterToolbar">
   <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+    {# Query-preserving helper: keeps the active tag/topic when changing sort. #}
+    {% macro sort_href(s) -%}/?sort={{ s }}{% if active_tag %}&tag={{ active_tag }}{% endif %}{% if active_topic %}&topic={{ active_topic }}{% endif %}{%- endmacro %}
     <div class="filter-row filter-row-stories">
-      <span class="filter-row-label">All stories</span>
-      <div class="filter-pills" aria-label="Story filters">
-        <a href="/" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}">All stories</a>
-        <a href="/?tag=ras-male" class="filter-pill {{ 'active' if active_tag == 'ras-male' else '' }}">Ras Malé</a>
-        <a href="/?tag=sultan-park" class="filter-pill {{ 'active' if active_tag == 'sultan-park' else '' }}">Sultan Park</a>
-        <a href="/?tag=tgst-tax" class="filter-pill {{ 'active' if active_tag == 'tgst-tax' else '' }}">TGST &amp; Taxes</a>
-        <a href="/?tag=green-tax" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
-        <a href="/?tag=traffic-reform" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
-        <a href="/?tag=bridge-safety" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
+      <select class="filter-select" aria-label="Filter stories by tracked narrative" onchange="window.location.href=this.value">
+        <option value="/" {{ 'selected' if not active_tag and not active_topic }}>All stories</option>
+        {% for t in all_tags %}
+        <option value="/?tag={{ t.id }}" {{ 'selected' if active_tag == t.id }}>{{ t.label }}</option>
+        {% endfor %}
+      </select>
+      <div class="filter-pills" aria-label="Sort stories">
+        <a href="{{ sort_href('latest') }}" class="filter-pill {{ 'active' if active_sort == 'latest' else '' }}">Latest</a>
+        <a href="{{ sort_href('urgent') }}" class="filter-pill {{ 'active' if active_sort == 'urgent' else '' }}">Breaking</a>
+        <a href="{{ sort_href('outlets') }}" class="filter-pill {{ 'active' if active_sort == 'outlets' else '' }}">Most covered</a>
+        <a href="/following" class="filter-pill">Following</a>
       </div>
       <button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="More filters">
         <svg class="filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
     <div class="filter-row filter-row-topics">
-      <span class="filter-row-label">All topics</span>
+      <select class="filter-select" aria-label="Filter stories by topic" onchange="window.location.href=this.value">
+        <option value="/" {{ 'selected' if not active_topic }}>All topics</option>
+        {% for tp in all_topics %}
+        <option value="/?topic={{ tp.id }}" {{ 'selected' if active_topic == tp.id }}>{{ tp.label }}</option>
+        {% endfor %}
+      </select>
       <div class="filter-pills" aria-label="Topic filters">
-        <a href="/" class="filter-pill {{ 'active' if not active_topic else '' }}">All topics</a>
         {% for tp in all_topics %}
         <a href="/?topic={{ tp.id }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
         {% endfor %}

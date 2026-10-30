@@ -78,8 +78,7 @@ function setRoomsFilter(rooms, btn) {
   document.querySelectorAll('.bhk-btn').forEach(b => {
     const r = parseInt(b.getAttribute('data-rooms'), 10);
     const isAct = (r === currentRooms) || (r === 5 && currentRooms >= 5);
-    b.className = 'bhk-btn px-3 h-[32px] rounded-lg border text-xs transition cursor-pointer select-none ' +
-      (isAct ? 'font-bold bg-[#0b5d57] text-white border-[#0b5d57]' : 'font-semibold bg-white text-slate-700 border-hairline hover:bg-slate-100');
+    b.className = 'bhk-btn filter-pill' + (isAct ? ' active' : '');
   });
   applyAllCardFilters();
 }
@@ -88,9 +87,7 @@ function setCustomRooms(val) {
   const num = parseInt(val, 10);
   if (!isNaN(num) && num > 0) {
     currentRooms = num;
-    document.querySelectorAll('.bhk-btn').forEach(b => {
-      b.className = b.className.replace('bg-[#0b5d57] text-white border-[#0b5d57]', 'bg-white text-slate-700 border-hairline hover:bg-slate-100');
-    });
+    document.querySelectorAll('.bhk-btn').forEach(b => b.classList.remove('active'));
     applyAllCardFilters();
   } else if (!val) {
     setRoomsFilter(0);
