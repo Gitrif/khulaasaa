@@ -260,20 +260,9 @@ def enrich_job(job: dict[str, Any]) -> dict[str, Any]:
         title_en = translate_job_title(title_raw)
     j["designation"] = title_en or title_raw or "Position Open"
 
-    # Clean location & Remuneration
+    # Clean location & Remuneration (strictly synchronous & offline — never make HTTP calls during page render)
     j["location_clean"] = j.get("location") or "Male'"
     salary = j.get("salary_raw")
-    if salary == "Civil Service Remuneration Matrix" and j.get("notice_id", "").isdigit():
-        try:
-            from scrapers.jobs import enrich_gazette_job_notice
-            enr = enrich_gazette_job_notice(j["notice_id"])
-            if enr.get("salary_raw") and enr["salary_raw"] != "Pay not listed":
-                salary = enr["salary_raw"]
-                j["salary_raw"] = salary
-            if enr.get("location"):
-                j["location_clean"] = enr["location"]
-        except Exception:
-            pass
     j["has_salary"] = bool(salary and salary.strip() and salary.strip().lower() != "none")
     j["remuneration_clean"] = salary.strip() if j["has_salary"] else None
 

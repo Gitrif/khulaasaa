@@ -180,3 +180,15 @@ def test_estimator_business_service_and_api_endpoint():
     assert "concrete" in data and "summary" in data
     assert data["concrete"]["wet_volume_cuft"] == 50.0
 
+
+def test_telegram_webapp_sdk_not_unconditionally_loaded_or_initialized_in_chrome():
+    base_html = _read("templates/base.html")
+    assert '<script src="https://telegram.org/js/telegram-web-app.js"' not in base_html
+
+    app_shell_js = _read("static/js/app_shell.js")
+    assert "typeof tg.initData !== 'string' || !tg.initData.trim()" in app_shell_js
+    assert "function isLikelyTelegramWebView()" in app_shell_js
+    assert "function initTelegramMiniApp(tg)" in app_shell_js
+    assert "catch(e) {}" not in app_shell_js
+    assert "catch (err) {}" not in app_shell_js
+

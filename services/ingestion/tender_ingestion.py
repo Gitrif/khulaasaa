@@ -232,8 +232,10 @@ def execute_tender_ingestion(
                 except Exception:
                     pass
                 log_db_error(logger, f"upsert_bid_{n_id}", "services.ingestion.tender_ingestion", exc)
+        conn.commit()
 
-        if persisted_records:
+    if persisted_records:
+        with get_db() as conn:
             try:
                 alert_res = telegram_dispatcher(conn, persisted_records)
                 if isinstance(alert_res, dict):

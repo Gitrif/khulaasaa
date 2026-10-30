@@ -5,34 +5,66 @@
  * Strictly under 500 lines. Zero emojis.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    try {
-      tg.ready();
-      tg.expand();
-      if (tg.isVersionAtLeast && tg.isVersionAtLeast('6.1') && tg.setHeaderColor) {
-        tg.setHeaderColor('#10222E');
-      }
-      document.documentElement.classList.add('telegram-webapp');
+function isLikelyTelegramWebView() {
+  if (window.TelegramWebviewProxy || window.TelegramWebviewProxyProto || window.TelegramWebview) {
+    return true;
+  }
+  const search = window.location.search || '';
+  const hash = window.location.hash || '';
+  return search.includes('tgWebAppData=') || hash.includes('tgWebAppData=') || /Telegram/i.test(navigator.userAgent || '');
+}
 
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        handleTelegramMiniAppUser(tg.initDataUnsafe.user);
-      }
+function initTelegramMiniApp(tg) {
+  if (!tg || typeof tg.initData !== 'string' || !tg.initData.trim()) {
+    return;
+  }
+  try {
+    tg.ready();
+    tg.expand();
+    if (tg.isVersionAtLeast && tg.isVersionAtLeast('6.1') && tg.setHeaderColor) {
+      tg.setHeaderColor('#10222E');
+    }
+    document.documentElement.classList.add('telegram-webapp');
 
-      document.addEventListener('click', function(e) {
-        const a = e.target.closest('a');
-        if (a && a.href) {
-          const url = new URL(a.href, window.location.href);
-          if (url.origin !== window.location.origin || a.target === '_blank') {
-            if (url.protocol.startsWith('http')) {
-              e.preventDefault();
-              tg.openLink(a.href);
-            }
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      handleTelegramMiniAppUser(tg.initDataUnsafe.user);
+    }
+
+    document.addEventListener('click', function(e) {
+      const a = e.target.closest('a');
+      if (a && a.href) {
+        const url = new URL(a.href, window.location.href);
+        if (url.origin !== window.location.origin || a.target === '_blank') {
+          if (url.protocol.startsWith('http')) {
+            e.preventDefault();
+            tg.openLink(a.href);
           }
         }
-      });
-    } catch(e) {}
+      }
+    });
+  } catch (err) {
+    console.warn('Telegram Mini App initialization error:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const existingTg = window.Telegram && window.Telegram.WebApp;
+  if (existingTg && typeof existingTg.initData === 'string' && existingTg.initData.trim()) {
+    initTelegramMiniApp(existingTg);
+  } else if (isLikelyTelegramWebView()) {
+    const sdkScript = document.createElement('script');
+    sdkScript.src = 'https://telegram.org/js/telegram-web-app.js';
+    sdkScript.defer = true;
+    sdkScript.onload = function() {
+      const loadedTg = window.Telegram && window.Telegram.WebApp;
+      if (loadedTg && typeof loadedTg.initData === 'string' && loadedTg.initData.trim()) {
+        initTelegramMiniApp(loadedTg);
+      }
+    };
+    sdkScript.onerror = function(err) {
+      console.warn('Failed to load Telegram WebApp SDK:', err);
+    };
+    document.head.appendChild(sdkScript);
   }
 
   refreshGlobalAuthPill();
@@ -114,7 +146,9 @@ async function refreshGlobalAuthPill() {
     if (data && data.user) {
       user = data.user;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('Auth status check failed:', err);
+  }
 
   const isTgConnected = Boolean(user && user.telegram_verified && user.telegram_chat_id);
   const isViberConnected = Boolean(user && user.viber_verified && user.viber_user_id);
@@ -302,7 +336,9 @@ async function handleTelegramMiniAppUser(user) {
     if (d.status === 'ok') {
       refreshGlobalAuthPill();
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('Telegram Mini App login failed:', err);
+  }
 }
 
 function handleGlobalSearch(query) {
@@ -310,7 +346,7 @@ function handleGlobalSearch(query) {
     filterCards(query);
     return;
   }
-  const obitSearch = document.getElementById('searchInput');
+  const obitSearch = document.getElementById('obituarySearch') || document.getElementById('searchInput');
   if (obitSearch && typeof applyFilters === 'function') {
     obitSearch.value = query || '';
     applyFilters();

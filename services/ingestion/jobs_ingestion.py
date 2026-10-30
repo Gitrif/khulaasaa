@@ -28,9 +28,10 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
         logger.warning("Error fetching MyCareer jobs: %s", e)
 
     new_jobs = updated_jobs = alerts_sent = 0
+    new_job_records: list[dict[str, Any]] = []
 
     def _persist(db_conn):
-        nonlocal new_jobs, updated_jobs, alerts_sent
+        nonlocal new_jobs, updated_jobs
         for j in fetched:
             notice_id = j["notice_id"]
             existing = None
@@ -61,25 +62,41 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
 
             if existing is None:
                 new_jobs += 1
-                if trigger_alerts:
-                    try:
-                        res = dispatch_job_alerts(j, conn=db_conn)
-                        alerts_sent += res.get("delivered", 0)
-                    except Exception as exc:
-                        log_db_error(logger, f"dispatch_job_alert_{notice_id}", "services.ingestion.jobs_ingestion", exc)
-                    try:
-                        from alerts.viber import dispatch_viber_job_alerts
-                        dispatch_viber_job_alerts([j])
-                    except Exception as exc:
-                        log_db_error(logger, f"dispatch_viber_job_{notice_id}", "services.ingestion.jobs_ingestion", exc)
+                new_job_records.append(j)
             else:
                 updated_jobs += 1
+        try:
+            db_conn.commit()
+        except Exception:
+            pass
 
     if conn is not None:
         _persist(conn)
     else:
         with get_db() as db_conn:
             _persist(db_conn)
+
+    if trigger_alerts and new_job_records:
+        def _dispatch(alert_conn):
+            nonlocal alerts_sent
+            for j in new_job_records:
+                notice_id = j["notice_id"]
+                try:
+                    res = dispatch_job_alerts(j, conn=alert_conn)
+                    alerts_sent += res.get("delivered", 0)
+                except Exception as exc:
+                    log_db_error(logger, f"dispatch_job_alert_{notice_id}", "services.ingestion.jobs_ingestion", exc)
+                try:
+                    from alerts.viber import dispatch_viber_job_alerts
+                    dispatch_viber_job_alerts([j])
+                except Exception as exc:
+                    log_db_error(logger, f"dispatch_viber_job_{notice_id}", "services.ingestion.jobs_ingestion", exc)
+
+        if conn is not None:
+            _dispatch(conn)
+        else:
+            with get_db() as alert_conn:
+                _dispatch(alert_conn)
 
     return {
         "status": "ok",
