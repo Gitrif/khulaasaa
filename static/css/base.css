@@ -411,3 +411,29 @@ img, svg, video, canvas {
 }
 
 
+
+
+/* Canonical Khulaasaa design tokens — shared by every page/component. */
+:root {
+  color-scheme: light;
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-canvas: var(--paper);
+  --color-surface: #FFFFFF;
+  --color-surface-muted: var(--paper-soft);
+  --color-accent: var(--lagoon);
+  --color-breaking: var(--flag);
+  --color-highlight: var(--gold);
+  --color-muted: var(--slate);
+  --color-border: var(--hairline);
+  --radius-control: 7px;
+  --radius-card: 8px;
+  --radius-panel: 10px;
+  --radius-pill: 7px;
+  --control-height: 36px;
+  --control-gap: 8px;
+  --focus-ring: 0 0 0 3px rgba(47, 124, 116, .22);
+}
+html { background: var(--color-canvas); }
+body { background: var(--color-canvas); color: var(--color-ink); }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
