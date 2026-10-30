@@ -495,3 +495,16 @@ function shareStory(evt, headline, url) {
     window.open(tgShareUrl, '_blank');
   }
 }
+
+
+/* Shared accessible filter drawer controller used by page filter toolbars. */
+function toggleFilterDrawer() {
+  const drawer = document.getElementById('filterDrawer');
+  const trigger = document.getElementById('toggleFilterBtn');
+  if (!drawer || !trigger) return;
+  const willOpen = drawer.classList.contains('hidden');
+  drawer.classList.toggle('hidden', !willOpen);
+  trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  trigger.setAttribute('aria-controls', 'filterDrawer');
+}
+window.toggleFilterDrawer = toggleFilterDrawer;
