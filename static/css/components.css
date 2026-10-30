@@ -25,7 +25,7 @@
   border-radius: 6px;
   background: linear-gradient(135deg, #0b5d57 0%, #004d47 100%);
   color: #ffffff !important;
-  font-family: 'Noto Sans Thaana', 'Faruma', 'MV Boli', sans-serif;
+  font-family: 'Faruma', 'MV Waheed', 'Noto Sans Thaana', 'MV Boli', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
   line-height: 1;
@@ -1328,10 +1328,7 @@ header, .site-header {
   scrollbar-width: none;
 }
 .filter-pills::-webkit-scrollbar { display: none; }
-.filter-toolbar {
-  background: var(--color-surface-muted);
-  border-bottom: 1px solid var(--color-border);
-}
+/* .filter-toolbar surface and border are defined once in the responsive filter dock block below. */
 .filter-toggle { flex: 0 0 auto; }
 .filter-toggle .filter-chevron { transition: transform .18s ease; }
 .filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
