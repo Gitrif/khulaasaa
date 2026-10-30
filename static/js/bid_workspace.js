@@ -340,7 +340,7 @@ function updateFreeBidUI() {
   const saved = getFreeBidNoticeId();
   const bannerDesc = document.getElementById('freeBidBannerDesc');
   const bannerStatus = document.getElementById('freeBidNoticeStatus');
-  const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
+  const isPaid = window.SERVER_IS_PAID === true;
 
   if (isPaid) {
     if (bannerDesc) bannerDesc.innerText = 'Unlimited Bids Active: Your hooks85 Pro subscription unlocks unlimited unwatermarked submissions across all tenders.';
@@ -370,7 +370,7 @@ function updateFreeBidUI() {
 }
 
 function downloadDocument(docType) {
-  const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
+  const isPaid = window.SERVER_IS_PAID === true;
   if (docType === 'letters') {
     activePrintDocId = 'printableLetterContainer';
     prepareAndPrint();
@@ -424,7 +424,6 @@ async function activateTrialAndDownload(docType) {
     const res = await fetch('/api/auth/start-trial', { method: 'POST' });
     const data = await res.json();
     if (data.status === 'ok') {
-      localStorage.setItem('khulaasaa_is_paid', '1');
       window.SERVER_IS_PAID = true;
       updateFreeBidUI();
       closeHooks85Modal();
@@ -432,7 +431,6 @@ async function activateTrialAndDownload(docType) {
       return;
     }
   } catch (err) {}
-  localStorage.setItem('khulaasaa_is_paid', '1');
   window.SERVER_IS_PAID = true;
   updateFreeBidUI();
   closeHooks85Modal();
@@ -447,7 +445,7 @@ function prepareAndPrint() {
 }
 
 function exportBoqCsv() {
-  const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1') || (window.SERVER_IS_PAID === true);
+  const isPaid = window.SERVER_IS_PAID === true;
   if (!isPaid && !isEligibleForFreeBid()) {
     openHooks85Modal('boq');
     return;

@@ -158,9 +158,7 @@ async function refreshGlobalAuthPill() {
 
 function renderUserAvatarMenu(container, u) {
   container.textContent = '';
-  if (u.is_paid) {
-    localStorage.setItem('khulaasaa_is_paid', '1');
-  }
+  window.SERVER_IS_PAID = Boolean(u.is_paid);
 
   const tpl = document.getElementById('userAvatarMenuTemplate');
   if (!tpl) return;
@@ -302,11 +300,29 @@ async function handleTelegramMiniAppUser(user) {
     });
     const d = await res.json();
     if (d.status === 'ok') {
-      localStorage.setItem('khulaasaa_tg_name', user.username ? '@' + user.username : user.first_name);
       refreshGlobalAuthPill();
     }
   } catch (err) {}
 }
+
+function handleGlobalSearch(query) {
+  if (typeof filterCards === 'function') {
+    filterCards(query);
+    return;
+  }
+  const obitSearch = document.getElementById('searchInput');
+  if (obitSearch && typeof applyFilters === 'function') {
+    obitSearch.value = query || '';
+    applyFilters();
+    return;
+  }
+  const rentalSearch = document.getElementById('rentalSearchInput');
+  if (rentalSearch && typeof applyAllCardFilters === 'function') {
+    rentalSearch.value = query || '';
+    applyAllCardFilters();
+  }
+}
+window.handleGlobalSearch = handleGlobalSearch;
 
 function isMobileDevice() {
   return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '');

@@ -38,12 +38,32 @@ def test_no_duplicate_or_legacy_filter_js_handlers():
     index_js = _read("static/js/index_feed.js")
     assert "function toggleFilterDrawer" not in index_js
     assert "function isMobileDevice" not in index_js
+    assert "function showConnectedState" not in index_js
+    assert "function handleFeedSort" not in index_js
+    assert "localStorage" not in index_js
 
     rentals_js = _read("static/js/rentals_filter.js")
     assert "toggleRentalFilterCollapse" not in rentals_js
 
+    bids_js = _read("static/js/bids_filter.js")
+    assert "sendSpecificTenderAlert" not in bids_js
+    assert "localStorage" not in bids_js
+
     app_shell_js = _read("static/js/app_shell.js")
     assert "function toggleFilterDrawer()" in app_shell_js
+    assert "function handleGlobalSearch(query)" in app_shell_js
+    assert "localStorage.setItem" not in app_shell_js
+
+    assert not (ROOT / "templates" / "subscription.html").exists()
+    assert not (ROOT / "templates" / "_ad_rectangle.html").exists()
+
+
+def test_ad_management_endpoints_require_editor_auth():
+    client = TestClient(app)
+    res_create = client.post("/api/ads", json={"campaign_name": "unauth-test", "sponsor_name": "Test", "text_html": "Hi"})
+    assert res_create.status_code == 401
+    res_bcast = client.post("/api/alerts/telegram/broadcast-ad", json={"text_html": "Hi"})
+    assert res_bcast.status_code == 401
 
 
 def test_janaza_mobile_nav_uses_crescent_not_plus():

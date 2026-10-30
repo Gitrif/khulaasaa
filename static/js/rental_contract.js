@@ -227,7 +227,7 @@ async function saveContractDraft() {
 }
 
 function downloadLeaseAgreement() {
-  const isPaid = (localStorage.getItem('khulaasaa_is_paid') === '1');
+  const isPaid = window.SERVER_IS_PAID === true;
   if (isPaid) {
     document.querySelectorAll('.active-print-target').forEach(el => el.classList.remove('active-print-target'));
     const target = document.getElementById('printableLeaseContainer');
@@ -249,14 +249,14 @@ async function activateTrialAndPrintLease() {
     const res = await fetch('/api/auth/start-trial', { method: 'POST' });
     const data = await res.json();
     if (data.status === 'ok') {
-      localStorage.setItem('khulaasaa_is_paid', '1');
+      window.SERVER_IS_PAID = true;
       closeRentalModal();
       downloadLeaseAgreement();
       return;
     }
   } catch (e) {}
 
-  localStorage.setItem('khulaasaa_is_paid', '1');
+  window.SERVER_IS_PAID = true;
   closeRentalModal();
   downloadLeaseAgreement();
 }

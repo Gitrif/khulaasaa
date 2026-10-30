@@ -332,8 +332,6 @@ async function savePagePreferences(e) {
     if (resp.ok && data.status === 'ok') {
       status.innerText = 'Alert preferences saved successfully!';
       status.classList.remove('hidden');
-      if (chatId) localStorage.setItem('khulaasaa_tg_connected', '1');
-      if (viberId) localStorage.setItem('khulaasaa_viber_connected', '1');
       if (typeof refreshGlobalAuthPill === 'function') refreshGlobalAuthPill();
     } else if (resp.status === 401) {
       const legacyResp = await fetch('/api/alerts/preferences', {
@@ -362,17 +360,5 @@ async function savePagePreferences(e) {
   } finally {
     btn.disabled = false;
     btn.innerText = 'Save Alert Preferences';
-  }
-}
-
-// 6. Subscription Plan Selection (/subscription)
-function selectPlan(planKey) {
-  const sel = document.getElementById('planTierSelect');
-  if (sel) {
-    sel.value = planKey;
-  }
-  const formSection = document.getElementById('subscription-form-section');
-  if (formSection) {
-    formSection.scrollIntoView({ behavior: 'smooth' });
   }
 }
