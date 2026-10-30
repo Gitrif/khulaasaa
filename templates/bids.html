@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Bids &amp; Tenders — Dispatch{% endblock %}
+{% block appbar_title %}Bids &amp; Tenders{% endblock %}
+{% block appbar_subtitle %}Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %} (filtered){% endif %} &middot; LIVE FEED{% endblock %}
 
 {% block content %}
 {% from "components/filter_dock.html" import render_filter_dock %}
@@ -34,26 +36,8 @@
     </div>
 {% endset %}
 {{ render_filter_dock(_bids_row1, _bids_row2) }}
-<!-- Minimalist High-Real-Estate Header -->
-<header class="border-b border-hairline bg-paper">
-  <div class="max-w-3xl mx-auto px-4 pt-4 pb-3">
-    <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-      Bids &amp; Tenders
-    </h1>
-    <p class="text-xs sm:text-sm text-slate mt-0.5 flex items-center gap-2 flex-wrap">
-      <span>Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %} (filtered){% endif %}</span>
-      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800">
-        <span class="w-1.5 h-1.5 rounded-full bg-sky-600 mr-1 animate-pulse"></span>
-        LIVE FEED
-      </span>
-      <a href="?refresh=1&source={{ source }}&lang={{ lang_mode }}" class="text-xs text-lagoon hover:underline inline-flex items-center" title="Fetch latest notices from portals">
-        Refresh
-      </a>
-    </p>
-  </div>
-</header>
 
-<main class="px-4 py-2 max-w-3xl mx-auto" id="bids-container">
+<main class="px-4 py-4 max-w-3xl mx-auto" id="bids-container">
   <div class="my-2">
     {% include "_ad_leaderboard.html" %}
   </div>

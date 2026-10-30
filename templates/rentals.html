@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block title %}{{ page_title }}{% endblock %}
+{% block appbar_title %}Rentals{% endblock %}
+{% block appbar_subtitle %}Maldivian Apartment &amp; Rental Directory &middot; {{ rentals|length }} listings{% endblock %}
 
 {% block content %}
 {% from "components/filter_dock.html" import render_filter_dock, filter_more_btn %}
@@ -64,24 +66,7 @@
     </div>
 {% endset %}
 {{ render_filter_dock(_rentals_row1, _rentals_row2, _rentals_drawer) }}
-<main class="max-w-6xl mx-auto px-4 py-6 text-ink">
-
-  <!-- Page Heading & Subheading (Below App Bar) -->
-  <div class="mb-4">
-    <div class="flex items-center gap-2 mb-1 flex-wrap">
-      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-lagoon bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-        <span class="brand-mark sm" aria-hidden="true">ކ</span>
-        <span>Khulaasaa Consolidation</span>
-      </span>
-      <span class="text-xs text-slate">&middot; Verified Apartment Wire</span>
-    </div>
-    <h1 class="font-serif-display text-xl sm:text-2xl font-bold text-ink m-0">
-      Maldivian Apartment &amp; Rental Directory
-    </h1>
-    <p class="text-xs text-slate mt-1 max-w-2xl leading-relaxed mb-0">
-      Consolidating public apartment listings across Mal&eacute;, Hulhumal&eacute; Phase 1, Phase 2, and Villimal&eacute; with verified building specifications, room inventory, and original platform attribution.
-    </p>
-  </div>
+<main class="max-w-6xl mx-auto px-4 py-4 text-ink">
 
   <!-- Top Leaderboard Monetization Ad -->
   <div class="mb-4">

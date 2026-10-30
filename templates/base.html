@@ -32,33 +32,55 @@
 </head>
 <body class="{% block body_class %}bg-paper text-ink min-h-screen flex flex-col pb-16 md:pb-0{% endblock %}">
 
-  <!-- UNIFIED COMPACT APP BAR: Menu directly beside title & search in single line -->
+  {% set _path = request.url.path if request is defined and request else '/' %}
+  {% if _path.startswith('/bids') %}
+    {% set _default_appbar_title = 'Bids & Tenders' %}
+    {% set _default_appbar_subtitle = 'Maldives Government Procurement & SOE Portals' %}
+  {% elif _path.startswith('/jobs') %}
+    {% set _default_appbar_title = 'Jobs & Vacancies' %}
+    {% set _default_appbar_subtitle = 'Verified career openings across the Maldives' %}
+  {% elif _path.startswith('/rentals') %}
+    {% set _default_appbar_title = 'Rentals' %}
+    {% set _default_appbar_subtitle = 'Consolidated Maldivian apartment & housing directory' %}
+  {% elif _path.startswith('/obituaries') %}
+    {% set _default_appbar_title = 'Janaza & Obituaries' %}
+    {% set _default_appbar_subtitle = 'Verified funeral prayer times & cemetery notices' %}
+  {% elif _path.startswith('/following') %}
+    {% set _default_appbar_title = 'Following' %}
+    {% set _default_appbar_subtitle = 'Tracked stories, topics, and saved notices' %}
+  {% elif _path.startswith('/account') %}
+    {% set _default_appbar_title = 'Account' %}
+    {% set _default_appbar_subtitle = 'Profile, alert preferences, and connected channels' %}
+  {% else %}
+    {% set _default_appbar_title = 'News' %}
+    {% set _default_appbar_subtitle = 'News from trusted Maldivian sources, in one place.' %}
+  {% endif %}
+
+  <!-- UNIFIED SINGLE-ROW APP BAR: Logo + Page Title & Subtitle + Inline Desktop Nav + Actions -->
   <header class="site-header">
-    <!-- Top App Bar: Brand + Search + Actions (Single Line) -->
-    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
-      <!-- Brand -->
-      <a href="/" class="brand-link shrink-0" title="Khulaasaa — Home">
-        <span class="brand-mark" aria-label="Khulaasaa">ކ</span>
-        <span class="brand-title">Khulaasaa</span>
+    <div class="max-w-6xl mx-auto px-4 appbar-inner flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
+      <!-- Brand Mark + Current Page Title & Subtitle -->
+      <a href="/" class="brand-link shrink-0 min-w-0" title="Khulaasaa — Home">
+        <span class="brand-mark lg font-thaana" aria-label="Khulaasaa">ކ</span>
+        <span class="brand-heading-wrap">
+          <span class="appbar-page-title">{% block appbar_title %}{{ _default_appbar_title }}{% endblock %}</span>
+          <span class="appbar-page-subtitle">{% block appbar_subtitle %}{{ _default_appbar_subtitle }}{% endblock %}</span>
+        </span>
       </a>
 
-      <!-- Integrated Search Input with Inside Icon & Matching Corner Style -->
-      <div class="flex-1 max-w-xs sm:max-w-md mx-1 sm:mx-2 min-w-0">
-        <div class="header-search-wrap">
-          <svg class="header-search-icon" viewBox="0 0 24 24">
-            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-          </svg>
-          <input 
-            type="text" 
-            id="globalSearchBox" 
-            class="header-search-input" 
-            placeholder="Search news, topics, tenders..." 
-            oninput="handleGlobalSearch(this.value)">
-        </div>
+      <!-- Desktop Navigation Menu (Inline inside the App Bar on Desktop) -->
+      <div class="desktop-nav-menu">
+        <nav class="appbar-nav" aria-label="Main Navigation">
+          <a href="/" class="nav-tab {{ 'active' if _path == '/' else '' }}">{{ svg_icon('home', 'nav-tab-icon', 15, 15, 2) }}<span>News</span></a>
+          <a href="/bids" class="nav-tab {{ 'active' if _path.startswith('/bids') else '' }}">{{ svg_icon('bookmark', 'nav-tab-icon', 15, 15, 2) }}<span>Tenders</span></a>
+          <a href="/jobs" class="nav-tab {{ 'active' if _path.startswith('/jobs') else '' }}">{{ svg_icon('briefcase', 'nav-tab-icon', 15, 15, 2) }}<span>Jobs</span></a>
+          <a href="/rentals" class="nav-tab {{ 'active' if _path.startswith('/rentals') else '' }}">{{ svg_icon('building', 'nav-tab-icon', 15, 15, 2) }}<span>Rentals</span></a>
+          <a href="/obituaries" class="nav-tab {{ 'active' if _path.startswith('/obituaries') else '' }}">{{ svg_icon('moon', 'nav-tab-icon', 15, 15, 2) }}<span>Obituaries</span></a>
+        </nav>
       </div>
 
       <!-- Global Actions: Viber, Telegram, In-App Notifications, Sign In / Avatar -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="headerViberBtn" onclick="handleHeaderChannelClick('viber')"
                 class="app-icon-btn group" title="Connect Viber Alerts" aria-label="Viber Alerts">
           <span class="status-pip"></span>
@@ -160,19 +182,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Desktop Navigation Menu (Always below Top App Bar on Desktop) -->
-    <div class="desktop-nav-menu">
-      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
-        <nav class="flex items-center gap-1.5 text-xs font-semibold" aria-label="Main Navigation">
-          <a href="/" class="nav-tab {{ 'active' if request.url.path == '/' else '' }}">News</a>
-          <a href="/bids" class="nav-tab {{ 'active' if request.url.path.startswith('/bids') else '' }}">Tenders</a>
-          <a href="/jobs" class="nav-tab {{ 'active' if request.url.path.startswith('/jobs') else '' }}">Jobs</a>
-          <a href="/rentals" class="nav-tab {{ 'active' if request.url.path.startswith('/rentals') else '' }}">Rentals</a>
-          <a href="/obituaries" class="nav-tab {{ 'active' if request.url.path.startswith('/obituaries') else '' }}">Obituaries</a>
-        </nav>
-      </div>
-    </div>
   </header>
 
   <!-- Main Content Slot -->
@@ -263,23 +272,23 @@
 
   <!-- MOBILE BOTTOM NAVIGATION BAR (Fixed at bottom on mobile) -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
-    <a href="/" class="mobile-nav-item {{ 'active' if request.url.path == '/' else '' }}">
+    <a href="/" class="mobile-nav-item {{ 'active' if _path == '/' else '' }}">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
       <span>News</span>
     </a>
-    <a href="/bids" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/bids') else '' }}">
+    <a href="/bids" class="mobile-nav-item {{ 'active' if _path.startswith('/bids') else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       <span>Tenders</span>
     </a>
-    <a href="/jobs" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/jobs') else '' }}">
+    <a href="/jobs" class="mobile-nav-item {{ 'active' if _path.startswith('/jobs') else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
       <span>Jobs</span>
     </a>
-    <a href="/rentals" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/rentals') else '' }}">
+    <a href="/rentals" class="mobile-nav-item {{ 'active' if _path.startswith('/rentals') else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       <span>Rentals</span>
     </a>
-    <a href="/obituaries" class="mobile-nav-item {{ 'active' if request.url.path.startswith('/obituaries') else '' }}">
+    <a href="/obituaries" class="mobile-nav-item {{ 'active' if _path.startswith('/obituaries') else '' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <span>Janaza</span>
     </a>

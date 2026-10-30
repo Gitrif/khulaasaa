@@ -192,3 +192,24 @@ def test_telegram_webapp_sdk_not_unconditionally_loaded_or_initialized_in_chrome
     assert "catch(e) {}" not in app_shell_js
     assert "catch (err) {}" not in app_shell_js
 
+
+def test_appbar_displays_logo_and_page_title_without_header_search_bar():
+    client = TestClient(app)
+    expected_pages = [
+        ("/", "News", "News from trusted Maldivian sources, in one place."),
+        ("/bids", "Bids &amp; Tenders", "Maldives Government Procurement &amp; SOE Portals"),
+        ("/jobs", "Jobs &amp; Vacancies", "Verified career openings across the Maldives"),
+        ("/rentals", "Rentals", "Maldivian Apartment &amp; Rental Directory"),
+        ("/obituaries", "Janaza &amp; Obituaries", "Verified funeral prayer times &amp; cemetery notices"),
+    ]
+    for route, expected_title, expected_subtitle in expected_pages:
+        res = client.get(route)
+        assert res.status_code == 200
+        html = res.text
+        assert 'class="brand-mark lg font-thaana"' in html
+        assert f'<span class="appbar-page-title">{expected_title}</span>' in html
+        assert expected_subtitle in html
+        assert 'id="globalSearchBox"' not in html
+        assert '<span class="brand-title">Khulaasaa</span>' not in html
+
+

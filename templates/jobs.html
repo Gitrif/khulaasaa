@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Jobs &amp; Vacancies — Khulaasaa{% endblock %}
+{% block appbar_title %}Jobs &amp; Vacancies{% endblock %}
+{% block appbar_subtitle %}Verified career openings across the Maldives &middot; {{ jobs|length }} active openings{% endblock %}
 
 {% block content %}
 {% from "components/filter_dock.html" import render_filter_dock %}
@@ -29,18 +31,8 @@
     </div>
 {% endset %}
 {{ render_filter_dock(_jobs_row1, _jobs_row2) }}
-<header class="border-b border-hairline bg-paper">
-  <div class="max-w-4xl mx-auto px-4 pt-6 pb-5">
-    <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-      Job Vacancies &amp; Career Hub
-    </h1>
-    <p class="text-xs sm:text-sm text-slate mt-1">
-      Sourced live from gazette.gov.mv, government agencies, and top Maldivian employers &middot; {{ jobs|length }} active openings
-    </p>
-  </div>
-</header>
 
-<main class="max-w-4xl mx-auto px-4 py-6">
+<main class="max-w-4xl mx-auto px-4 py-4">
   <!-- Non-invasive Sponsored Leaderboard Ad -->
   <div class="my-3">
     {% include "_ad_leaderboard.html" %}

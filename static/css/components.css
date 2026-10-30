@@ -3,18 +3,23 @@
    Header, Navbars, Cards, Badges, Buttons, Wire, Tenders, Ads & Footer
    ========================================================================== */
 
-/* Brand Link & Thaana Kaafu Mark */
+/* Brand Link & Thaana Kaafu Mark + Page Title Block */
+.appbar-inner {
+  min-height: 3.75rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
 .brand-link, a.brand-link, a.brand-link:visited {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   text-decoration: none !important;
   color: var(--ink) !important;
   cursor: pointer;
 }
 .brand-link:hover {
   text-decoration: none !important;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 .brand-mark {
   display: inline-flex;
@@ -44,8 +49,43 @@
 .brand-mark.lg {
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 1.6rem;
-  border-radius: 8px;
+  font-size: 1.55rem;
+  border-radius: 9px;
+}
+.brand-heading-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 1px;
+}
+.appbar-page-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ink) !important;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.appbar-page-subtitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--slate) !important;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 56vw;
+}
+@media (min-width: 768px) {
+  .appbar-page-title {
+    font-size: 1.35rem;
+  }
+  .appbar-page-subtitle {
+    max-width: 340px;
+  }
 }
 .brand-title {
   font-family: 'Inter', system-ui, sans-serif;
@@ -59,47 +99,47 @@
   display: none;
 }
 
-/* Nav Tabs Bar in Header */
-.nav-tabs-bar {
+/* Nav Tabs Bar in Header (Inline inside Unified App Bar on Desktop) */
+.appbar-nav {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.2rem;
-  background: rgba(16, 34, 46, 0.05);
-  border: 1px solid var(--hairline);
-  border-radius: 8px;
-  flex-shrink: 0;
+  gap: 0.25rem;
 }
 .nav-tab, a.nav-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.75rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  border-radius: 6px;
-  color: #475569 !important;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid transparent;
+  color: var(--slate) !important;
   background: transparent;
   text-decoration: none !important;
   transition: all 0.15s ease-in-out;
   white-space: nowrap;
   line-height: 1.25;
 }
+.nav-tab-icon {
+  flex-shrink: 0;
+}
 .nav-tab:visited, a.nav-tab:visited {
-  color: #475569 !important;
+  color: var(--slate) !important;
   text-decoration: none !important;
 }
 .nav-tab:hover, a.nav-tab:hover {
-  background: rgba(16, 34, 46, 0.08);
+  background: rgba(16, 34, 46, 0.05);
   color: var(--ink) !important;
   text-decoration: none !important;
 }
 .nav-tab.active, a.nav-tab.active,
 .nav-tab.active:visited, a.nav-tab.active:visited {
-  background: var(--ink) !important;
-  color: #ffffff !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  border-bottom-color: var(--lagoon) !important;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(16, 34, 46, 0.2);
 }
 
 /* Primary and Secondary Action Buttons */
@@ -969,49 +1009,6 @@
   border-color: var(--lagoon);
 }
 
-/* Header Search Field with Inside Icon and Corner Style */
-.header-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-.header-search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-  fill: #64748B;
-  z-index: 2;
-}
-.header-search-input {
-  width: 100%;
-  height: 32px;
-  padding: 0 10px 0 32px;
-  font-size: 12px;
-  color: var(--ink);
-  background: #ffffff;
-  border: 1px solid var(--hairline);
-  border-radius: 4px; /* Exact corner style matching tabs & cards */
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  box-sizing: border-box;
-}
-.header-search-input:hover {
-  border-color: #B8B0A2;
-}
-.header-search-input:focus {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
-}
-.header-search-input::placeholder {
-  color: var(--slate);
-  opacity: 0.85;
-}
-
 
 /* Mobile Fixed Navigation & Tender Meta */
 /* ==========================================================================
@@ -1111,16 +1108,16 @@ header, .site-header {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
-/* Desktop Navigation Menu (Directly Below Top App Bar) */
+/* Desktop Navigation Menu (Inline Inside Single-Row App Bar) */
 .desktop-nav-menu {
   display: none;
-  border-top: 1px solid var(--hairline);
-  background: rgba(253, 252, 250, 0.96);
-  padding: 0.35rem 0;
+  align-items: center;
 }
 @media (min-width: 768px) {
   .desktop-nav-menu {
-    display: block;
+    display: flex;
+    margin-left: auto;
+    margin-right: 0.5rem;
   }
 }
 
