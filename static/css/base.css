@@ -113,9 +113,9 @@ body {
 .stacked-rows > * + * { border-top: 1px solid var(--hairline); }
 
 /* Dhivehi Thaana Typography & Page Transitions */
-/* Dhivehi Thaana Typography — Crisp, legible, modern (Noto Sans Thaana + Avas/Faseyha fallbacks) */
+/* Dhivehi Thaana typography — Faruma first, with platform and Noto fallbacks. */
 .font-thaana, [dir="rtl"], .thaana-title, .thaana-text {
-  font-family: 'Noto Sans Thaana', 'MV Waheed', 'Faseyha', 'Faruma', 'Aaila', 'MV Typewriter', system-ui, sans-serif !important;
+  font-family: 'Faruma', 'MV Waheed', 'Faseyha', 'Aaila', 'MV Typewriter', 'Noto Sans Thaana', system-ui, sans-serif !important;
   line-height: 1.85 !important;
   letter-spacing: 0 !important;
   word-spacing: 0.05em;
