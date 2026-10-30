@@ -30,11 +30,6 @@
     </div>
   </div>
 
-  <!-- Ad Placement -->
-  {% if active_ads and active_ads|length > 0 %}
-    {% include "_ad_leaderboard.html" %}
-  {% endif %}
-
   <!-- Discipline Filter Bar -->
   <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6 text-xs">
     {% for disc in disciplines %}

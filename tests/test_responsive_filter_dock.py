@@ -211,5 +211,17 @@ def test_appbar_displays_logo_and_page_title_without_header_search_bar():
         assert expected_subtitle in html
         assert 'id="globalSearchBox"' not in html
         assert '<span class="brand-title">Khulaasaa</span>' not in html
+        # Ad bar placements: desktop above app bar, mobile below bottom nav
+        assert html.index('class="desktop-top-ad-bar') < html.index('class="site-header"')
+        assert html.index('class="mobile-bottom-nav"') < html.index('class="mobile-bottom-ad-bar')
+
+    # Verify Janaza & Obituaries strip is removed from the News homepage
+    home_html = client.get("/").text
+    assert "All Obituaries &rarr;" not in home_html
+
+    # Verify CSS grid locks desktop navigation in center across page changes
+    css = _read("static/css/components.css")
+    assert "grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);" in css
+
 
 

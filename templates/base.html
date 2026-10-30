@@ -56,11 +56,18 @@
     {% set _default_appbar_subtitle = 'News from trusted Maldivian sources, in one place.' %}
   {% endif %}
 
+  <!-- DESKTOP LEADERBOARD AD (Above App Bar on Desktop) -->
+  <div class="desktop-top-ad-bar print:hidden">
+    <div class="max-w-6xl mx-auto px-4">
+      {% include "_ad_leaderboard.html" %}
+    </div>
+  </div>
+
   <!-- UNIFIED SINGLE-ROW APP BAR: Logo + Page Title & Subtitle + Inline Desktop Nav + Actions -->
   <header class="site-header">
-    <div class="max-w-6xl mx-auto px-4 appbar-inner flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
+    <div class="max-w-6xl mx-auto px-4 appbar-inner">
       <!-- Brand Mark + Current Page Title & Subtitle -->
-      <a href="/" class="brand-link shrink-0 min-w-0" title="Khulaasaa — Home">
+      <a href="/" class="brand-link appbar-brand shrink-0 min-w-0" title="Khulaasaa — Home">
         <span class="brand-mark lg font-thaana" aria-label="Khulaasaa">ކ</span>
         <span class="brand-heading-wrap">
           <span class="appbar-page-title">{% block appbar_title %}{{ _default_appbar_title }}{% endblock %}</span>
@@ -80,7 +87,7 @@
       </div>
 
       <!-- Global Actions: Viber, Telegram, In-App Notifications, Sign In / Avatar -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div class="appbar-actions flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="headerViberBtn" onclick="handleHeaderChannelClick('viber')"
                 class="app-icon-btn group" title="Connect Viber Alerts" aria-label="Viber Alerts">
           <span class="status-pip"></span>
@@ -293,6 +300,11 @@
       <span>Janaza</span>
     </a>
   </nav>
+
+  <!-- MOBILE BOTTOM AD BAR (Below Bottom Navigation on Mobile) -->
+  <div class="mobile-bottom-ad-bar print:hidden" aria-label="Sponsored Banner">
+    {% include "_ad_leaderboard.html" %}
+  </div>
 
   {% include "components/global_auth_modal.html" %}
   {% include "components/global_sources_modal.html" %}

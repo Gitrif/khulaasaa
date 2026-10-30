@@ -4,10 +4,47 @@
    ========================================================================== */
 
 /* Brand Link & Thaana Kaafu Mark + Page Title Block */
+.desktop-top-ad-bar {
+  display: none;
+  background: var(--paper-soft);
+  border-bottom: 1px solid var(--hairline);
+  padding: 0.45rem 0;
+}
+.desktop-top-ad-bar .ad-card {
+  margin-bottom: 0 !important;
+  padding: 0.55rem 0.85rem !important;
+}
+@media (min-width: 768px) {
+  .desktop-top-ad-bar {
+    display: block;
+  }
+}
+
 .appbar-inner {
   min-height: 3.75rem;
   padding-top: 0.45rem;
   padding-bottom: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+@media (min-width: 768px) {
+  .appbar-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+  }
+  .appbar-brand {
+    justify-self: start;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .appbar-actions {
+    justify-self: end;
+  }
 }
 .brand-link, a.brand-link, a.brand-link:visited {
   display: inline-flex;
@@ -1112,12 +1149,12 @@ header, .site-header {
 .desktop-nav-menu {
   display: none;
   align-items: center;
+  justify-content: center;
 }
 @media (min-width: 768px) {
   .desktop-nav-menu {
     display: flex;
-    margin-left: auto;
-    margin-right: 0.5rem;
+    justify-self: center;
   }
 }
 
@@ -1444,7 +1481,7 @@ header, .site-header {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(104px + env(safe-area-inset-bottom, 0px));
     z-index: 45;
     border-top: 1px solid var(--hairline);
     border-bottom: 0;
@@ -1479,8 +1516,36 @@ header, .site-header {
     box-shadow: var(--dock-shadow);
   }
   .mobile-bottom-nav {
-    height: calc(56px + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    height: 56px;
+    padding-bottom: 0;
   }
-  body { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important; }
+  .mobile-bottom-ad-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 42;
+    min-height: calc(48px + env(safe-area-inset-bottom, 0px));
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+    background: var(--paper);
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+  }
+  .mobile-bottom-ad-bar .ad-card {
+    margin-bottom: 0 !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+  }
+  .mobile-bottom-ad-bar .source-action-btn {
+    padding: 0.25rem 0.55rem !important;
+    font-size: 11px !important;
+  }
+  body { padding-bottom: calc(196px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+@media (min-width: 768px) {
+  .mobile-bottom-ad-bar {
+    display: none !important;
+  }
 }
