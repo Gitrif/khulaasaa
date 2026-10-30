@@ -21,12 +21,12 @@
         <!-- 1. SIGN IN FORM -->
         <form id="modalLoginForm" onsubmit="handleModalLogin(event)" class="space-y-3">
           <div>
-            <label class="block text-xs font-semibold text-ink mb-1">Email or Phone</label>
-            <input type="text" id="loginIdentifier" required placeholder="user@example.com or 7991234" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+            <label class="block text-xs font-semibold text-ink mb-1">Email Address</label>
+            <input type="email" id="loginIdentifier" required autocomplete="username" placeholder="you@example.com" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
           </div>
           <div>
             <label class="block text-xs font-semibold text-ink mb-1">Password</label>
-            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
           </div>
           <button type="submit" id="btnLoginSubmit" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
             Sign In &rarr;
@@ -43,7 +43,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-semibold text-ink mb-1">Email Address</label>
-              <input type="email" id="regEmail" required placeholder="ahmed@gmail.com" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+              <input type="email" id="regEmail" required autocomplete="email" placeholder="you@example.com" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
             </div>
             <div>
               <label class="block text-xs font-semibold text-ink mb-1">Phone Number</label>
@@ -52,7 +52,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-ink mb-1">Password (Min 8 Characters)</label>
-            <input type="password" id="regPassword" required minlength="8" placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
+            <input type="password" id="regPassword" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters" class="w-full px-3 py-2 text-xs border border-hairline rounded bg-paper-soft focus:bg-white focus:outline-emerald-600">
           </div>
           <button type="submit" id="btnRegisterSubmit" class="w-full py-2.5 px-4 bg-ink hover:bg-slate-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer">
             Create Free Account &rarr;
@@ -82,81 +82,53 @@
 
         <!-- 1. CHANNELS TAB -->
         <div id="modalTabChannels" class="space-y-3">
-          <!-- Telegram Integration Box -->
+          <!-- Telegram: status summary; secure linking is handled on the dedicated channel page. -->
           <div class="p-3.5 bg-paper-soft border border-hairline rounded-lg flex flex-col gap-2.5">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2">
                 <span id="modalTgStatusPip" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                 <div>
-                  <span class="text-xs font-bold text-ink block">Telegram Alerts</span>
-                  <span id="modalTgSubtitle" class="text-[11px] text-slate">Connect @khulaasaa_bot</span>
+                  <span class="text-xs font-bold text-ink block">Telegram</span>
+                  <span id="modalTgSubtitle" class="text-[11px] text-slate">Connect your Telegram account</span>
                 </div>
               </div>
               <span id="modalTgBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Not Linked</span>
             </div>
-            <div id="tgUnlinkedActions" class="flex items-center gap-2 pt-1">
-              <a id="tgConnectBotBtn" href="https://t.me/khulaasaa_bot?start=connect" target="_blank" rel="noopener noreferrer" class="flex-1 py-1.5 px-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white text-xs font-semibold rounded text-center transition shadow-2xs">
-                Launch Bot &rarr;
-              </a>
-              <input type="text" id="tgCodeInput" placeholder="Code (e.g. TG-1234)" class="w-32 px-2 py-1.5 text-xs border border-hairline rounded bg-white">
-              <button onclick="linkTelegramAccount()" class="py-1.5 px-3 bg-ink hover:bg-slate-800 text-white text-xs font-semibold rounded transition cursor-pointer">
-                Link
-              </button>
+            <div id="tgLinkedActions" class="hidden text-xs text-slate">
+              <span id="modalTgChatInfo" class="font-mono text-ink"></span>
             </div>
-            <div id="tgLinkedActions" class="hidden flex items-center justify-between pt-1">
-              <span id="modalTgChatInfo" class="text-xs font-mono text-ink"></span>
-              <button onclick="unlinkTelegramAccount()" class="text-xs text-rose-600 hover:underline font-semibold cursor-pointer">Unlink</button>
-            </div>
+            <a href="/account/channels" class="inline-flex items-center justify-center gap-2 py-2 px-3 bg-[#229ED9] hover:bg-[#168BC2] text-white text-xs font-semibold rounded transition">
+              Manage Telegram connection <span aria-hidden="true">&rarr;</span>
+            </a>
           </div>
 
-          <!-- Viber Integration Box -->
+          <!-- Viber: status summary; verification is performed by the bot, not by a browser-supplied ID. -->
           <div class="p-3.5 bg-paper-soft border border-hairline rounded-lg flex flex-col gap-2.5">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2">
                 <span id="modalViberStatusPip" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                 <div>
-                  <span class="text-xs font-bold text-ink block">Viber Alerts</span>
-                  <span id="modalViberSubtitle" class="text-[11px] text-slate">Connect Viber Public Channel</span>
+                  <span class="text-xs font-bold text-ink block">Viber</span>
+                  <span id="modalViberSubtitle" class="text-[11px] text-slate">Connect your Viber account</span>
                 </div>
               </div>
               <span id="modalViberBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Not Linked</span>
             </div>
-            <div id="viberUnlinkedActions" class="flex items-center gap-2 pt-1">
-              <input type="tel" id="viberPhoneInput" placeholder="Viber Phone (7991234)" class="flex-1 px-2 py-1.5 text-xs border border-hairline rounded bg-white">
-              <button onclick="linkViberAccount()" class="py-1.5 px-3 bg-[#7360F2] hover:bg-[#5E4FD6] text-white text-xs font-semibold rounded transition cursor-pointer">
-                Verify
-              </button>
+            <div id="viberLinkedActions" class="hidden text-xs text-slate">
+              <span id="modalViberIdInfo" class="font-mono text-ink"></span>
             </div>
-            <div id="viberLinkedActions" class="hidden flex items-center justify-between pt-1">
-              <span id="modalViberIdInfo" class="text-xs font-mono text-ink"></span>
-              <button onclick="unlinkViberAccount()" class="text-xs text-rose-600 hover:underline font-semibold cursor-pointer">Unlink</button>
-            </div>
+            <a href="/account/channels" class="inline-flex items-center justify-center gap-2 py-2 px-3 bg-[#7360F2] hover:bg-[#5E4FD6] text-white text-xs font-semibold rounded transition">
+              Manage Viber connection <span aria-hidden="true">&rarr;</span>
+            </a>
           </div>
         </div>
 
-        <!-- 2. ALERTS TAB -->
+        <!-- Alert settings have a dedicated, authoritative page. -->
         <div id="modalTabAlerts" class="space-y-3 hidden">
-          <div class="space-y-2">
-            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
-              <input type="checkbox" id="prefAlertBreaking" class="rounded text-emerald-600 focus:ring-emerald-500">
-              <span>Breaking News Wire Bulletins</span>
-            </label>
-            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
-              <input type="checkbox" id="prefAlertTenders" class="rounded text-emerald-600 focus:ring-emerald-500">
-              <span>Gazette &amp; SOE Procurement Tenders</span>
-            </label>
-            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
-              <input type="checkbox" id="prefAlertJobs" class="rounded text-emerald-600 focus:ring-emerald-500">
-              <span>National Career &amp; Job Vacancies</span>
-            </label>
-            <label class="flex items-center gap-2 text-xs font-medium text-ink cursor-pointer">
-              <input type="checkbox" id="prefAlertJanaza" class="rounded text-emerald-600 focus:ring-emerald-500">
-              <span>Funeral &amp; Janaza Announcements</span>
-            </label>
-          </div>
-          <button onclick="saveNotificationPreferences()" class="w-full py-2 bg-ink hover:bg-slate-800 text-white text-xs font-bold rounded transition cursor-pointer shadow-xs">
-            Save Preferences
-          </button>
+          <p class="text-xs leading-relaxed text-slate">Choose which topics and verified channels receive notifications, and configure quiet hours.</p>
+          <a href="/account/alerts" class="inline-flex w-full items-center justify-center gap-2 py-2.5 px-3 bg-ink hover:bg-slate-800 text-white text-xs font-bold rounded transition">
+            Open alert preferences <span aria-hidden="true">&rarr;</span>
+          </a>
         </div>
       </div>
     </div>
@@ -340,7 +312,7 @@
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password })
+          body: JSON.stringify({ email: identifier, password })
         });
         const data = await res.json();
         if (res.ok && data.status === 'ok') {
@@ -416,131 +388,6 @@
       }
     }
 
-    async function linkTelegramAccount() {
-      const code = document.getElementById('tgCodeInput').value.trim();
-      if (!code) {
-        alert('Please enter your Telegram verification code from @khulaasaa_bot');
-        return;
-      }
-      try {
-        const res = await fetch('/api/channels/telegram/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'ok') {
-          alert('Telegram verified successfully!');
-          refreshGlobalAuthPill();
-          openGlobalAlertsModal('telegram');
-        } else {
-          alert(data.detail || 'Invalid verification code.');
-        }
-      } catch (e) {
-        alert('Network error connecting Telegram.');
-      }
-    }
-
-    async function unlinkTelegramAccount() {
-      if (!confirm('Unlink Telegram alerts?')) return;
-      try {
-        await fetch('/api/channels/telegram/unlink', { method: 'POST' });
-        refreshGlobalAuthPill();
-        openGlobalAlertsModal('telegram');
-      } catch (e) {}
-    }
-
-    async function linkViberAccount() {
-      const phone = document.getElementById('viberPhoneInput').value.trim();
-      if (!phone) {
-        alert('Please enter your Viber phone number');
-        return;
-      }
-      try {
-        const res = await fetch('/api/channels/viber/connect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'ok') {
-          alert('Viber alerts linked successfully!');
-          refreshGlobalAuthPill();
-          openGlobalAlertsModal('viber');
-        } else {
-          alert(data.detail || 'Could not link Viber.');
-        }
-      } catch (e) {
-        alert('Network error connecting Viber.');
-      }
-    }
-
-    async function unlinkViberAccount() {
-      if (!confirm('Unlink Viber alerts?')) return;
-      try {
-        await fetch('/api/channels/viber/unlink', { method: 'POST' });
-        refreshGlobalAuthPill();
-        openGlobalAlertsModal('viber');
-      } catch (e) {}
-    }
-
-    async function saveNotificationPreferences() {
-      const payload = {
-        alert_breaking: document.getElementById('prefAlertBreaking').checked,
-        alert_tenders: document.getElementById('prefAlertTenders').checked,
-        alert_jobs: document.getElementById('prefAlertJobs').checked,
-        alert_obituaries: document.getElementById('prefAlertJanaza').checked
-      };
-      try {
-        const res = await fetch('/api/account/alerts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          alert('Preferences saved successfully!');
-          closeGlobalAlertsModal();
-        } else {
-          alert('Failed to save preferences.');
-        }
-      } catch (e) {
-        alert('Network error saving preferences.');
-      }
-    }
-
-    // Global Search Interceptor (Single App Bar)
-    let searchDebounceTimer = null;
-    function handleGlobalSearch(query) {
-      clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(() => {
-        const q = (query || '').trim();
-        const currentPath = window.location.pathname;
-        if (currentPath === '/bids') {
-          window.location.href = '/bids' + (q ? '?q=' + encodeURIComponent(q) : '');
-        } else if (currentPath === '/jobs') {
-          window.location.href = '/jobs' + (q ? '?q=' + encodeURIComponent(q) : '');
-        } else if (currentPath === '/rentals') {
-          window.location.href = '/rentals' + (q ? '?q=' + encodeURIComponent(q) : '');
-        } else if (currentPath === '/obituaries') {
-          window.location.href = '/obituaries' + (q ? '?q=' + encodeURIComponent(q) : '');
-        } else {
-          // Default to live wire search
-          const noResults = document.getElementById('noResults');
-          const cards = document.querySelectorAll('.story-card');
-          let matchCount = 0;
-          cards.forEach(card => {
-            const headline = (card.querySelector('.card-headline') || {}).textContent || '';
-            const summary = (card.querySelector('.card-summary') || {}).textContent || '';
-            const match = !q || headline.toLowerCase().includes(q.toLowerCase()) || summary.toLowerCase().includes(q.toLowerCase());
-            card.style.display = match ? '' : 'none';
-            if (match) matchCount++;
-          });
-          if (noResults) noResults.style.display = (matchCount === 0 && cards.length > 0) ? 'block' : 'none';
-        }
-      }, 300);
-    }
-
-    // Global Follow helper callable anywhere
     function promptAuthForFollow(targetType, targetId, targetTitle) {
       sessionStorage.setItem('khulaasaa_pending_follow', JSON.stringify({
         target_type: targetType,
