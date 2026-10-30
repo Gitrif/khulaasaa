@@ -1292,3 +1292,60 @@ header, .site-header {
   position: relative;
   box-sizing: border-box;
 }
+
+
+/* Canonical shared controls: use these classes on every page. */
+.btn-primary, a.btn-primary, button.btn-primary,
+.btn-secondary, a.btn-secondary, button.btn-secondary {
+  min-height: var(--control-height);
+  border-radius: var(--radius-control) !important;
+}
+.filter-pill, a.filter-pill, button.filter-pill {
+  min-height: 34px;
+  border-radius: var(--radius-pill) !important;
+  padding: 6px 11px;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink) !important;
+}
+.filter-pill.active, a.filter-pill.active, button.filter-pill.active,
+.filter-pill.active:visited, a.filter-pill.active:visited {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #fff !important;
+}
+.filter-pill:focus-visible, .btn-primary:focus-visible, .btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.filter-pills {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--control-gap);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-pills::-webkit-scrollbar { display: none; }
+.filter-toolbar {
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.filter-toggle { flex: 0 0 auto; }
+.filter-toggle .filter-chevron { transition: transform .18s ease; }
+.filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
+.filter-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.filter-legend-swatch {
+  width: 8px; height: 8px; border-radius: 2px; flex: 0 0 auto;
+  background: var(--category-color, var(--color-accent));
+}
+.category-civic { --category-color: var(--lagoon); }
+.category-breaking { --category-color: var(--flag); }
+.category-policy { --category-color: var(--gold); }
+.category-general { --category-color: var(--slate); }
+@media (max-width: 640px) {
+  .filter-toolbar-inner { flex-wrap: nowrap; }
+  .filter-pills { flex: 1 1 auto; }
+  .filter-toggle { min-width: max-content; }
+}
