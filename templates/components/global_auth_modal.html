@@ -139,10 +139,6 @@
   </div>
 
   <script>
-    function isUserAuthenticated() {
-      return document.cookie.includes('session_token=') || Boolean(localStorage.getItem('khulaasaa_user_id'));
-    }
-
     function toggleAuthMode(mode) {
       const loginForm = document.getElementById('modalLoginForm');
       const regForm = document.getElementById('modalRegisterForm');
