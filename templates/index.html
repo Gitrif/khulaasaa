@@ -3,8 +3,8 @@
 
 {% block content %}
 <!-- Sub-Appbar Filter & Sort Bar (Heading removed, Sort menu directly below App Bar) -->
-<div class="border-b border-hairline bg-paper-soft/60 py-2">
-  <div class="max-w-5xl mx-auto px-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+<div class="filter-toolbar border-b border-hairline py-2">
+  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
     <!-- Category / Narrative Filter Pills -->
     <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar filter-pills flex-1 min-w-0">
       <a href="/" class="filter-pill {{ 'active' if not active_tag and not active_topic else '' }}" title="See all news stories">
@@ -17,7 +17,7 @@
       <a href="/?tag=green-tax" class="filter-pill {{ 'active' if active_tag == 'green-tax' else '' }}">Green Tax</a>
       <a href="/?tag=traffic-reform" class="filter-pill {{ 'active' if active_tag == 'traffic-reform' else '' }}">Traffic Ban</a>
       <a href="/?tag=bridge-safety" class="filter-pill {{ 'active' if active_tag == 'bridge-safety' else '' }}">Bridge Safety</a>
-      <button id="toggleFilterBtn" class="filter-pill border-dashed" onclick="toggleFilterDrawer()">More Filters ▾</button>
+      <button id="toggleFilterBtn" type="button" class="filter-pill filter-toggle border-dashed" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()"><span>Filters</span><svg class="filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     </div>
 
 
