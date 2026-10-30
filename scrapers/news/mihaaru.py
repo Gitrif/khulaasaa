@@ -8,9 +8,9 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-import requests
 from bs4 import BeautifulSoup
 
+from scrapers.common.http_client import fetch_text
 from scrapers.news.base import (
     HEADERS,
     classify_topic,
@@ -28,10 +28,10 @@ def fetch_mihaaru_posts(
     """Fetch real-time news articles from Mihaaru Online (mihaaru.com)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=6)
-        if resp.status_code != 200:
+        html = fetch_text(url, headers=HEADERS, timeout=6, retries=2)
+        if not html:
             return []
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         links = soup.find_all("a", href=re.compile(r"/(news|report)/\d+"))
         seen = set()
         for a in links:

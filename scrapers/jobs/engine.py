@@ -16,10 +16,18 @@ logger = logging.getLogger("khulaasaa.jobs.engine")
 
 def fetch_all_jobs(pages: int = 1) -> list[dict[str, Any]]:
     """Fetch and enrich job listings from all configured job sources without DB persistence."""
-    fetched = fetch_gazette_job_vacancies(pages=pages)
+    fetched: list[dict[str, Any]] = []
+    try:
+        gazette_jobs = fetch_gazette_job_vacancies(pages=pages)
+        if gazette_jobs:
+            fetched.extend(gazette_jobs)
+    except Exception as exc:
+        logger.warning("Error fetching Gazette jobs: %s", exc)
+
     try:
         mycareer_jobs = fetch_mycareer_jobs()
-        fetched.extend(mycareer_jobs)
-    except Exception as e:
-        logger.warning("Error fetching MyCareer jobs: %s", e)
+        if mycareer_jobs:
+            fetched.extend(mycareer_jobs)
+    except Exception as exc:
+        logger.warning("Error fetching MyCareer jobs: %s", exc)
     return fetched

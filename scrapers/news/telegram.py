@@ -9,9 +9,10 @@ import re
 from datetime import datetime
 from typing import Any
 
-import requests
 from bs4 import BeautifulSoup
 
+from scrapers.common.http_client import fetch_text
+from scrapers.common.source_result import stable_digest
 from scrapers.news.base import (
     HEADERS,
     classify_topic,
@@ -26,10 +27,10 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
     """Fetch live public posts from Telegram channel preview (e.g. https://t.me/s/mvcrisis)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=6)
-        if resp.status_code != 200:
+        html = fetch_text(url, headers=HEADERS, timeout=6, retries=2)
+        if not html:
             return []
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         messages = soup.select(".tgme_widget_message")
         for m in messages:
             text_el = m.select_one(".tgme_widget_message_text")
@@ -101,8 +102,8 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
             date_iso = date_el.get("datetime") if date_el else None
             link = link_el.get("href") if link_el else url
 
-            # Generate stable ID from telegram post link or text hash
-            post_id = link.rstrip("/").split("/")[-1] if link else str(abs(hash(txt)))
+            # Generate stable ID from telegram post link or deterministic SHA-256 text digest
+            post_id = link.rstrip("/").split("/")[-1] if link else stable_digest(source_key, url, txt)
 
             # Clean first line as headline
             headline = txt.split("\n")[0].strip()

@@ -8,9 +8,9 @@ import logging
 from typing import Any
 
 from bs4 import BeautifulSoup
-import requests
 
 from scrapers.common.headers import DEFAULT_BROWSER_HEADERS
+from scrapers.common.http_client import fetch_text
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +39,10 @@ def fetch_telegram_obituaries(
     """
     candidates: list[dict[str, Any]] = []
     try:
-        resp = requests.get(url, headers=DEFAULT_BROWSER_HEADERS, timeout=8)
-        if resp.status_code != 200:
+        html = fetch_text(url, headers=DEFAULT_BROWSER_HEADERS, timeout=8, retries=2)
+        if not html:
             return []
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         messages = soup.select(".tgme_widget_message_wrap")
 
         for m in reversed(messages[-25:]):

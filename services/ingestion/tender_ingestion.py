@@ -13,6 +13,7 @@ from typing import Any, Callable, Optional
 from alerts.telegram import dispatch_tender_alerts
 from alerts.viber import dispatch_viber_bid_alerts
 from data.database import get_db, log_db_error, purge_expired_bids, upsert_bid
+from scrapers.common.source_result import stable_record_id
 from scrapers.tenders import (
     BidNotice,
     classify_procurement,
@@ -95,8 +96,12 @@ def normalize_agency_record(ar: Any) -> dict[str, Any]:
     nature, disc = classify_procurement(ar.title)
     agency_clean = translate_agency(ar.agency)
     title_en = translate_dhivehi_title(ar.title)
+    if ar.reference_number and str(ar.reference_number).strip():
+        notice_id = f"{ar.source_name}-{str(ar.reference_number).strip()}"
+    else:
+        notice_id = stable_record_id(ar.source_name, ar.source_name, ar.source_url, ar.title)
     return {
-        "notice_id": f"{ar.source_name}-{ar.reference_number or hash(ar.title)}",
+        "notice_id": notice_id,
         "ref": ar.reference_number,
         "reference_number": ar.reference_number,
         "agency": agency_clean,

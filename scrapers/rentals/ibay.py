@@ -7,10 +7,10 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any, Optional
-import urllib.request
 
 from bs4 import BeautifulSoup
 
+from scrapers.common.http_client import fetch_text
 from scrapers.rentals.base import (
     COMMON_FURNISHED_ITEMS,
     _item,
@@ -30,15 +30,14 @@ def scrape_ibay_rentals(raw_html: Optional[str] = None) -> list[dict[str, Any]]:
     html = raw_html
     if html is None:
         url = "https://ibay.com.mv/housing-real-estate-b19.html"
-        try:
-            req = urllib.request.Request(
-                url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) KhulaasaaBot/2.0"},
-            )
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
-        except Exception as exc:
-            logger.warning("Failed fetching live listings from iBay: %s", exc)
+        html = fetch_text(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) KhulaasaaBot/2.0"},
+            timeout=10,
+            retries=2,
+        )
+        if not html:
+            logger.warning("Failed fetching live listings from iBay: %s", url)
             return []
 
     soup = BeautifulSoup(html, "html.parser")

@@ -11,9 +11,10 @@ import re
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup
-import requests
 
-from data.taxonomy import extract_atoll_and_island
+from scrapers.common.taxonomy import extract_atoll_and_island
+from scrapers.common.http_client import fetch_text, http_get
+from scrapers.common.source_result import stable_record_id
 from scrapers.jobs.classifier import classify_job_discipline, translate_job_title
 from scrapers.tenders.gazette import (
     notice_id_from_url,
@@ -97,15 +98,16 @@ def enrich_gazette_job_notice(notice_id: str, timeout: int = 8) -> dict[str, Any
     """Fetch official print view for a single gazette vacancy notice."""
     url = f"https://gazette.gov.mv/iulaan/print/{notice_id}"
     try:
-        resp = requests.get(
+        html = fetch_text(
             url,
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
             timeout=timeout,
+            retries=2,
         )
-        if resp.status_code != 200:
+        if not html:
             return {}
 
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         raw_sal, raw_allow, raw_work = "", "", ""
 
         for tr in soup.select("table tr"):
@@ -157,22 +159,20 @@ def batch_enrich_gazette_jobs(jobs: list[dict[str, Any]], max_workers: int = 5) 
     return jobs
 
 
-def fetch_gazette_job_vacancies(pages: int = 1, session: Optional[requests.Session] = None) -> list[dict[str, Any]]:
+def fetch_gazette_job_vacancies(pages: int = 1, session: Optional[Any] = None) -> list[dict[str, Any]]:
     """Fetch recent live job vacancies from gazette.gov.mv."""
-    session = session or requests.Session()
-    session.headers.setdefault(
-        "User-Agent",
-        "KhulaasaaJobs/1.0 (+https://khulaasaa.tech/jobs; contact@khulaasaa.tech)",
-    )
+    req_headers = {
+        "User-Agent": "KhulaasaaJobs/1.0 (+https://khulaasaa.tech/jobs; contact@khulaasaa.tech)",
+    }
 
     jobs: list[dict[str, Any]] = []
 
     for page in range(1, pages + 1):
         url = f"{JOB_LISTING_URL}&page={page}"
         try:
-            resp = session.get(url, timeout=15)
-            if resp.status_code != 200:
-                logger.warning("Gazette returned HTTP %s for page %s", resp.status_code, page)
+            resp = http_get(url, headers=req_headers, timeout=15, session=session, retries=2)
+            if resp is None or resp.status_code != 200:
+                logger.warning("Gazette returned HTTP %s for page %s", getattr(resp, "status_code", "None"), page)
                 continue
             soup = BeautifulSoup(resp.text, "html.parser")
             cards = soup.select(".items-list .items")
@@ -182,7 +182,7 @@ def fetch_gazette_job_vacancies(pages: int = 1, session: Optional[requests.Sessi
                     continue
                 raw_title = title_el.get_text(strip=True)
                 href = title_el.get("href", "")
-                notice_id = notice_id_from_url(href) or f"gazette-job-{abs(hash(raw_title))}"
+                notice_id = notice_id_from_url(href) or stable_record_id("gazette-job", href, raw_title)
 
                 office_el = card.select_one(".iulaan-office")
                 agency_raw = office_el.get_text(strip=True) if office_el else "Government Agency"

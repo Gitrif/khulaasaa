@@ -29,8 +29,9 @@ def test_base_shell_lightweight_assets(client: TestClient):
     # print.css must be media=print
     assert 'href="/static/css/print.css" media="print"' in html
 
-    # telegram-web-app.js must be deferred
-    assert 'src="https://telegram.org/js/telegram-web-app.js" defer' in html
+    # telegram-web-app.js must NOT be unconditionally loaded on ordinary browser pages
+    assert 'src="https://telegram.org/js/telegram-web-app.js"' not in html
+    assert 'src="/static/js/app_shell.js" defer' in html
 
     # All 5 core navigation tabs must be present in both desktop and mobile navigation
     assert 'href="/bids"' in html

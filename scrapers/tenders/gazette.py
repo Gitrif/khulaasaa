@@ -10,9 +10,9 @@ import re
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup
-import requests
 
 from scrapers.common.headers import DEFAULT_BROWSER_HEADERS as GAZETTE_HEADERS
+from scrapers.common.http_client import http_get
 from scrapers.tenders.classifier import (
     DISCIPLINE_KEYWORDS,
     classify_discipline,
@@ -330,21 +330,27 @@ def parse_listing_html(html: str) -> list[BidNotice]:
 
 def fetch_notice(notice_id: str, session=None) -> BidNotice:
     """Fetch notice details from Gazette print view."""
-    session = session or requests.Session()
-    session.headers.update(GAZETTE_HEADERS)
     url = print_url(notice_id)
-    resp = session.get(url, timeout=15)
-    resp.raise_for_status()
+    if session is not None and hasattr(session, "headers"):
+        session.headers.update(GAZETTE_HEADERS)
+    resp = http_get(url, headers=GAZETTE_HEADERS, timeout=15, session=session, retries=2)
+    if resp is None:
+        raise RuntimeError(f"Failed to fetch gazette notice {notice_id} from {url}")
+    if hasattr(resp, "raise_for_status"):
+        resp.raise_for_status()
     return parse_notice_html(resp.text, notice_id)
 
 
 def fetch_listing(type_slug: str = "beelan", page: int = 1, session=None) -> list[BidNotice]:
     """Fetch and parse one page of notices from the live gazette listing."""
-    session = session or requests.Session()
-    session.headers.update(GAZETTE_HEADERS)
     url = f"{BASE_URL}/iulaan?type={type_slug}&page={page}"
-    resp = session.get(url, timeout=15)
-    resp.raise_for_status()
+    if session is not None and hasattr(session, "headers"):
+        session.headers.update(GAZETTE_HEADERS)
+    resp = http_get(url, headers=GAZETTE_HEADERS, timeout=15, session=session, retries=2)
+    if resp is None:
+        raise RuntimeError(f"Failed to fetch gazette listing from {url}")
+    if hasattr(resp, "raise_for_status"):
+        resp.raise_for_status()
     return parse_listing_html(resp.text)
 
 

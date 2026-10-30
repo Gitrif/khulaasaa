@@ -11,8 +11,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Any, Optional
 
-import requests
-
+from scrapers.common.http_client import http_get
+from scrapers.common.source_result import stable_digest
 from scrapers.news.base import (
     HEADERS,
     strip_html_tags,
@@ -49,8 +49,10 @@ def fetch_rss_posts(
             req_headers["If-Modified-Since"] = cache_entry["last_modified"]
 
     try:
-        resp = requests.get(url, headers=req_headers, timeout=6)
-        
+        resp = http_get(url, headers=req_headers, timeout=6, retries=2)
+        if resp is None:
+            return cache_entry.get("articles", []) if cache_entry else []
+
         # HTTP 304: Content has not changed since last fetch
         if resp.status_code == 304 and cache_entry:
             logger.debug("RSS feed unchanged (HTTP 304): %s", url)
@@ -120,7 +122,7 @@ def fetch_rss_posts(
                 if guid_el is None:
                     guid_el = item.find("id")
                 guid = guid_el.text if guid_el is not None and guid_el.text else link
-                slug_id = re.sub(r"[^\w-]", "", guid.split("/")[-1] or str(hash(title)))
+                slug_id = re.sub(r"[^\w-]", "", guid.split("/")[-1]) or stable_digest(source_key, link, title)
             else:
                 title_el = item.find("title")
                 title = strip_html_tags(title_el.text if title_el is not None else "")
@@ -149,7 +151,7 @@ def fetch_rss_posts(
 
                 guid_el = item.find("guid")
                 guid = guid_el.text if guid_el is not None and guid_el.text else link
-                slug_id = re.sub(r"[^\w-]", "", guid.split("/")[-1] or str(hash(title)))
+                slug_id = re.sub(r"[^\w-]", "", guid.split("/")[-1]) or stable_digest(source_key, link, title)
 
             minutes_ago = calculate_minutes_ago(date_iso)
             time_ago = format_relative_time(minutes_ago, date_iso)

@@ -207,20 +207,22 @@ def test_parse_sto_tenders():
 # 6. fetch_all_agency_portals aggregation
 # ---------------------------------------------------------------------
 def test_fetch_all_agency_portals_mocked():
-    with patch("scrapers.tenders._get_soup") as mock_soup:
-        def side_effect(url, timeout=10):
-            if "finance" in url:
-                return bs4.BeautifulSoup("<table><tr><th>Project Type</th><th>Invitation Ref No</th><th>Procurement No</th><th>Procurement Name</th><th>Sector</th><th>Agency</th><th>Appr</th><th>Pub</th><th>Sub</th></tr><tr><td>W</td><td>(IUL)13-K/2026/1</td><td>T1</td><td>Hospital</td><td>H</td><td>Ministry of Health</td><td>A</td><td>01/10/2026</td><td>20/10/2026</td></tr></table>", "html.parser")
-            elif "tourism" in url:
-                return bs4.BeautifulSoup("<table><tr><td>01 Oct</td><td>Eco Tourism Resort - (IUL)88-PS/2026/50</td></tr></table>", "html.parser")
-            return None
+    def side_effect(url, timeout=10):
+        if "finance" in url:
+            return bs4.BeautifulSoup("<table><tr><th>Project Type</th><th>Invitation Ref No</th><th>Procurement No</th><th>Procurement Name</th><th>Sector</th><th>Agency</th><th>Appr</th><th>Pub</th><th>Sub</th></tr><tr><td>W</td><td>(IUL)13-K/2026/1</td><td>T1</td><td>Hospital</td><td>H</td><td>Ministry of Health</td><td>A</td><td>01/10/2026</td><td>20/10/2026</td></tr></table>", "html.parser")
+        elif "tourism" in url:
+            return bs4.BeautifulSoup("<table><tr><td>01 Oct</td><td>Eco Tourism Resort - (IUL)88-PS/2026/50</td></tr></table>", "html.parser")
+        return None
 
-        mock_soup.side_effect = side_effect
-        records = fetch_all_agency_portals()
-        assert len(records) == 2
-        sources = {r.source_name for r in records}
-        assert "finance.gov.mv" in sources
-        assert "tourism.gov.mv" in sources
+    records = fetch_all_agency_portals(soup_getter=side_effect)
+    assert len(records) == 2
+    sources = {r.source_name for r in records}
+    assert "finance.gov.mv" in sources
+    assert "tourism.gov.mv" in sources
+
+    with patch("scrapers.tenders._get_soup", side_effect=side_effect):
+        patched_records = fetch_all_agency_portals()
+        assert len(patched_records) == 2
 
 
 # ---------------------------------------------------------------------

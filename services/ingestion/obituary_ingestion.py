@@ -16,6 +16,7 @@ from data.database import (
     upsert_obituary,
     upsert_scraped_obituary,
 )
+from scrapers.common.source_result import stable_record_id
 from scrapers.obituaries import (
     DEFAULT_FB_PAGE_URL,
     fetch_facebook_kashunamaadhu_posts,
@@ -70,7 +71,7 @@ def import_kashunamaadhu_text(
     Parse a copied Kashunamaadhu Facebook post or wire message and save it to the obituaries database.
     """
     parsed = parse_obituary_text(raw_text)
-    slug = f"kashunamaadhu-{abs(hash(raw_text[:100])) % 100000}"
+    slug = stable_record_id("kashunamaadhu", source_url, raw_text[:100])
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     ob_data = {

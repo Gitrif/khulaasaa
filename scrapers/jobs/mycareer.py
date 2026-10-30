@@ -9,8 +9,8 @@ import logging
 from typing import Any
 
 from bs4 import BeautifulSoup
-import requests
 
+from scrapers.common.http_client import fetch_text
 from scrapers.jobs.classifier import classify_job_discipline
 
 logger = logging.getLogger("khulaasaa.jobs.mycareer")
@@ -22,10 +22,10 @@ def fetch_mycareer_jobs() -> list[dict[str, Any]]:
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     jobs = []
     try:
-        req = requests.get(url, headers=headers, timeout=12)
-        if req.status_code != 200:
+        html = fetch_text(url, headers=headers, timeout=12, retries=2)
+        if not html:
             return jobs
-        soup = BeautifulSoup(req.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         job_links = soup.select("a[href*='/en/jobs/']")
         seen_slugs = set()
 

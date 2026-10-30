@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Any, Optional
 
-import requests
+from scrapers.common.http_client import http_get
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,9 @@ def fetch_facebook_kashunamaadhu_posts(
     }
 
     try:
-        resp = requests.get(url, params=params, timeout=12)
+        resp = http_get(url, params=params, timeout=12, retries=2)
+        if resp is None:
+            return []
         if resp.status_code != 200:
             logger.warning("Facebook Graph API returned %s: %s", resp.status_code, resp.text[:200])
             return []

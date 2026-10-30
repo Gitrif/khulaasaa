@@ -25,10 +25,9 @@ logger = logging.getLogger(__name__)
 def _resolve_soup_getter(override: Optional[Callable[[str], Optional[bs4.BeautifulSoup]]] = None) -> Callable[[str], Optional[bs4.BeautifulSoup]]:
     if override is not None:
         return override
-    for mod_name in ("scrapers.tenders", "scrapers.agencies"):
-        mod = sys.modules.get(mod_name)
-        if mod and hasattr(mod, "_get_soup"):
-            return mod._get_soup
+    mod = sys.modules.get("scrapers.tenders")
+    if mod and hasattr(mod, "_get_soup"):
+        return mod._get_soup
     return get_soup
 
 
