@@ -1349,3 +1349,131 @@ header, .site-header {
   .filter-pills { flex: 1 1 auto; }
   .filter-toggle { min-width: max-content; }
 }
+
+
+/* ==========================================================================
+   Khulaasaa responsive filter dock
+   One shared filter component: inline below the desktop header, docked above
+   mobile navigation on small screens. The news cards themselves are untouched.
+   ========================================================================== */
+.filter-toolbar {
+  position: relative;
+  z-index: 35;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+}
+.filter-toolbar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 4px 0;
+}
+.filter-row + .filter-row {
+  border-top: 1px solid rgba(16, 34, 46, .07);
+}
+.filter-row-stories { background: transparent; }
+.filter-row-topics { background: rgba(47, 124, 116, .035); }
+.filter-row-label {
+  flex: 0 0 82px;
+  color: var(--slate);
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: .045em;
+  white-space: nowrap;
+}
+.filter-row .filter-pills {
+  flex: 1 1 auto;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.filter-row .filter-pills::-webkit-scrollbar { display: none; }
+.filter-row .filter-pill {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 4px !important;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.filter-more-btn {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--slate);
+}
+.filter-more-btn[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
+.filter-more-btn .filter-chevron { transition: transform .18s ease; }
+.filter-drawer {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 1px solid var(--hairline);
+}
+@media (min-width: 768px) {
+  .filter-toolbar { position: relative; }
+  .filter-toolbar-inner { max-width: 64rem; }
+  .filter-row { min-height: 40px; }
+}
+@media (max-width: 767px) {
+  .filter-toolbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 0;
+    box-shadow: 0 -5px 18px rgba(16, 34, 46, .08);
+    padding: 2px 0;
+  }
+  .filter-toolbar-inner { padding-left: 10px; padding-right: 10px; }
+  .filter-row {
+    min-height: 39px;
+    gap: 6px;
+  }
+  .filter-row-label {
+    flex-basis: 70px;
+    font-size: 9px;
+    letter-spacing: .025em;
+  }
+  .filter-row .filter-pills { gap: 5px; }
+  .filter-row .filter-pill {
+    min-height: 27px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  .filter-more-btn {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+  }
+  .filter-drawer {
+    max-height: min(42vh, 300px);
+    overflow-y: auto;
+    background: var(--paper);
+    box-shadow: 0 -8px 18px rgba(16, 34, 46, .08);
+  }
+  .mobile-bottom-nav {
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important; }
+}
