@@ -64,3 +64,14 @@ def test_bids_jobs_rentals_use_single_shared_filter_dock():
     assert rentals.count('rentals/feature_legend.html') == 1
     for hook in ("filterAtoll", "filterIsland", "filterWard", "filterCustomRooms", "budgetRangeSlider"):
         assert rentals.count(f'id="{hook}"') == 1
+
+
+def test_all_primary_routes_render_single_filter_dock():
+    from fastapi.testclient import TestClient
+    from main import app
+
+    client = TestClient(app)
+    for route in ("/", "/bids", "/jobs", "/rentals", "/obituaries"):
+        res = client.get(route)
+        assert res.status_code == 200, f"{route} returned {res.status_code}"
+        assert res.text.count('id="pageFilterToolbar"') == 1, f"{route} missing single #pageFilterToolbar"
