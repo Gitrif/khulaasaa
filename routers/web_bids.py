@@ -98,6 +98,7 @@ def bids(
             "is_live": use_live,
             "agencies": filter_options["agencies"],
             "disciplines": filter_options["disciplines"],
+            "quick_disciplines": ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"],
             "natures": ["Supply", "Service", "Lease"],
             "types": filter_options["types"],
             "entity_types": ["SOE", "Ministry", "Council", "Healthcare", "Education", "Independent", "Other"],

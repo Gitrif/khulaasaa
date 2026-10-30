@@ -8,10 +8,6 @@
 let currentTelegramUser = null;
 let pendingSortCriterion = null;
 
-function isMobileDevice() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-}
-
 function getTelegramUrl(payload) {
   const p = payload ? '?start=' + encodeURIComponent(payload) : '';
   if (isMobileDevice()) {
@@ -184,14 +180,6 @@ function filterCards(query) {
   });
   const noRes = document.getElementById('noResults');
   if (noRes) noRes.style.display = (q && !anyVisible) ? '' : 'none';
-}
-
-function toggleFilterDrawer() {
-  const drawer = document.getElementById('filterDrawer');
-  const btn = document.getElementById('toggleFilterBtn');
-  if (!drawer) return;
-  const isHidden = drawer.classList.toggle('hidden');
-  if (btn) btn.textContent = isHidden ? 'More Filters ▾' : 'Fewer Filters ▴';
 }
 
 function isUserProOrTrial() {

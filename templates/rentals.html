@@ -3,9 +3,8 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<!-- Shared responsive filter section (same .filter-toolbar component as News): top on desktop, bottom dock on mobile. -->
-<div class="filter-toolbar" id="pageFilterToolbar">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn %}
+{% set _rentals_row1 %}
     <div class="filter-row">
       <label class="filter-row-label" for="filterIsland">Location</label>
       <div class="filter-pills" aria-label="Location filters">
@@ -29,10 +28,10 @@
         </select>
         <span id="collapsedFilterBadge" style="display:none;" class="filter-pill active"></span>
       </div>
-      <button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="More rental filters">
-        <svg class="filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
+      {{ filter_more_btn('More rental filters') }}
     </div>
+{% endset %}
+{% set _rentals_row2 %}
     <div class="filter-row filter-row-topics">
       <span class="filter-row-label">Bedrooms</span>
       <div class="filter-pills" aria-label="Bedroom filters">
@@ -46,15 +45,15 @@
         <button type="button" class="filter-pill" onclick="resetAllRentalFilters()">Reset</button>
       </div>
     </div>
-  </div>
-  <div id="filterDrawer" class="filter-drawer max-w-5xl mx-auto px-4 hidden">
+{% endset %}
+{% set _rentals_drawer %}
     <div class="space-y-3">
       <div>
         <div class="flex items-center justify-between text-xs mb-1">
           <label for="budgetRangeSlider" class="text-[10px] font-bold uppercase tracking-wider text-slate">Price Range (Maximum Budget)</label>
           <span class="font-bold text-ink text-xs font-mono" id="budgetScrollerValue">Any Rent (Unlimited)</span>
         </div>
-        <input type="range" id="budgetRangeSlider" min="10000" max="60000" step="1000" value="60000" oninput="updateBudgetSlider(this.value)" class="w-full accent-[#0b5d57] cursor-pointer h-2 bg-slate-200 rounded-lg">
+        <input type="range" id="budgetRangeSlider" min="10000" max="60000" step="1000" value="60000" oninput="updateBudgetSlider(this.value)" class="w-full cursor-pointer h-2 bg-slate-200 rounded-lg" style="accent-color: var(--color-accent);">
         <div class="flex items-center justify-between text-[10px] text-slate font-mono mt-1">
           <span>10k</span><span>20k</span><span>30k</span><span>40k</span><span>50k</span><span>60k+ (Any)</span>
         </div>
@@ -63,8 +62,8 @@
         {% include "rentals/feature_legend.html" %}
       </div>
     </div>
-  </div>
-</div>
+{% endset %}
+{{ render_filter_dock(_rentals_row1, _rentals_row2, _rentals_drawer) }}
 <main class="max-w-6xl mx-auto px-4 py-6 text-ink">
 
   <!-- Page Heading & Subheading (Below App Bar) -->

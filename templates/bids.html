@@ -2,37 +2,38 @@
 {% block title %}Bids &amp; Tenders — Dispatch{% endblock %}
 
 {% block content %}
-<!-- Shared responsive filter section (same .filter-toolbar component as News). Keeps the existing discipline/q/portal/cross_listed query parameters. -->
-{% set _bid_qs %}{% if search_q %}&q={{ search_q | urlencode }}{% endif %}{% if active_portal %}&portal={{ active_portal | urlencode }}{% endif %}{% if cross_listed %}&cross_listed=1{% endif %}{% endset %}
-<div class="filter-toolbar" id="pageFilterToolbar">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+{% from "components/filter_dock.html" import render_filter_dock %}
+{% set _bid_cross = '1' if cross_listed else None %}
+{% set _bids_row1 %}
     <div class="filter-row">
       <select class="filter-select" aria-label="Filter tenders by discipline" onchange="window.location.href=this.value">
-        <option value="/bids{% if search_q %}?q={{ search_q | urlencode }}{% endif %}" {{ 'selected' if not active_discipline }}>All fields</option>
-        {% for d in ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"] %}
-        <option value="?discipline={{ d | urlencode }}{{ _bid_qs }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
+        <option value="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if not active_discipline }}>All fields</option>
+        {% for d in quick_disciplines %}
+        <option value="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
         {% endfor %}
       </select>
       <div class="filter-pills" aria-label="Discipline filters">
-        <a href="/bids{% if search_q %}?q={{ search_q | urlencode }}{% endif %}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
-        {% for d in ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"] %}
-        <a href="?discipline={{ d | urlencode }}{{ _bid_qs }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
+        <a href="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
+        {% for d in quick_disciplines %}
+        <a href="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
         {% endfor %}
       </div>
       <button type="button" class="filter-more-btn" onclick="openAdvancedFilterModal()" aria-label="Open advanced tender filters" aria-haspopup="dialog" title="Advanced filters">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
       </button>
     </div>
+{% endset %}
+{% set _bids_row2 %}
     <div class="filter-row filter-row-topics">
       <span class="filter-row-label">Options</span>
       <div class="filter-pills" aria-label="Tender options">
-        <a href="?cross_listed={{ '0' if cross_listed else '1' }}{% if active_discipline %}&discipline={{ active_discipline | urlencode }}{% endif %}{% if search_q %}&q={{ search_q | urlencode }}{% endif %}" class="filter-pill {{ 'active' if cross_listed else '' }}">Cross-Published{% if cross_listed %} &times;{% endif %}</a>
+        <a href="{{ build_filter_url('/bids', cross_listed=('0' if cross_listed else '1'), discipline=active_discipline, q=search_q, portal=active_portal) }}" class="filter-pill {{ 'active' if cross_listed else '' }}">Cross-Published{% if cross_listed %} &times;{% endif %}</a>
         {% if active_agency or active_nature or active_entity_type or active_portal or active_type %}<span class="filter-pill active">Advanced filters on</span>{% endif %}
         {% if active_agency or active_discipline or active_nature or active_portal or active_type or cross_listed or search_q %}<a href="/bids" class="filter-pill">Reset</a>{% endif %}
       </div>
     </div>
-  </div>
-</div>
+{% endset %}
+{{ render_filter_dock(_bids_row1, _bids_row2) }}
 <!-- Minimalist High-Real-Estate Header -->
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-3xl mx-auto px-4 pt-4 pb-3">

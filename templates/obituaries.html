@@ -2,9 +2,8 @@
 {% block title %}Funeral Announcements &amp; Obituaries | Khulaasaa{% endblock %}
 
 {% block content %}
-<!-- Shared responsive filter section (same .filter-toolbar component as News): top on desktop, bottom dock on mobile. -->
-<div class="filter-toolbar" id="pageFilterToolbar">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+{% from "components/filter_dock.html" import render_filter_dock %}
+{% set _notices_row1 %}
     <div class="filter-row">
       <span class="filter-row-label">Region</span>
       <div class="filter-pills" aria-label="Region filters">
@@ -15,10 +14,12 @@
         <button type="button" class="filter-pill" id="btn-reg-south" onclick="filterByRegion('south')">South</button>
       </div>
     </div>
+{% endset %}
+{% set _notices_row2 %}
     <div class="filter-row filter-row-topics">
       <label class="filter-row-label" for="atollSelect">Atoll</label>
       <div class="filter-pills">
-        <select id="atollSelect" onchange="filterByAtoll(this.value)" class="text-xs px-2.5 py-1 bg-white border border-hairline rounded text-ink focus:outline-none focus:border-ink">
+        <select id="atollSelect" onchange="filterByAtoll(this.value)" class="filter-select">
           <option value="all">All Atolls</option>
           {% for a in atolls %}
           <option value="{{ a.code }}" {{ 'selected' if active_atoll == a.code }}>{{ a.atoll_en }}</option>
@@ -26,8 +27,8 @@
         </select>
       </div>
     </div>
-  </div>
-</div>
+{% endset %}
+{{ render_filter_dock(_notices_row1, _notices_row2) }}
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-6xl mx-auto px-4 pt-6 pb-5 text-center">
     <div class="inline-flex items-center gap-2 px-3 py-1 bg-ink text-paper rounded text-xs font-semibold uppercase tracking-wider mb-2">

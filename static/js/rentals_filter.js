@@ -29,18 +29,6 @@ let currentWard = '';
 let currentRooms = 0;
 let currentMaxPrice = 0;
 const activeLegendFeatures = new Set();
-let isRentalFilterExpanded = false;
-
-function toggleRentalFilterCollapse() {
-  isRentalFilterExpanded = !isRentalFilterExpanded;
-  const body = document.getElementById('rentalFilterBody');
-  const lbl = document.getElementById('filterToggleLabel');
-  const chevron = document.getElementById('filterChevronIcon');
-  if (body) body.style.display = isRentalFilterExpanded ? 'block' : 'none';
-  if (lbl) lbl.innerHTML = isRentalFilterExpanded ? 'Hide filters &uarr;' : 'Show filters &darr;';
-  if (chevron) chevron.style.transform = isRentalFilterExpanded ? 'rotate(180deg)' : 'none';
-}
-
 function onAtollChange(atoll) {
   currentAtoll = atoll;
   if (atoll === 'k') {
@@ -125,18 +113,18 @@ function toggleFeatureFilter(feat, btn) {
   const on = activeLegendFeatures.has(feat);
   if (on) {
     activeLegendFeatures.delete(feat);
-    btn.style.backgroundColor = '#ffffff';
-    btn.style.borderColor = '#cbd5e1';
-    btn.style.color = '#334155';
+    btn.style.backgroundColor = 'var(--surface-white)';
+    btn.style.borderColor = 'var(--color-border)';
+    btn.style.color = 'var(--color-ink)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');
     if (b) { b.style.backgroundColor = '#ecfdf5'; b.style.borderColor = '#6ee7b7'; const s = b.querySelector('svg'); if (s) s.style.stroke = '#047857'; }
   } else {
     activeLegendFeatures.add(feat);
-    btn.style.backgroundColor = '#047857';
-    btn.style.borderColor = '#047857';
-    btn.style.color = '#ffffff';
+    btn.style.backgroundColor = 'var(--color-accent)';
+    btn.style.borderColor = 'var(--color-accent)';
+    btn.style.color = 'var(--surface-white)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');
@@ -148,9 +136,9 @@ function toggleFeatureFilter(feat, btn) {
 function clearAllFeatureFilters() {
   activeLegendFeatures.clear();
   document.querySelectorAll('.legend-filter-btn').forEach(btn => {
-    btn.style.backgroundColor = '#ffffff';
-    btn.style.borderColor = '#cbd5e1';
-    btn.style.color = '#334155';
+    btn.style.backgroundColor = 'var(--surface-white)';
+    btn.style.borderColor = 'var(--color-border)';
+    btn.style.color = 'var(--color-ink)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');

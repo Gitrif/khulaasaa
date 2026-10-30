@@ -2,49 +2,47 @@
 {% block title %}Khulaasaa — Maldives news, cross-checked{% endblock %}
 
 {% block content %}
-<!-- Shared responsive filter section: top on desktop, bottom dock on mobile. -->
-<div class="filter-toolbar" id="pageFilterToolbar">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
-    {# Query-preserving helper: keeps the active tag/topic when changing sort. #}
-    {% macro sort_href(s) -%}/?sort={{ s }}{% if active_tag %}&tag={{ active_tag }}{% endif %}{% if active_topic %}&topic={{ active_topic }}{% endif %}{%- endmacro %}
+{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn %}
+{% set _sort_param = active_sort if active_sort and active_sort != 'latest' else None %}
+{% set _news_row1 %}
     <div class="filter-row filter-row-stories">
       <select class="filter-select" aria-label="Filter stories by tracked narrative" onchange="window.location.href=this.value">
-        <option value="/" {{ 'selected' if not active_tag and not active_topic }}>All stories</option>
+        <option value="{{ build_filter_url('/', topic=active_topic, sort=_sort_param) }}" {{ 'selected' if not active_tag }}>All stories</option>
         {% for t in all_tags %}
-        <option value="/?tag={{ t.id }}" {{ 'selected' if active_tag == t.id }}>{{ t.label }}</option>
+        <option value="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" {{ 'selected' if active_tag == t.id }}>{{ t.label }}</option>
         {% endfor %}
       </select>
       <div class="filter-pills" aria-label="Sort stories">
-        <a href="{{ sort_href('latest') }}" class="filter-pill {{ 'active' if active_sort == 'latest' else '' }}">Latest</a>
-        <a href="{{ sort_href('urgent') }}" class="filter-pill {{ 'active' if active_sort == 'urgent' else '' }}">Breaking</a>
-        <a href="{{ sort_href('outlets') }}" class="filter-pill {{ 'active' if active_sort == 'outlets' else '' }}">Most covered</a>
+        <a href="{{ build_filter_url('/', sort='latest', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'latest' else '' }}">Latest</a>
+        <a href="{{ build_filter_url('/', sort='urgent', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'urgent' else '' }}">Breaking</a>
+        <a href="{{ build_filter_url('/', sort='outlets', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'outlets' else '' }}">Most covered</a>
         <a href="/following" class="filter-pill">Following</a>
       </div>
-      <button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="More filters">
-        <svg class="filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
+      {{ filter_more_btn('More filters') }}
     </div>
+{% endset %}
+{% set _news_row2 %}
     <div class="filter-row filter-row-topics">
       <select class="filter-select" aria-label="Filter stories by topic" onchange="window.location.href=this.value">
-        <option value="/" {{ 'selected' if not active_topic }}>All topics</option>
+        <option value="{{ build_filter_url('/', tag=active_tag, sort=_sort_param) }}" {{ 'selected' if not active_topic }}>All topics</option>
         {% for tp in all_topics %}
-        <option value="/?topic={{ tp.id }}" {{ 'selected' if active_topic == tp.id }}>{{ tp.label }}</option>
+        <option value="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" {{ 'selected' if active_topic == tp.id }}>{{ tp.label }}</option>
         {% endfor %}
       </select>
       <div class="filter-pills" aria-label="Topic filters">
         {% for tp in all_topics %}
-        <a href="/?topic={{ tp.id }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
+        <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
         {% endfor %}
       </div>
     </div>
-  </div>
-  <div id="filterDrawer" class="filter-drawer max-w-5xl mx-auto px-4 hidden">
+{% endset %}
+{% set _news_drawer %}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
         <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">Tracked national narratives &amp; projects</span>
         <div class="flex flex-wrap gap-1.5">
           {% for t in all_tags %}
-          <a href="/?tag={{ t.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_tag == t.id else 'color:' + t.color + ';' }}">{{ t.label }}</a>
+          <a href="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_tag == t.id else '' }}">{{ t.label }}</a>
           {% endfor %}
         </div>
       </div>
@@ -52,14 +50,13 @@
         <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">News topics &amp; disciplines</span>
         <div class="flex flex-wrap gap-1.5">
           {% for tp in all_topics %}
-          <a href="/?topic={{ tp.id }}" class="text-xs px-2.5 py-1 rounded border border-hairline hover:bg-cream transition" style="{{ 'background:var(--ink);color:var(--paper);border-color:var(--ink);' if active_topic == tp.id else 'color:' + tp.color + ';' }}">{{ tp.label }}</a>
+          <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
           {% endfor %}
         </div>
       </div>
     </div>
-  </div>
-</div>
-
+{% endset %}
+{{ render_filter_dock(_news_row1, _news_row2, _news_drawer) }}
 <main class="max-w-5xl mx-auto px-4 pt-4 pb-6">
   <!-- Active Section Filter Banner (if filtering by tag or topic) -->
   {% if active_tag or active_topic %}
