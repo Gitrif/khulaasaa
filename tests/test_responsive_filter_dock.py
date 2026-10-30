@@ -27,3 +27,10 @@ def test_janaza_mobile_nav_uses_crescent_not_plus():
     block = html[start:start + 600]
     assert "M20.985 12.486" in block
     assert "M12 4v16m-6-10h12" not in block
+
+
+def test_notices_filters_use_shared_dock_and_keep_js_hooks():
+    html = _read("templates/obituaries.html")
+    assert html.count('id="pageFilterToolbar"') == 1
+    for hook in ("btn-reg-all", "btn-reg-south", "atollSelect", "obituarySearch"):
+        assert html.count(f'id="{hook}"') == 1

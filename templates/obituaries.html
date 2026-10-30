@@ -2,6 +2,32 @@
 {% block title %}Funeral Announcements &amp; Obituaries | Khulaasaa{% endblock %}
 
 {% block content %}
+<!-- Shared responsive filter section (same .filter-toolbar component as News): top on desktop, bottom dock on mobile. -->
+<div class="filter-toolbar" id="pageFilterToolbar">
+  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+    <div class="filter-row">
+      <span class="filter-row-label">Region</span>
+      <div class="filter-pills" aria-label="Region filters">
+        <button type="button" class="filter-pill active" id="btn-reg-all" onclick="filterByRegion('all')">All Maldives</button>
+        <button type="button" class="filter-pill" id="btn-reg-male" onclick="filterByRegion('male')">Mal&eacute; &amp; Hulhumal&eacute;</button>
+        <button type="button" class="filter-pill" id="btn-reg-north" onclick="filterByRegion('north')">North</button>
+        <button type="button" class="filter-pill" id="btn-reg-central" onclick="filterByRegion('central')">Central</button>
+        <button type="button" class="filter-pill" id="btn-reg-south" onclick="filterByRegion('south')">South</button>
+      </div>
+    </div>
+    <div class="filter-row filter-row-topics">
+      <label class="filter-row-label" for="atollSelect">Atoll</label>
+      <div class="filter-pills">
+        <select id="atollSelect" onchange="filterByAtoll(this.value)" class="text-xs px-2.5 py-1 bg-white border border-hairline rounded text-ink focus:outline-none focus:border-ink">
+          <option value="all">All Atolls</option>
+          {% for a in atolls %}
+          <option value="{{ a.code }}" {{ 'selected' if active_atoll == a.code }}>{{ a.atoll_en }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-6xl mx-auto px-4 pt-6 pb-5 text-center">
     <div class="inline-flex items-center gap-2 px-3 py-1 bg-ink text-paper rounded text-xs font-semibold uppercase tracking-wider mb-2">
@@ -45,26 +71,6 @@
         <span class="absolute right-3 top-3 text-slate pointer-events-none">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </span>
-      </div>
-
-      <!-- Region Filter Tabs -->
-      <div class="flex items-center justify-center gap-1.5 overflow-x-auto py-1 no-scrollbar text-xs">
-        <button class="filter-pill active" id="btn-reg-all" onclick="filterByRegion('all')">All Maldives</button>
-        <button class="filter-pill" id="btn-reg-male" onclick="filterByRegion('male')">Malé &amp; Hulhumalé</button>
-        <button class="filter-pill" id="btn-reg-north" onclick="filterByRegion('north')">North</button>
-        <button class="filter-pill" id="btn-reg-central" onclick="filterByRegion('central')">Central</button>
-        <button class="filter-pill" id="btn-reg-south" onclick="filterByRegion('south')">South</button>
-      </div>
-
-      <!-- Quick Atoll Dropdown -->
-      <div class="flex items-center justify-center gap-2 pt-1 text-xs">
-        <span class="text-slate font-medium">Filter by Atoll:</span>
-        <select id="atollSelect" onchange="filterByAtoll(this.value)" class="text-xs px-2.5 py-1 bg-white border border-hairline rounded text-ink focus:outline-none focus:border-ink">
-          <option value="all">All Atolls</option>
-          {% for a in atolls %}
-          <option value="{{ a.code }}" {{ 'selected' if active_atoll == a.code }}>{{ a.atoll_en }}</option>
-          {% endfor %}
-        </select>
       </div>
     </div>
   </div>
