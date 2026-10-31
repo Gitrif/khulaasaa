@@ -93,6 +93,11 @@ def test_news_cache_ttl_expiration_and_db_reload():
     import time
     from services import news_service
     from services.news_service import get_live_news
+    try:
+        from services.cache_service import cache_delete
+        cache_delete("news:clustered_feed")
+    except Exception:
+        pass
 
     # 1. Warm cache with initial payload
     fake_old = [{"id": "old-1", "headline": "Old News", "tags": [], "sources": ["sun"], "topic": "General"}]

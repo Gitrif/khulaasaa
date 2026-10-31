@@ -21,7 +21,7 @@ from scrapers.jobs.mycareer import fetch_mycareer_jobs
 logger = logging.getLogger("khulaasaa.jobs.ingestion")
 
 
-def sync_jobs(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
+def sync_jobs(conn: Any = None, pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
     """Sync recent jobs from Gazette & MyCareer to database and trigger subscriber alerts.
 
     Performs external network fetches first before acquiring any database connection.
