@@ -1455,10 +1455,10 @@ header, .site-header {
   font-weight: 600;
 }
 @media (max-width: 767px) { .filter-select { width: 88px; height: 27px; font-size: 10px; } }
-.filter-more-btn {
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
+.filter-reset-btn {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1466,6 +1466,45 @@ header, .site-header {
   border-radius: 4px;
   background: var(--surface-white);
   color: var(--slate);
+  text-decoration: none !important;
+  transition: all 0.15s ease;
+}
+.filter-reset-btn:hover {
+  background: var(--paper-soft);
+  color: var(--ink);
+  border-color: #8C99A8;
+}
+.filter-row-tag {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--slate);
+  padding: 2px 6px;
+  background: var(--paper-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  line-height: 1;
+}
+.filter-more-btn {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface-white);
+  color: var(--slate);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.filter-more-btn:hover {
+  background: var(--paper-soft);
+  color: var(--ink);
+  border-color: #8C99A8;
 }
 .filter-more-btn[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
 .filter-more-btn .filter-chevron { transition: transform .18s ease; }

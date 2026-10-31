@@ -132,7 +132,7 @@ def test_build_filter_url_and_query_parameter_preservation():
     news_res = client.get("/?tag=ras-male&topic=politics&sort=urgent")
     assert news_res.status_code == 200
     assert 'href="/?sort=outlets&amp;tag=ras-male&amp;topic=politics"' in news_res.text
-    assert 'value="/?tag=sultan-park&amp;topic=politics&amp;sort=urgent"' in news_res.text
+    assert 'href="/?tag=ras-male&amp;topic=politics&amp;sort=urgent"' in news_res.text
 
     # Tenders query preservation across discipline, q, portal, cross_listed
     bids_res = client.get("/bids?discipline=IT&q=solar&portal=gazette.gov.mv&cross_listed=1")

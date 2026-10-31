@@ -19,7 +19,11 @@ logger = logging.getLogger("khulaasaa.jobs.ingestion")
 
 
 def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
-    """Sync recent jobs from Gazette & MyCareer to database and trigger subscriber alerts."""
+    """Sync recent jobs from Gazette & MyCareer to database and trigger subscriber alerts.
+
+    Performs external network fetches first before acquiring any database connection.
+    Alert notifications are dispatched after database persistence completes.
+    """
     fetched = fetch_gazette_job_vacancies(pages=pages)
     try:
         mycareer_jobs = fetch_mycareer_jobs()
@@ -30,7 +34,7 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
     new_jobs = updated_jobs = alerts_sent = 0
     new_job_records: list[dict[str, Any]] = []
 
-    def _persist(db_conn):
+    def _persist(db_conn: Any) -> None:
         nonlocal new_jobs, updated_jobs
         for j in fetched:
             notice_id = j["notice_id"]
@@ -77,7 +81,7 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
             _persist(db_conn)
 
     if trigger_alerts and new_job_records:
-        def _dispatch(alert_conn):
+        def _dispatch(alert_conn: Any) -> None:
             nonlocal alerts_sent
             for j in new_job_records:
                 notice_id = j["notice_id"]

@@ -17,6 +17,7 @@ from scrapers.news.telegram import fetch_telegram_posts
 from scrapers.news.mvcrisis import fetch_mvcrisis_posts
 from scrapers.news.mihaaru import fetch_mihaaru_posts
 from scrapers.news.miadhu import fetch_miadhu_posts
+from scrapers.news.adhadhu import fetch_adhadhu_posts
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,8 @@ def fetch_source_articles(source_cfg: dict[str, Any]) -> list[dict[str, Any]]:
             return fetch_mihaaru_posts(s_key, s_url) or []
         elif s_type == "html_miadhu":
             return fetch_miadhu_posts(s_key, s_url) or []
+        elif s_type == "html_adhadhu":
+            return fetch_adhadhu_posts(s_key, s_url) or []
         else:
             logger.error("Unsupported source type '%s' for source '%s'", s_type, s_key)
             return []

@@ -1,6 +1,18 @@
 name: khulaasaa
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: khulaasaa_redis
+    restart: always
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal_net
+    expose:
+      - "6379"
+
   web:
     build:
       context: .
@@ -10,11 +22,16 @@ services:
     command: uvicorn app:app --host 0.0.0.0 --port 8000
     expose:
       - "8000"
+    environment:
+      - REDIS_URL=redis://khulaasaa_redis:6379/0
     env_file:
       - path: .env
         required: false
+    depends_on:
+      - redis
     networks:
       - traefik
+      - internal_net
     labels:
       - "traefik.enable=true"
       # HTTP Router (Port 80)
@@ -32,6 +49,11 @@ services:
       # Target application port inside the container
       - "traefik.http.services.khulaasaa.loadbalancer.server.port=8000"
 
+volumes:
+  redis_data:
+
 networks:
   traefik:
     external: true
+  internal_net:
+    driver: bridge

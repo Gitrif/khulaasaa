@@ -398,3 +398,32 @@ function toggleFilterDrawer() {
   trigger.setAttribute('aria-controls', 'filterDrawer');
 }
 window.toggleFilterDrawer = toggleFilterDrawer;
+
+function switchFilterDrawerSection(section) {
+  const topicsSec = document.getElementById('drawerSecTopics');
+  const storiesSec = document.getElementById('drawerSecStories');
+  const topicsBtn = document.getElementById('tabBtnTopics');
+  const storiesBtn = document.getElementById('tabBtnStories');
+  if (!topicsSec || !storiesSec) return;
+
+  if (section === 'stories') {
+    storiesSec.classList.remove('hidden');
+    topicsSec.classList.add('hidden');
+    if (storiesBtn) {
+      storiesBtn.className = 'px-2.5 py-1 text-xs font-bold rounded bg-ink text-white';
+    }
+    if (topicsBtn) {
+      topicsBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded bg-paper-soft text-slate hover:text-ink border border-hairline';
+    }
+  } else {
+    topicsSec.classList.remove('hidden');
+    storiesSec.classList.add('hidden');
+    if (topicsBtn) {
+      topicsBtn.className = 'px-2.5 py-1 text-xs font-bold rounded bg-ink text-white';
+    }
+    if (storiesBtn) {
+      storiesBtn.className = 'px-2.5 py-1 text-xs font-semibold rounded bg-paper-soft text-slate hover:text-ink border border-hairline';
+    }
+  }
+}
+window.switchFilterDrawerSection = switchFilterDrawerSection;

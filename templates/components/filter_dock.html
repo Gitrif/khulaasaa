@@ -14,8 +14,14 @@
 </div>
 {%- endmacro %}
 
+{% macro filter_reset_btn(href='/', label='Reset filters', is_active=false) -%}
+<a href="{{ href }}" class="filter-reset-btn {{ 'text-lagoon border-lagoon/60' if is_active else 'opacity-60' }}" title="{{ label }}" aria-label="{{ label }}">
+  {{ svg_icon('refresh', 'w-3.5 h-3.5', 14, 14, 2) }}
+</a>
+{%- endmacro %}
+
 {% macro filter_more_btn(label='More filters') -%}
-<button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="{{ label }}">
-  {{ svg_icon('chevron-down', 'filter-chevron', 15, 15, 2) }}
+<button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="{{ label }}" title="{{ label }}">
+  {{ svg_icon('chevron-down', 'filter-chevron', 14, 14, 2) }}
 </button>
 {%- endmacro %}

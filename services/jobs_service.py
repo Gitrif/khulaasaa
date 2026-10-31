@@ -44,12 +44,10 @@ def _execute_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str,
     _JOBS_SYNC_STATUS["last_run"] = start_iso
 
     try:
-        from data.database import get_db
         from services.ingestion.jobs_ingestion import sync_jobs
-        with get_db() as conn:
-            result = sync_jobs(conn, pages=pages, trigger_alerts=trigger_alerts)
-            if isinstance(result, int):
-                result = {"fetched": result, "new": result, "updated": 0, "alerts_sent": 0}
+        result = sync_jobs(conn=None, pages=pages, trigger_alerts=trigger_alerts)
+        if isinstance(result, int):
+            result = {"fetched": result, "new": result, "updated": 0, "alerts_sent": 0}
 
         _JOBS_SYNC_STATUS.update({
             "status": "success",

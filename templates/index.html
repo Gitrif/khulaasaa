@@ -4,55 +4,86 @@
 {% block appbar_subtitle %}News from trusted Maldivian sources, in one place.{% endblock %}
 
 {% block content %}
-{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn %}
+{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn, filter_reset_btn %}
 {% set _sort_param = active_sort if active_sort and active_sort != 'latest' else None %}
+{% set _has_active_filters = (active_tag or active_topic or _sort_param) %}
 {% set _news_row1 %}
     <div class="filter-row filter-row-stories">
-      <select class="filter-select" aria-label="Filter stories by tracked narrative" onchange="window.location.href=this.value">
-        <option value="{{ build_filter_url('/', topic=active_topic, sort=_sort_param) }}" {{ 'selected' if not active_tag }}>All stories</option>
-        {% for t in all_tags %}
-        <option value="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" {{ 'selected' if active_tag == t.id }}>{{ t.label }}</option>
-        {% endfor %}
-      </select>
-      <div class="filter-pills" aria-label="Sort stories">
+      {{ filter_reset_btn('/', 'Reset all news filters', _has_active_filters) }}
+      <span class="filter-row-tag" title="Stories and narratives">Stories</span>
+      <div class="filter-pills" aria-label="Sort and stories">
         <a href="{{ build_filter_url('/', sort='latest', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'latest' else '' }}">Latest</a>
         <a href="{{ build_filter_url('/', sort='urgent', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'urgent' else '' }}">Breaking</a>
         <a href="{{ build_filter_url('/', sort='outlets', tag=active_tag, topic=active_topic) }}" class="filter-pill {{ 'active' if active_sort == 'outlets' else '' }}">Most covered</a>
+        {% for t in all_tags %}
+          {% set _cnt = tag_counts.get(t.id, 0) if tag_counts else 0 %}
+          {% if _cnt > 0 or active_tag == t.id %}
+          <a href="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_tag == t.id else '' }}" title="{{ t.label }} ({{ _cnt }} stories)">{{ t.label }}</a>
+          {% endif %}
+        {% endfor %}
         <a href="/following" class="filter-pill">Following</a>
       </div>
-      {{ filter_more_btn('More filters') }}
+      {{ filter_more_btn('Expand all news topics and story settings') }}
     </div>
 {% endset %}
 {% set _news_row2 %}
     <div class="filter-row filter-row-topics">
-      <select class="filter-select" aria-label="Filter stories by topic" onchange="window.location.href=this.value">
-        <option value="{{ build_filter_url('/', tag=active_tag, sort=_sort_param) }}" {{ 'selected' if not active_topic }}>All topics</option>
-        {% for tp in all_topics %}
-        <option value="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" {{ 'selected' if active_topic == tp.id }}>{{ tp.label }}</option>
-        {% endfor %}
-      </select>
+      <span class="filter-row-tag" title="News topics">Topics</span>
       <div class="filter-pills" aria-label="Topic filters">
+        <a href="{{ build_filter_url('/', tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if not active_topic else '' }}">All</a>
         {% for tp in all_topics %}
-        <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
+          {% set _tcnt = topic_counts.get(tp.id, 0) if topic_counts else 0 %}
+          {% if _tcnt > 0 or active_topic == tp.id %}
+          <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
+          {% else %}
+          <span class="filter-pill opacity-40 cursor-not-allowed select-none" title="No current stories in this topic">{{ tp.label }}</span>
+          {% endif %}
         {% endfor %}
       </div>
     </div>
 {% endset %}
 {% set _news_drawer %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div>
-        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">Tracked national narratives &amp; projects</span>
-        <div class="flex flex-wrap gap-1.5">
-          {% for t in all_tags %}
-          <a href="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_tag == t.id else '' }}">{{ t.label }}</a>
+    <div class="flex flex-col gap-3">
+      <!-- Accordion header tabs for Stories vs Topics -->
+      <div class="flex items-center justify-between border-b border-hairline pb-2">
+        <div class="flex items-center gap-2" role="tablist">
+          <button type="button" id="tabBtnTopics" class="px-2.5 py-1 text-xs font-bold rounded bg-ink text-white" onclick="switchFilterDrawerSection('topics')">
+            Topics ({{ all_topics|length }})
+          </button>
+          <button type="button" id="tabBtnStories" class="px-2.5 py-1 text-xs font-semibold rounded bg-paper-soft text-slate hover:text-ink border border-hairline" onclick="switchFilterDrawerSection('stories')">
+            Available Stories ({% set _active_tag_count = namespace(count=0) %}{% for t in all_tags %}{% if (tag_counts.get(t.id, 0) if tag_counts else 0) > 0 or active_tag == t.id %}{% set _active_tag_count.count = _active_tag_count.count + 1 %}{% endif %}{% endfor %}{{ _active_tag_count.count }})
+          </button>
+        </div>
+        <a href="/account/alerts" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded bg-lagoon text-white hover:bg-lagoon-soft transition shadow-xs" title="Manage Telegram and Viber notification feeds">
+          {{ svg_icon('bell', 'w-3.5 h-3.5', 14, 14, 2) }}
+          <span>Alert Settings</span>
+        </a>
+      </div>
+
+      <!-- Topics Section (Expanded by default when drawer opens) -->
+      <div id="drawerSecTopics" class="block">
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          <a href="{{ build_filter_url('/', tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if not active_topic else '' }}">All Topics</a>
+          {% for tp in all_topics %}
+            {% set _tcnt = topic_counts.get(tp.id, 0) if topic_counts else 0 %}
+            {% if _tcnt > 0 or active_topic == tp.id %}
+            <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }} ({{ _tcnt }})</a>
+            {% else %}
+            <span class="filter-pill opacity-40 cursor-not-allowed select-none" title="No current stories">{{ tp.label }} (0)</span>
+            {% endif %}
           {% endfor %}
         </div>
       </div>
-      <div>
-        <span class="text-[11px] font-bold uppercase tracking-wider text-slate block mb-1.5">News topics &amp; disciplines</span>
-        <div class="flex flex-wrap gap-1.5">
-          {% for tp in all_topics %}
-          <a href="{{ build_filter_url('/', topic=tp.id, tag=active_tag, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_topic == tp.id else '' }}">{{ tp.label }}</a>
+
+      <!-- Stories Section (Collapsed by default; expands when clicked while collapsing topics) -->
+      <div id="drawerSecStories" class="hidden">
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          <a href="{{ build_filter_url('/', topic=active_topic, sort=_sort_param) }}" class="filter-pill {{ 'active' if not active_tag else '' }}">All Stories</a>
+          {% for t in all_tags %}
+            {% set _cnt = tag_counts.get(t.id, 0) if tag_counts else 0 %}
+            {% if _cnt > 0 or active_tag == t.id %}
+            <a href="{{ build_filter_url('/', tag=t.id, topic=active_topic, sort=_sort_param) }}" class="filter-pill {{ 'active' if active_tag == t.id else '' }}">{{ t.label }} ({{ _cnt }})</a>
+            {% endif %}
           {% endfor %}
         </div>
       </div>

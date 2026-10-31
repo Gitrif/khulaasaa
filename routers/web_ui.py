@@ -98,6 +98,16 @@ def public_feed(
 
     visible_tags = [t for t in TIMELINE_TAGS.values() if t["id"] in active_tag_ids]
 
+    # Calculate active counts for topics and tags
+    topic_counts = {}
+    for tp_key in TOPICS.keys():
+        topic_counts[tp_key] = sum(1 for e in raw_events if e.get("topic") == tp_key)
+
+    tag_counts = {}
+    for t_obj in visible_tags:
+        tid = t_obj["id"]
+        tag_counts[tid] = sum(1 for e in raw_events if tid in e.get("tags", []))
+
     # Filter by topic and tag if selected
     if topic:
         events = [e for e in events if e.get("topic") == topic]
@@ -146,6 +156,8 @@ def public_feed(
             "trending": TRENDING,
             "all_tags": visible_tags if visible_tags else list(TIMELINE_TAGS.values()),
             "all_topics": list(TOPICS.values()),
+            "topic_counts": topic_counts,
+            "tag_counts": tag_counts,
             "active_tag": tag,
             "active_topic": topic,
             "active_tag_obj": TIMELINE_TAGS.get(tag) if tag else None,

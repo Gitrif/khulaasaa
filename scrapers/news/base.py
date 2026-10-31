@@ -44,8 +44,8 @@ NEWS_SOURCES_CONFIG = {
         "name": "Adhadhu",
         "initial": "A",
         "kind": "press",
-        "type": "rss",
-        "url": "https://adhadhu.com/feed/",
+        "type": "html_adhadhu",
+        "url": "https://adhadhu.com",
     },
     "sun": {
         "id": "sun",

@@ -4,6 +4,8 @@ Encapsulates all database operations, filters, statistics, and purging for procu
 """
 from __future__ import annotations
 
+import time
+
 import json
 import logging
 import re
@@ -264,11 +266,11 @@ def query_bids(
         params.append(gazette_type)
 
     if portal:
-        query += " AND sources LIKE ?"
+        query += " AND CAST(sources AS TEXT) LIKE ?"
         params.append(f"%{portal}%")
 
     if cross_listed_only:
-        query += " AND sources LIKE '%,%'"
+        query += " AND CAST(sources AS TEXT) LIKE '%,%'"
 
     if search_q:
         query += " AND (LOWER(title) LIKE ? OR LOWER(title_en) LIKE ? OR LOWER(reference_number) LIKE ? OR LOWER(agency_name_en) LIKE ?)"
@@ -325,8 +327,16 @@ def query_bids(
     return results
 
 
+_FILTER_OPTIONS_CACHE: dict[str, Any] = {"data": None, "timestamp": 0.0}
+_PORTAL_STATS_CACHE: dict[str, Any] = {"data": None, "timestamp": 0.0}
+CACHE_TTL_STATS = 300  # 5 minutes in-memory cache
+
+
 def get_bids_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
     """Return sorted unique values for agencies, disciplines, and gazette types efficiently."""
+    now = time.time()
+    if _FILTER_OPTIONS_CACHE["data"] is not None and (now - _FILTER_OPTIONS_CACHE["timestamp"] < CACHE_TTL_STATS):
+        return _FILTER_OPTIONS_CACHE["data"]
     rows = conn.execute(
         """
         SELECT DISTINCT agency_name_en, discipline, gazette_type
@@ -344,15 +354,22 @@ def get_bids_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
             disciplines.add(r["discipline"])
         if r["gazette_type"]:
             types.add(r["gazette_type"])
-    return {
+    result = {
         "agencies": sorted(agencies),
         "disciplines": sorted(disciplines),
         "types": sorted(types),
     }
+    _FILTER_OPTIONS_CACHE["data"] = result
+    _FILTER_OPTIONS_CACHE["timestamp"] = now
+    return result
 
 
 def get_agency_portal_statistics(conn: sqlite3.Connection) -> dict[str, Any]:
     """Return counts of tenders per agency and cross-source repetition statistics."""
+    now = time.time()
+    if _PORTAL_STATS_CACHE["data"] is not None and (now - _PORTAL_STATS_CACHE["timestamp"] < CACHE_TTL_STATS):
+        return _PORTAL_STATS_CACHE["data"]
+
     rows = conn.execute("SELECT id, agency_name_en, sources FROM v_bids_enriched WHERE is_active = 1;").fetchall()
     by_agency: dict[str, dict[str, int]] = {}
     total_bids = len(rows)
@@ -376,7 +393,7 @@ def get_agency_portal_statistics(conn: sqlite3.Connection) -> dict[str, Any]:
             cross_listed_count += 1
             by_agency[agency]["cross_listed"] += 1
 
-    return {
+    res = {
         "total_bids": total_bids,
         "cross_listed_bids": cross_listed_count,
         "cross_listed_count": cross_listed_count,
@@ -384,5 +401,8 @@ def get_agency_portal_statistics(conn: sqlite3.Connection) -> dict[str, Any]:
         "by_portal": portal_counts,
         "portal_counts": portal_counts,
     }
+    _PORTAL_STATS_CACHE["data"] = res
+    _PORTAL_STATS_CACHE["timestamp"] = now
+    return res
 
 from data.repos.bid_milestones import extract_milestones_and_venues, purge_expired_bids
