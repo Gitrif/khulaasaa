@@ -41,14 +41,15 @@
 </main>
 
 <!-- Advanced Search & Filter Modal -->
-<div id="advancedFilterModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeAdvancedFilterModal()">
-  <div class="bg-paper border border-hairline max-w-lg w-full p-5 sm:p-6 shadow-2xl relative rounded-md flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
+<div id="advancedFilterModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-3 sm:p-4 hidden" onclick="if(event.target===this) closeAdvancedFilterModal()">
+  <div class="bg-paper border border-hairline max-w-lg w-full p-4 sm:p-6 shadow-2xl relative rounded-md flex flex-col max-h-[85vh] overflow-hidden" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between pb-3 mb-2 border-b border-hairline shrink-0">
       <h2 class="font-serif-display text-lg font-bold text-ink">Advanced Tender Filters</h2>
       <button type="button" class="text-slate hover:text-ink text-2xl font-bold leading-none cursor-pointer" onclick="closeAdvancedFilterModal()">&times;</button>
     </div>
 
-    <form method="GET" action="/bids" class="space-y-3.5 text-xs overflow-y-auto pr-1">
+    <form method="GET" action="/bids" class="flex flex-col flex-1 min-h-0 overflow-hidden text-xs">
+      <div class="space-y-3.5 flex-1 min-h-0 overflow-y-auto pr-1 sm:pr-1.5 py-1">
       {% if search_q %}<input type="hidden" name="q" value="{{ search_q }}">{% endif %}
       {% if cross_listed %}<input type="hidden" name="cross_listed" value="1">{% endif %}
 
@@ -132,8 +133,9 @@
           <span class="source-btn-text">Alert Settings &rarr;</span>
         </a>
       </div>
+      </div>
 
-      <div class="flex items-center justify-between pt-3 border-t border-hairline">
+      <div class="flex items-center justify-between pt-3 mt-2 border-t border-hairline shrink-0">
         <a href="/bids" class="text-slate-500 hover:text-ink font-medium">Reset All</a>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeAdvancedFilterModal()" class="px-3 py-1.5 border border-hairline rounded text-slate-600 hover:bg-slate-50 cursor-pointer">Cancel</button>

@@ -121,6 +121,11 @@ document.addEventListener('keydown', function(e) {
       if (typeof closeAdvancedFilterModal === 'function') closeAdvancedFilterModal();
       else advM.classList.add('hidden');
     }
+    const jobAdvM = document.getElementById('jobAdvancedFilterModal');
+    if (jobAdvM && !jobAdvM.classList.contains('hidden')) {
+      if (typeof closeJobAdvancedFilterModal === 'function') closeJobAdvancedFilterModal();
+      else jobAdvM.classList.add('hidden');
+    }
   }
 });
 
