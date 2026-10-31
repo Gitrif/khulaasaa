@@ -4,7 +4,7 @@
 {% block appbar_subtitle %}News from trusted Maldivian sources, in one place.{% endblock %}
 
 {% block content %}
-{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn, filter_reset_btn %}
+{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn, filter_reset_btn, filter_adv_btn %}
 {% set _sort_param = active_sort if active_sort and active_sort != 'latest' else None %}
 {% set _has_active_filters = (active_tag or active_topic or _sort_param) %}
 {% set _news_row1 %}
@@ -23,7 +23,7 @@
         {% endfor %}
         <a href="/following" class="filter-pill">Following</a>
       </div>
-      {{ filter_more_btn('Expand all news topics and story settings') }}
+      {{ filter_adv_btn('toggleFilterDrawer()', 'Expand all news topics and story settings') }}
     </div>
 {% endset %}
 {% set _news_row2 %}

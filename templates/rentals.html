@@ -5,7 +5,7 @@
 {% block appbar_subtitle %}Maldivian Apartment &amp; Rental Directory &middot; {{ rentals|length }} listings{% endblock %}
 
 {% block content %}
-{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn %}
+{% from "components/filter_dock.html" import render_filter_dock, filter_more_btn, filter_adv_btn %}
 {% set _rentals_row1 %}
     <div class="filter-row">
       <label class="filter-row-label" for="filterIsland">Location</label>
@@ -31,7 +31,7 @@
         <span id="activeFeatureCountBadge" style="display:none;" class="filter-pill active"></span>
         <span id="collapsedFilterBadge" style="display:none;" class="filter-pill active"></span>
       </div>
-      {{ filter_more_btn('More rental filters') }}
+      {{ filter_adv_btn('toggleFilterDrawer()', 'Advanced rental filters and amenities') }}
     </div>
 {% endset %}
 {% set _rentals_row2 %}

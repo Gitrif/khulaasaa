@@ -25,3 +25,9 @@
   {{ svg_icon('chevron-down', 'filter-chevron', 14, 14, 2) }}
 </button>
 {%- endmacro %}
+
+{% macro filter_adv_btn(onclick, label='Advanced filters', dialog_id='') -%}
+<button type="button" class="filter-more-btn ml-auto" onclick="{{ onclick }}" aria-label="{{ label }}" title="{{ label }}"{% if dialog_id %} aria-haspopup="dialog" aria-controls="{{ dialog_id }}"{% endif %}>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+</button>
+{%- endmacro %}

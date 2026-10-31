@@ -4,6 +4,15 @@
    ========================================================================== */
 
 /* Brand Link & Thaana Kaafu Mark + Page Title Block */
+/* Pinned Header & Top Ad Bar Persistence (Desktop & Mobile) */
+.sticky-top-wrap {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--paper);
+}
+
 .top-leaderboard-ad-bar {
   display: block;
   background: var(--paper-soft);
@@ -496,9 +505,7 @@
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Follow button */
-.follow-btn { margin-left: auto; border: 1px solid var(--lagoon); background: none; color: var(--lagoon); font-size: 0.76rem; font-weight: 600; padding: 0.25rem 0.6rem; cursor: pointer; white-space: nowrap; }
-.follow-btn.following { background: var(--lagoon); color: #fff; }
-.follow-btn.prompt { border-color: var(--flag); color: var(--flag); }
+/* Follow button unified under polish section */
 
 /* Shared site-level nav (News / Bids / Jobs) */
 .site-nav { background: var(--ink); display: flex; gap: 0; padding: 0 1rem; }
@@ -507,8 +514,6 @@
 .premium-dot { width: 0.35rem; height: 0.35rem; border-radius: 999px; background: var(--gold); display: inline-block; }
 
 /* Bids page */
-.filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; background: var(--paper-soft); border-bottom: 1px solid var(--hairline); }
-.filter-row select { border: 1px solid var(--hairline); background: #fff; padding: 0.4rem 0.6rem; font-size: 0.85rem; font-family: 'Inter', sans-serif; }
 .bid-row { border: 1px solid var(--hairline); border-left: 4px solid var(--slate); background: #fff; padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
 .bid-row.discipline-construction { border-left-color: var(--slate); }
 .bid-row.discipline-it { border-left-color: var(--lagoon); }
@@ -557,42 +562,7 @@
 }
 
 /* Filter toolbar pills */
-.filter-pill, a.filter-pill, button.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border: 1px solid var(--hairline);
-  background: #ffffff;
-  color: var(--ink) !important;
-  text-decoration: none !important;
-  white-space: nowrap;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1.25;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-.filter-pill:visited, a.filter-pill:visited {
-  color: var(--ink) !important;
-  text-decoration: none !important;
-}
-.filter-pill:hover, a.filter-pill:hover, button.filter-pill:hover {
-  background: #FAF8F5;
-  border-color: #8C99A8;
-  color: var(--ink) !important;
-  text-decoration: none !important;
-}
-.filter-pill.active, a.filter-pill.active, button.filter-pill.active,
-.filter-pill.active:visited, a.filter-pill.active:visited {
-  background: var(--ink) !important;
-  color: #ffffff !important;
-  border-color: var(--ink) !important;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(16, 34, 46, 0.25);
-}
+/* Filter pills unified under canonical controls */
 .telegram-btn {
   border: 1px solid #2AABEE;
   background: #2AABEE;
@@ -1446,13 +1416,21 @@ header, .site-header {
   flex: 0 0 auto;
   width: 104px;
   height: 28px;
-  padding: 0 6px;
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  background: var(--surface-white);
-  color: var(--ink);
+  padding: 0 7px;
+  font-family: inherit;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--surface-white);
+  border: 1px solid var(--hairline);
+  border-radius: 4px !important;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+.filter-select:hover, .filter-select:focus {
+  border-color: #8C99A8;
 }
 @media (max-width: 767px) { .filter-select { width: 88px; height: 27px; font-size: 10px; } }
 .filter-reset-btn {
@@ -1514,7 +1492,13 @@ header, .site-header {
   border-top: 1px solid var(--hairline);
 }
 @media (min-width: 768px) {
-  .filter-toolbar { position: relative; }
+  .filter-toolbar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 98px;
+    z-index: 45;
+    background: var(--paper);
+  }
   .filter-toolbar-inner { max-width: 72rem; }
   .filter-row { min-height: 40px; }
 }

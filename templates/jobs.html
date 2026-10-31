@@ -8,19 +8,6 @@
 {% set _has_active_filters = selected_agencies or selected_disciplines or selected_locations or min_salary or search_query %}
 {% set _jobs_row1 %}
     <div class="filter-row">
-      <div class="filter-pills" aria-label="Poster and employer filters">
-        <a href="{{ build_filter_url('/jobs', discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if not selected_agencies else '' }}">All</a>
-        {% for a in top_agencies %}
-        <a href="{{ build_filter_url('/jobs', agency=a, discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if a in selected_agencies else '' }}">{{ a }}</a>
-        {% endfor %}
-      </div>
-      <button type="button" class="filter-more-btn ml-auto" onclick="openJobAdvancedFilterModal()" aria-label="Open advanced job filters" aria-haspopup="dialog" title="Advanced filters">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-      </button>
-    </div>
-{% endset %}
-{% set _jobs_row2 %}
-    <div class="filter-row filter-row-topics">
       <div class="filter-pills" aria-label="Discipline filters">
         <a href="{{ build_filter_url('/jobs', agency=selected_agencies, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if not selected_disciplines else '' }}">All</a>
         {% for d in disciplines %}
@@ -30,6 +17,19 @@
         <a href="/jobs" class="filter-pill">Reset</a>
         {% endif %}
       </div>
+    </div>
+{% endset %}
+{% set _jobs_row2 %}
+    <div class="filter-row filter-row-topics">
+      <div class="filter-pills" aria-label="Poster and employer filters">
+        <a href="{{ build_filter_url('/jobs', discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if not selected_agencies else '' }}">All</a>
+        {% for a in top_agencies %}
+        <a href="{{ build_filter_url('/jobs', agency=a, discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if a in selected_agencies else '' }}">{{ a }}</a>
+        {% endfor %}
+      </div>
+      <button type="button" class="filter-more-btn ml-auto" onclick="openJobAdvancedFilterModal()" aria-label="Open advanced job filters" aria-haspopup="dialog" title="Advanced filters">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+      </button>
     </div>
 {% endset %}
 {{ render_filter_dock(_jobs_row1, _jobs_row2) }}

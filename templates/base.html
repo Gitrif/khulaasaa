@@ -56,15 +56,17 @@
     {% set _default_appbar_subtitle = 'News from trusted Maldivian sources, in one place.' %}
   {% endif %}
 
-  <!-- TOP LEADERBOARD AD (Above App Bar on Both Desktop and Mobile) -->
-  <div class="top-leaderboard-ad-bar print:hidden">
-    <div class="max-w-6xl mx-auto px-4">
-      {% include "_ad_leaderboard.html" %}
+  <!-- STICKY TOP CONTAINER: Top Ad Bar + Site Header -->
+  <div class="sticky-top-wrap">
+    <!-- TOP LEADERBOARD AD (Above App Bar on Both Desktop and Mobile) -->
+    <div class="top-leaderboard-ad-bar print:hidden">
+      <div class="max-w-6xl mx-auto px-4">
+        {% include "_ad_leaderboard.html" %}
+      </div>
     </div>
-  </div>
 
-  <!-- UNIFIED SINGLE-ROW APP BAR: Logo + Page Title & Subtitle + Inline Desktop Nav + Actions -->
-  <header class="site-header">
+    <!-- UNIFIED SINGLE-ROW APP BAR: Logo + Page Title & Subtitle + Inline Desktop Nav + Actions -->
+    <header class="site-header">
     <div class="max-w-6xl mx-auto px-4 appbar-inner">
       <!-- Brand Mark + Current Page Title & Subtitle -->
       <a href="/" class="brand-link appbar-brand shrink-0 min-w-0" title="Khulaasaa — Home">
@@ -190,6 +192,7 @@
       </div>
     </div>
   </header>
+  </div>
 
   <!-- Main Content Slot -->
   <div class="flex-1">
