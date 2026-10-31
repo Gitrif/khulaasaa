@@ -139,25 +139,54 @@ def upsert_job(conn: sqlite3.Connection, job_data: dict[str, Any]) -> int:
 
 def query_jobs(
     conn: sqlite3.Connection,
-    discipline: Optional[str] = None,
+    discipline: Optional[Union[str, Sequence[str]]] = None,
+    agency: Optional[Union[str, Sequence[str]]] = None,
+    location: Optional[Union[str, Sequence[str]]] = None,
+    min_salary: Optional[int] = None,
     search: Optional[str] = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
-    """Query jobs with optional discipline and search keyword filters."""
+    """Query jobs with optional multi-discipline, multi-agency, location, salary, and keyword filters."""
     sql = "SELECT id, notice_id, title, title_en, agency, agency_name_en, discipline, location, salary_raw, deadline_iso, published_date, source_url, source_portal, requirements, is_active FROM jobs WHERE is_active = 1"
     params: list[Any] = []
 
-    if discipline and discipline.lower() != "all":
-        # Handle legacy category aliases gracefully
-        if discipline == "Aviation, Marine & Logistics":
-            sql += " AND discipline IN (?, ?, ?, ?)"
-            params.extend(["Aviation", "Land Transport", "Sea Transport", "Aviation, Marine & Logistics"])
-        elif discipline in ("Finance, Accounting & Banking", "Finance, Accounting & Procurement"):
-            sql += " AND discipline IN (?, ?)"
-            params.extend(["Finance, Accounting & Procurement", "Finance, Accounting & Banking"])
-        else:
-            sql += " AND discipline = ?"
-            params.append(discipline)
+    # Discipline filter (supports single string or list of disciplines)
+    if discipline:
+        disc_list = [d for d in ([discipline] if isinstance(discipline, str) else list(discipline)) if d and str(d).lower() != "all"]
+        if disc_list:
+            placeholders = []
+            for d in disc_list:
+                if d == "Aviation, Marine & Logistics":
+                    placeholders.extend(["?", "?", "?", "?"])
+                    params.extend(["Aviation", "Land Transport", "Sea Transport", "Aviation, Marine & Logistics"])
+                elif d in ("Finance, Accounting & Banking", "Finance, Accounting & Procurement"):
+                    placeholders.extend(["?", "?"])
+                    params.extend(["Finance, Accounting & Procurement", "Finance, Accounting & Banking"])
+                else:
+                    placeholders.append("?")
+                    params.append(d)
+            if placeholders:
+                sql += f" AND discipline IN ({', '.join(placeholders)})"
+
+    # Agency / Poster filter (supports single or multiple)
+    if agency:
+        ag_list = [a for a in ([agency] if isinstance(agency, str) else list(agency)) if a and str(a).lower() != "all"]
+        if ag_list:
+            clauses = []
+            for a in ag_list:
+                clauses.append("(LOWER(agency) = LOWER(?) OR LOWER(agency_name_en) = LOWER(?))")
+                params.extend([a, a])
+            sql += f" AND ({' OR '.join(clauses)})"
+
+    # Location / Worksite filter (supports single or multiple)
+    if location:
+        loc_list = [l for l in ([location] if isinstance(location, str) else list(location)) if l and str(l).lower() != "all"]
+        if loc_list:
+            loc_clauses = []
+            for l in loc_list:
+                loc_clauses.append("LOWER(location) LIKE LOWER(?)")
+                params.append(f"%{l.strip()}%")
+            sql += f" AND ({' OR '.join(loc_clauses)})"
 
     if search:
         sql += " AND (title LIKE ? OR agency LIKE ? OR title_en LIKE ? OR agency_name_en LIKE ?)"
@@ -168,7 +197,34 @@ def query_jobs(
     params.append(limit)
 
     rows = conn.execute(sql, params).fetchall()
-    return [dict(r) for r in rows]
+    results = [dict(r) for r in rows]
+
+    if min_salary and min_salary > 0:
+        results = [j for j in results if _extract_salary_max(j.get("salary_raw")) >= min_salary]
+
+    return results
+
+
+def get_job_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
+    """Return sorted unique values for agencies, disciplines, and locations for jobs."""
+    rows = conn.execute(
+        "SELECT DISTINCT COALESCE(agency_name_en, agency) AS ag, discipline, location FROM jobs WHERE is_active = 1;"
+    ).fetchall()
+    agencies = set()
+    disciplines = set()
+    locations = set()
+    for r in rows:
+        if r["ag"]:
+            agencies.add(r["ag"].strip())
+        if r["discipline"]:
+            disciplines.add(r["discipline"].strip())
+        if r["location"]:
+            locations.add(r["location"].strip())
+    return {
+        "agencies": sorted(agencies),
+        "disciplines": sorted(disciplines),
+        "locations": sorted(locations),
+    }
 
 
 def get_job_disciplines(conn: sqlite3.Connection) -> list[str]:

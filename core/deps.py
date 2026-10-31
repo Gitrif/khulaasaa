@@ -26,10 +26,19 @@ from services.hooks85_service import verify_hooks85_session
 
 def build_filter_url(base_path: str, **params: Any) -> str:
     """Build a canonical filter URL preserving non-empty query parameters."""
-    clean = {k: str(v) for k, v in params.items() if v not in (None, "", False)}
-    if not clean:
+    items = []
+    for k, v in params.items():
+        if v in (None, "", False):
+            continue
+        if isinstance(v, (list, tuple, set)):
+            for item in v:
+                if item not in (None, "", False):
+                    items.append((k, str(item)))
+        else:
+            items.append((k, str(v)))
+    if not items:
         return base_path
-    return f"{base_path}?{urlencode(clean)}"
+    return f"{base_path}?{urlencode(items)}"
 
 
 templates = Jinja2Templates(directory="templates")

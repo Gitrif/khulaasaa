@@ -1,43 +1,151 @@
 {% extends "base.html" %}
 {% block title %}Jobs &amp; Vacancies — Khulaasaa{% endblock %}
 {% block appbar_title %}Jobs &amp; Vacancies{% endblock %}
-{% block appbar_subtitle %}Verified career openings across the Maldives &middot; {{ jobs|length }} active openings{% endblock %}
+{% block appbar_subtitle %}Verified career openings across the Maldives &middot; {{ jobs|length }} active openings{% if selected_agencies or selected_disciplines or selected_locations or min_salary or search_query %} (filtered){% endif %}{% endblock %}
 
 {% block content %}
 {% from "components/filter_dock.html" import render_filter_dock %}
+{% set _has_active_filters = selected_agencies or selected_disciplines or selected_locations or min_salary or search_query %}
 {% set _jobs_row1 %}
     <div class="filter-row">
-      <select class="filter-select" aria-label="Filter jobs by discipline" onchange="window.location.href=this.value">
-        <option value="{{ build_filter_url('/jobs', q=search_query) }}" {{ 'selected' if not active_discipline }}>All fields</option>
-        {% for d in disciplines %}
-        <option value="{{ build_filter_url('/jobs', discipline=d, q=search_query) }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
-        {% endfor %}
-      </select>
-      <div class="filter-pills" aria-label="Discipline filters">
-        <a href="{{ build_filter_url('/jobs', q=search_query) }}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
-        {% for d in disciplines %}
-        <a href="{{ build_filter_url('/jobs', discipline=d, q=search_query) }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
+      <div class="filter-pills" aria-label="Poster and employer filters">
+        <a href="{{ build_filter_url('/jobs', discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if not selected_agencies else '' }}">All</a>
+        {% for a in top_agencies %}
+        <a href="{{ build_filter_url('/jobs', agency=a, discipline=selected_disciplines, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if a in selected_agencies else '' }}">{{ a }}</a>
         {% endfor %}
       </div>
+      <button type="button" class="filter-more-btn ml-auto" onclick="openJobAdvancedFilterModal()" aria-label="Open advanced job filters" aria-haspopup="dialog" title="Advanced filters">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+      </button>
     </div>
 {% endset %}
 {% set _jobs_row2 %}
     <div class="filter-row filter-row-topics">
-      <span class="filter-row-label">Actions</span>
-      <div class="filter-pills" aria-label="Job actions">
-        <a href="/jobs/cv" class="filter-pill" title="Build your Maldivian Standard CV">CV Creator &rarr;</a>
-        {% if active_discipline or search_query %}<a href="/jobs" class="filter-pill">Reset</a>{% endif %}
+      <div class="filter-pills" aria-label="Discipline filters">
+        <a href="{{ build_filter_url('/jobs', agency=selected_agencies, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if not selected_disciplines else '' }}">All</a>
+        {% for d in disciplines %}
+        <a href="{{ build_filter_url('/jobs', discipline=d, agency=selected_agencies, location=selected_locations, min_salary=min_salary, q=search_query) }}" class="filter-pill {{ 'active' if d in selected_disciplines else '' }}">{{ d }}</a>
+        {% endfor %}
+        {% if _has_active_filters %}
+        <a href="/jobs" class="filter-pill">Reset</a>
+        {% endif %}
       </div>
     </div>
 {% endset %}
 {{ render_filter_dock(_jobs_row1, _jobs_row2) }}
 
 <main class="max-w-6xl mx-auto px-4 py-4">
+  <!-- Maldivian Standard CV Utility Banner -->
+  <div class="mb-4 p-3.5 bg-paper border border-hairline rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded bg-lagoon/10 text-lagoon flex items-center justify-center font-bold text-sm shrink-0">
+        CV
+      </div>
+      <div>
+        <h3 class="text-xs font-bold text-ink">Preparing to apply for vacancies?</h3>
+        <p class="text-[11px] text-slate">Generate a verified Maldivian Standard CV formatted for Gazette, SOEs, and luxury resorts.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+      <button type="button" onclick="openGlobalAlertsModal('auth')" class="px-3 py-1.5 rounded text-xs font-semibold border border-hairline bg-white hover:bg-paper-soft text-ink transition">
+        Job Alerts
+      </button>
+      <a href="/jobs/cv" class="source-action-btn justify-center text-xs py-1.5 px-3">
+        <span class="source-btn-text">CV Creator &rarr;</span>
+      </a>
+    </div>
+  </div>
+
   <!-- Job Vacancies Grid / List -->
   <div id="jobs-container">
     {% include "components/jobs_stream.html" %}
   </div>
 </main>
+
+<!-- Advanced Job Filters Modal -->
+<div id="jobAdvancedFilterModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeJobAdvancedFilterModal()">
+  <div class="bg-paper border border-hairline max-w-lg w-full p-5 sm:p-6 shadow-2xl relative rounded-md flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
+      <h2 class="font-serif-display text-lg font-bold text-ink">Advanced Job Filters</h2>
+      <button type="button" class="text-slate hover:text-ink text-2xl font-bold leading-none cursor-pointer" onclick="closeJobAdvancedFilterModal()">&times;</button>
+    </div>
+
+    <form method="GET" action="/jobs" class="space-y-4 text-xs overflow-y-auto pr-1">
+      {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+      <!-- Filter by Poster / Employer (Multi-select) -->
+      <div>
+        <label class="block font-bold text-slate-800 mb-1.5">Filter by Poster / Employer</label>
+        <div class="max-h-36 overflow-y-auto border border-hairline rounded bg-white p-2.5 space-y-1.5">
+          {% for a in agencies %}
+          <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="agency" value="{{ a }}" {% if a in selected_agencies %}checked{% endif %} class="rounded border-hairline text-lagoon focus:ring-0">
+            <span class="text-xs text-ink truncate">{{ a }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Filter by Discipline (Multi-select) -->
+      <div>
+        <label class="block font-bold text-slate-800 mb-1.5">Filter by Discipline</label>
+        <div class="max-h-36 overflow-y-auto border border-hairline rounded bg-white p-2.5 space-y-1.5">
+          {% for d in disciplines %}
+          <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="discipline" value="{{ d }}" {% if d in selected_disciplines %}checked{% endif %} class="rounded border-hairline text-lagoon focus:ring-0">
+            <span class="text-xs text-ink truncate">{{ d }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Salary / Total Pay & Worksite / Location -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-800 mb-1.5">Minimum Pay (MVR / month)</label>
+          <select name="min_salary" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
+            <option value="">Any Salary / Undisclosed</option>
+            <option value="5000" {% if min_salary == 5000 %}selected{% endif %}>MVR 5,000+ / mo</option>
+            <option value="10000" {% if min_salary == 10000 %}selected{% endif %}>MVR 10,000+ / mo</option>
+            <option value="15000" {% if min_salary == 15000 %}selected{% endif %}>MVR 15,000+ / mo</option>
+            <option value="20000" {% if min_salary == 20000 %}selected{% endif %}>MVR 20,000+ / mo</option>
+            <option value="30000" {% if min_salary == 30000 %}selected{% endif %}>MVR 30,000+ / mo</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-800 mb-1.5">Worksite / Location</label>
+          <select name="location" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
+            <option value="">All Locations ({{ locations|length }})</option>
+            {% for loc in locations %}
+            <option value="{{ loc }}" {% if loc in selected_locations %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Notification Settings Banner matching News -->
+      <div class="p-3 bg-paper-soft border border-hairline rounded text-xs flex items-center justify-between gap-2">
+        <div>
+          <span class="font-bold text-ink block">Instant Career Notifications</span>
+          <span class="text-slate text-[11px]">Receive Telegram alerts when new positions are posted.</span>
+        </div>
+        <a href="/account/alerts" class="source-action-btn py-1 px-2.5 text-xs shrink-0">
+          <span class="source-btn-text">Alert Settings &rarr;</span>
+        </a>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-hairline">
+        <a href="/jobs" class="text-slate-500 hover:text-ink font-medium">Reset All</a>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeJobAdvancedFilterModal()" class="px-3 py-1.5 border border-hairline rounded text-slate-600 hover:bg-slate-50 cursor-pointer">Cancel</button>
+          <button type="submit" class="source-action-btn cursor-pointer">
+            <span class="source-btn-text">Apply Filters</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Job Vacancies Modal: Applying for vacancies? Create CV and Set Alerts -->
 <div id="jobOnboardingModal" class="modal-overlay hidden" onclick="if(event.target===this) closeJobModal()">
@@ -61,7 +169,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row gap-2">
-      <a href="/jobs/cv" onclick="return handleCvClick(event)" class="btn-primary py-2.5 px-4 rounded text-xs font-bold text-center text-white bg-lagoon hover:bg-emerald-800 transition shadow-xs flex-1">
+      <a href="/jobs/cv" class="btn-primary py-2.5 px-4 rounded text-xs font-bold text-center text-white bg-lagoon hover:bg-emerald-800 transition shadow-xs flex-1">
         Create Your CV Now &rarr;
       </a>
       <button type="button" onclick="closeJobModal(); openGlobalAlertsModal('auth')" class="py-2.5 px-4 rounded text-xs font-bold text-center border border-hairline bg-white text-ink hover:bg-cream transition flex-1">

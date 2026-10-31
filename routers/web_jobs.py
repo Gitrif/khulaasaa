@@ -14,6 +14,7 @@ from data.database import (
     get_db,
     get_job_by_id,
     get_job_disciplines,
+    get_job_filter_options,
     get_user_cv,
     list_sponsored_ads,
     query_jobs,
@@ -31,6 +32,17 @@ router = APIRouter()
 def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[str] = None):
     """Jobs directory and employment hub."""
     user = get_current_user(request)
+
+    # Multi-select query parameter support
+    qp = request.query_params
+    selected_disciplines = qp.getlist("discipline") if hasattr(qp, "getlist") else []
+    if not selected_disciplines and discipline:
+        selected_disciplines = [discipline]
+    selected_agencies = qp.getlist("agency") if hasattr(qp, "getlist") else []
+    selected_locations = qp.getlist("location") if hasattr(qp, "getlist") else []
+    min_salary_str = qp.get("min_salary")
+    min_salary = int(min_salary_str) if min_salary_str and min_salary_str.isdigit() else None
+
     with get_db() as conn:
         if not is_service_module_enabled(conn, "jobs"):
             return templates.TemplateResponse(
@@ -38,19 +50,44 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
                 {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-        db_jobs = query_jobs(conn, discipline=discipline, search=q)
-        all_disciplines = get_job_disciplines(conn)
+        db_jobs = query_jobs(
+            conn,
+            discipline=selected_disciplines if selected_disciplines else None,
+            agency=selected_agencies if selected_agencies else None,
+            location=selected_locations if selected_locations else None,
+            min_salary=min_salary,
+            search=q,
+        )
+        filter_opts = get_job_filter_options(conn)
+        active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+
+    all_disciplines = filter_opts["disciplines"]
+    all_agencies = filter_opts["agencies"]
+    all_locations = filter_opts["locations"]
 
     if request.query_params.get("refresh") == "1":
         trigger_jobs_background_sync(force=True)
 
     import os
     demo_mode = os.environ.get("KHULAASAA_DEMO_MODE", "").lower() in ("1", "true", "yes") or bool(os.environ.get("PYTEST_CURRENT_TEST"))
-    if not db_jobs and not discipline and not q and demo_mode:
+    if not db_jobs and not selected_disciplines and not selected_agencies and not q and demo_mode:
         db_jobs = JOBS
 
     if not all_disciplines:
-        all_disciplines = sorted({j["discipline"] for j in (db_jobs or [])} | set(JOB_DISCIPLINES))
+        all_disciplines = sorted({j["discipline"] for j in (db_jobs or []) if j.get("discipline")} | set(JOB_DISCIPLINES))
+
+    # Top agencies for quick pill display (top 6-8 employers)
+    top_agencies = [a for a in [
+        "School",
+        "Maldives Transport and Contracting Company",
+        "Tree Top Hospital",
+        "Fuvahmulah Hospital",
+        "National Drug Agency",
+        "State Trading Organization (STO)",
+        "State Electric Company Limited (STELCO)",
+    ] if a in all_agencies]
+    if not top_agencies:
+        top_agencies = all_agencies[:6]
 
     # Golden Rule: If any link is broken, omit it; if no valid link exists, remove the post
     enriched_jobs = [
@@ -67,12 +104,9 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
             },
         )
 
-    active_ads = []
-    try:
-        with get_db() as conn:
-            active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
-    except Exception:
-        pass
+    # Singular active values for backward compatibility
+    active_disc = selected_disciplines[0] if len(selected_disciplines) == 1 else None
+    active_agency = selected_agencies[0] if len(selected_agencies) == 1 else None
 
     return templates.TemplateResponse(
         "jobs.html",
@@ -80,7 +114,15 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
             "request": request,
             "jobs": enriched_jobs,
             "disciplines": all_disciplines,
-            "active_discipline": discipline,
+            "agencies": all_agencies,
+            "top_agencies": top_agencies,
+            "locations": all_locations,
+            "active_discipline": active_disc,
+            "active_agency": active_agency,
+            "selected_disciplines": selected_disciplines,
+            "selected_agencies": selected_agencies,
+            "selected_locations": selected_locations,
+            "min_salary": min_salary,
             "search_query": q,
             "current_user": user,
             "active_ads": active_ads,

@@ -45,29 +45,49 @@ def bids(
     source: Optional[str] = "live",
     refresh: Optional[str] = None,
 ):
-    with get_db() as conn:
-        if not is_service_module_enabled(conn, "tenders"):
-            return templates.TemplateResponse(
-                "service_suspended.html",
-                {"request": request, "module": get_service_module(conn, "tenders"), "current_user": get_current_user(request)},
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-    use_live = (source != "mock")
-    if refresh == "1":
+    use_live = (source != 'mock')
+    if refresh == '1':
         if is_authorized_editor(request):
             trigger_bids_background_sync(force=True)
         else:
-            logger.info("Ignoring unauthorized manual refresh on /bids")
+            logger.info('Ignoring unauthorized manual refresh on /bids')
+
+    # Multi-select query parameter parsing
+    qp = request.query_params
+    selected_agencies = qp.getlist("agency") if hasattr(qp, "getlist") else []
+    if not selected_agencies and agency:
+        selected_agencies = [agency]
+    selected_disciplines = qp.getlist("discipline") if hasattr(qp, "getlist") else []
+    if not selected_disciplines and discipline:
+        selected_disciplines = [discipline]
+    selected_natures = qp.getlist("nature") if hasattr(qp, "getlist") else []
+    if not selected_natures and nature:
+        selected_natures = [nature]
+    selected_types = qp.getlist("type") if hasattr(qp, "getlist") else []
+    if not selected_types and type:
+        selected_types = [type]
+    selected_entity_types = qp.getlist("entity_type") if hasattr(qp, "getlist") else []
+    if not selected_entity_types and entity_type:
+        selected_entity_types = [entity_type]
+    selected_portals = qp.getlist("portal") if hasattr(qp, "getlist") else []
+    if not selected_portals and portal:
+        selected_portals = [portal]
 
     with get_db() as conn:
+        if not is_service_module_enabled(conn, 'tenders'):
+            return templates.TemplateResponse(
+                'service_suspended.html',
+                {'request': request, 'module': get_service_module(conn, 'tenders'), 'current_user': get_current_user(request)},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         rows = query_bids(
             conn,
-            agency_name=agency,
-            entity_type=entity_type,
-            discipline=discipline,
-            procurement_nature=nature,
-            gazette_type=type,
-            portal=portal,
+            agency_name=selected_agencies if selected_agencies else None,
+            entity_type=selected_entity_types if selected_entity_types else None,
+            discipline=selected_disciplines if selected_disciplines else None,
+            procurement_nature=selected_natures if selected_natures else None,
+            gazette_type=selected_types if selected_types else None,
+            portal=selected_portals if selected_portals else None,
             cross_listed_only=(cross_listed == "1"),
             search_q=q,
         )
@@ -89,6 +109,26 @@ def bids(
             },
         )
 
+    all_agencies = filter_options["agencies"]
+    top_agencies = [a for a in [
+        "Ministry of Tourism",
+        "Male' Water and Sewerage Company Pvt Ltd",
+        "Housing Development Corporation",
+        "State Trading Organization Plc",
+        "Secretariat of the Sh. Goidhoo Council",
+        "Ministry of Islamic Affairs and Endowments",
+        "Ministry of Education",
+    ] if a in all_agencies]
+    if not top_agencies:
+        top_agencies = all_agencies[:7]
+
+    active_ag = selected_agencies[0] if len(selected_agencies) == 1 else None
+    active_disc = selected_disciplines[0] if len(selected_disciplines) == 1 else None
+    active_nat = selected_natures[0] if len(selected_natures) == 1 else None
+    active_tp = selected_types[0] if len(selected_types) == 1 else None
+    active_et = selected_entity_types[0] if len(selected_entity_types) == 1 else None
+    active_pt = selected_portals[0] if len(selected_portals) == 1 else None
+
     return templates.TemplateResponse(
         "bids.html",
         {
@@ -97,19 +137,26 @@ def bids(
             "is_unlocked": True,
             "active_ads": active_ads,
             "is_live": use_live,
-            "agencies": filter_options["agencies"],
+            "agencies": all_agencies,
+            "top_agencies": top_agencies,
             "disciplines": filter_options["disciplines"],
             "quick_disciplines": ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"],
             "natures": ["Supply", "Service", "Lease"],
             "types": filter_options["types"],
             "entity_types": ["SOE", "Ministry", "Council", "Healthcare", "Education", "Independent", "Other"],
             "portals": ["gazette.gov.mv", "finance.gov.mv", "tourism.gov.mv", "mwsc.com.mv", "stelco.com.mv", "sto.mv"],
-            "active_agency": agency,
-            "active_discipline": discipline,
-            "active_nature": nature,
-            "active_type": type,
-            "active_entity_type": entity_type,
-            "active_portal": portal,
+            "active_agency": active_ag,
+            "active_discipline": active_disc,
+            "active_nature": active_nat,
+            "active_type": active_tp,
+            "active_entity_type": active_et,
+            "active_portal": active_pt,
+            "selected_agencies": selected_agencies,
+            "selected_disciplines": selected_disciplines,
+            "selected_natures": selected_natures,
+            "selected_types": selected_types,
+            "selected_entity_types": selected_entity_types,
+            "selected_portals": selected_portals,
             "cross_listed": cross_listed == "1",
             "agency_stats": stats,
             "search_q": q or "",

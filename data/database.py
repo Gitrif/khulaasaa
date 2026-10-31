@@ -102,6 +102,7 @@ from data.repos.jobs import (
     upsert_job,
     query_jobs,
     get_job_disciplines,
+    get_job_filter_options,
     get_job_by_id,
     STANDARD_LANGUAGES,
     LANGUAGE_PROFICIENCIES,

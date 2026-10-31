@@ -1,6 +1,6 @@
 /**
  * Client-side Jobs, Candidates & HR Portal Controller.
- * Handles job onboarding modal display and candidate shortlisting invitations.
+ * Handles job onboarding modal display, advanced filter modal, and candidate shortlisting invitations.
  * Strictly under 500 lines. Zero emojis.
  */
 
@@ -12,6 +12,16 @@ function openJobModal() {
 function closeJobModal() {
   const modal = document.getElementById('jobOnboardingModal');
   if (modal) modal.classList.add('hidden');
+}
+
+function openJobAdvancedFilterModal() {
+  const m = document.getElementById('jobAdvancedFilterModal');
+  if (m) m.classList.remove('hidden');
+}
+
+function closeJobAdvancedFilterModal() {
+  const m = document.getElementById('jobAdvancedFilterModal');
+  if (m) m.classList.add('hidden');
 }
 
 async function shortlistCandidate(cid, cname) {

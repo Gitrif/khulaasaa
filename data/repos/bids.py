@@ -225,49 +225,71 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
 
 def query_bids(
     conn: sqlite3.Connection,
-    agency_name: Optional[str] = None,
+    agency_name: Optional[Any] = None,
     entity_slug: Optional[str] = None,
-    entity_type: Optional[str] = None,
-    discipline: Optional[str] = None,
-    procurement_nature: Optional[str] = None,
-    gazette_type: Optional[str] = None,
+    entity_type: Optional[Any] = None,
+    discipline: Optional[Any] = None,
+    procurement_nature: Optional[Any] = None,
+    gazette_type: Optional[Any] = None,
     search_q: Optional[str] = None,
-    portal: Optional[str] = None,
+    portal: Optional[Any] = None,
     cross_listed_only: bool = False,
     open_only: bool = False,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
-    """Query enriched bids with flexible filtering."""
+    """Query enriched bids with flexible filtering supporting single or multi-select."""
     query = "SELECT * FROM v_bids_enriched WHERE is_active = 1"
     params: list[Any] = []
 
     if agency_name:
-        query += " AND (LOWER(agency_name_en) = LOWER(?) OR agency_name_dv = ?)"
-        params.extend([agency_name, agency_name])
+        ag_list = [a for a in ([agency_name] if isinstance(agency_name, str) else list(agency_name)) if a and str(a).lower() != "all"]
+        if ag_list:
+            ag_clauses = []
+            for a in ag_list:
+                ag_clauses.append("(LOWER(agency_name_en) = LOWER(?) OR agency_name_dv = ?)")
+                params.extend([a, a])
+            query += f" AND ({' OR '.join(ag_clauses)})"
 
     if entity_slug:
         query += " AND entity_slug = ?"
         params.append(entity_slug)
 
     if entity_type:
-        query += " AND entity_type = ?"
-        params.append(entity_type)
+        et_list = [e for e in ([entity_type] if isinstance(entity_type, str) else list(entity_type)) if e and str(e).lower() != "all"]
+        if et_list:
+            placeholders = ", ".join(["?"] * len(et_list))
+            query += f" AND entity_type IN ({placeholders})"
+            params.extend(et_list)
 
     if discipline:
-        query += " AND discipline = ?"
-        params.append(discipline)
+        disc_list = [d for d in ([discipline] if isinstance(discipline, str) else list(discipline)) if d and str(d).lower() != "all"]
+        if disc_list:
+            placeholders = ", ".join(["?"] * len(disc_list))
+            query += f" AND discipline IN ({placeholders})"
+            params.extend(disc_list)
 
     if procurement_nature:
-        query += " AND procurement_nature = ?"
-        params.append(procurement_nature)
+        nat_list = [n for n in ([procurement_nature] if isinstance(procurement_nature, str) else list(procurement_nature)) if n and str(n).lower() != "all"]
+        if nat_list:
+            placeholders = ", ".join(["?"] * len(nat_list))
+            query += f" AND procurement_nature IN ({placeholders})"
+            params.extend(nat_list)
 
     if gazette_type:
-        query += " AND gazette_type = ?"
-        params.append(gazette_type)
+        gt_list = [g for g in ([gazette_type] if isinstance(gazette_type, str) else list(gazette_type)) if g and str(g).lower() != "all"]
+        if gt_list:
+            placeholders = ", ".join(["?"] * len(gt_list))
+            query += f" AND gazette_type IN ({placeholders})"
+            params.extend(gt_list)
 
     if portal:
-        query += " AND CAST(sources AS TEXT) LIKE ?"
-        params.append(f"%{portal}%")
+        pt_list = [p for p in ([portal] if isinstance(portal, str) else list(portal)) if p and str(p).lower() != "all"]
+        if pt_list:
+            pt_clauses = []
+            for p in pt_list:
+                pt_clauses.append("CAST(sources AS TEXT) LIKE ?")
+                params.append(f"%{p}%")
+            query += f" AND ({' OR '.join(pt_clauses)})"
 
     if cross_listed_only:
         query += " AND json_array_length(sources) > 1" 

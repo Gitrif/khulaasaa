@@ -1,37 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Bids &amp; Tenders — Dispatch{% endblock %}
 {% block appbar_title %}Bids &amp; Tenders{% endblock %}
-{% block appbar_subtitle %}Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %} (filtered){% endif %} &middot; LIVE FEED{% endblock %}
+{% block appbar_subtitle %}Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if selected_agencies or selected_disciplines or selected_natures or selected_types or selected_entity_types or selected_portals or cross_listed or search_q %} (filtered){% endif %} &middot; LIVE FEED{% endblock %}
 
 {% block content %}
 {% from "components/filter_dock.html" import render_filter_dock %}
 {% set _bid_cross = '1' if cross_listed else None %}
+{% set _has_active_filters = selected_agencies or selected_disciplines or selected_natures or selected_types or selected_entity_types or selected_portals or cross_listed or search_q %}
 {% set _bids_row1 %}
     <div class="filter-row">
-      <select class="filter-select" aria-label="Filter tenders by discipline" onchange="window.location.href=this.value">
-        <option value="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if not active_discipline }}>All fields</option>
-        {% for d in quick_disciplines %}
-        <option value="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
-        {% endfor %}
-      </select>
-      <div class="filter-pills" aria-label="Discipline filters">
-        <a href="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
-        {% for d in quick_disciplines %}
-        <a href="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
+      <div class="filter-pills" aria-label="Agency and vendor filters">
+        <a href="{{ build_filter_url('/bids', discipline=selected_disciplines, nature=selected_natures, type=selected_types, entity_type=selected_entity_types, portal=selected_portals, cross_listed=_bid_cross, q=search_q) }}" class="filter-pill {{ 'active' if not selected_agencies else '' }}">All</a>
+        {% for a in top_agencies %}
+        <a href="{{ build_filter_url('/bids', agency=a, discipline=selected_disciplines, nature=selected_natures, type=selected_types, entity_type=selected_entity_types, portal=selected_portals, cross_listed=_bid_cross, q=search_q) }}" class="filter-pill {{ 'active' if a in selected_agencies else '' }}">{{ a }}</a>
         {% endfor %}
       </div>
-      <button type="button" class="filter-more-btn" onclick="openAdvancedFilterModal()" aria-label="Open advanced tender filters" aria-haspopup="dialog" title="Advanced filters">
+      <button type="button" class="filter-more-btn ml-auto" onclick="openAdvancedFilterModal()" aria-label="Open advanced tender filters" aria-haspopup="dialog" title="Advanced filters">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
       </button>
     </div>
 {% endset %}
 {% set _bids_row2 %}
     <div class="filter-row filter-row-topics">
-      <span class="filter-row-label">Options</span>
-      <div class="filter-pills" aria-label="Tender options">
-        <a href="{{ build_filter_url('/bids', cross_listed=('0' if cross_listed else '1'), discipline=active_discipline, q=search_q, portal=active_portal) }}" class="filter-pill {{ 'active' if cross_listed else '' }}">Cross-Published{% if cross_listed %} &times;{% endif %}</a>
-        {% if active_agency or active_nature or active_entity_type or active_portal or active_type %}<span class="filter-pill active">Advanced filters on</span>{% endif %}
-        {% if active_agency or active_discipline or active_nature or active_portal or active_type or cross_listed or search_q %}<a href="/bids" class="filter-pill">Reset</a>{% endif %}
+      <div class="filter-pills" aria-label="Discipline filters">
+        <a href="{{ build_filter_url('/bids', agency=selected_agencies, nature=selected_natures, type=selected_types, entity_type=selected_entity_types, portal=selected_portals, cross_listed=_bid_cross, q=search_q) }}" class="filter-pill {{ 'active' if not selected_disciplines else '' }}">All</a>
+        {% for d in quick_disciplines %}
+        <a href="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=selected_portals, cross_listed=_bid_cross, agency=selected_agencies, nature=selected_natures, type=selected_types, entity_type=selected_entity_types) }}" class="filter-pill {{ 'active' if d in selected_disciplines else '' }}">{{ d }}</a>
+        {% endfor %}
+        <a href="{{ build_filter_url('/bids', cross_listed=('0' if cross_listed else '1'), discipline=selected_disciplines, q=search_q, portal=selected_portals, agency=selected_agencies, nature=selected_natures, type=selected_types, entity_type=selected_entity_types) }}" class="filter-pill {{ 'active' if cross_listed else '' }}">Cross-Published{% if cross_listed %} &times;{% endif %}</a>
+        {% if _has_active_filters %}
+        <a href="/bids" class="filter-pill">Reset</a>
+        {% endif %}
       </div>
     </div>
 {% endset %}
@@ -43,53 +42,62 @@
 
 <!-- Advanced Search & Filter Modal -->
 <div id="advancedFilterModal" class="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this) closeAdvancedFilterModal()">
-  <div class="bg-paper border border-hairline max-w-lg w-full p-5 sm:p-6 shadow-2xl relative rounded-md flex flex-col" onclick="event.stopPropagation()">
+  <div class="bg-paper border border-hairline max-w-lg w-full p-5 sm:p-6 shadow-2xl relative rounded-md flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between pb-3 mb-3 border-b border-hairline">
       <h2 class="font-serif-display text-lg font-bold text-ink">Advanced Tender Filters</h2>
       <button type="button" class="text-slate hover:text-ink text-2xl font-bold leading-none cursor-pointer" onclick="closeAdvancedFilterModal()">&times;</button>
     </div>
 
-    <form method="GET" action="/bids" class="space-y-3 text-xs">
+    <form method="GET" action="/bids" class="space-y-3.5 text-xs overflow-y-auto pr-1">
       {% if search_q %}<input type="hidden" name="q" value="{{ search_q }}">{% endif %}
+      {% if cross_listed %}<input type="hidden" name="cross_listed" value="1">{% endif %}
 
+      <!-- Multi-select Agencies / Vendors -->
       <div>
-        <label class="block font-semibold text-slate-700 mb-1">Agency / Ministry</label>
-        <select name="agency" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
-          <option value="">All Agencies ({{ agencies|length }})</option>
+        <label class="block font-bold text-slate-800 mb-1.5">Agency / Ministry / SOE Vendor</label>
+        <div class="max-h-36 overflow-y-auto border border-hairline rounded bg-white p-2.5 space-y-1.5">
           {% for a in agencies %}
-          <option value="{{ a }}" {% if active_agency == a %}selected{% endif %}>{{ a }}</option>
+          <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
+            <input type="checkbox" name="agency" value="{{ a }}" {% if a in selected_agencies %}checked{% endif %} class="rounded border-hairline text-lagoon focus:ring-0">
+            <span class="text-xs text-ink truncate">{{ a }}</span>
+          </label>
           {% endfor %}
-        </select>
+        </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <!-- Multi-select Discipline & Procurement Nature -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Discipline</label>
-          <select name="discipline" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
-            <option value="">All Disciplines</option>
+          <label class="block font-bold text-slate-800 mb-1.5">Discipline</label>
+          <div class="max-h-32 overflow-y-auto border border-hairline rounded bg-white p-2 space-y-1">
             {% for d in disciplines %}
-            <option value="{{ d }}" {% if active_discipline == d %}selected{% endif %}>{{ d }}</option>
+            <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+              <input type="checkbox" name="discipline" value="{{ d }}" {% if d in selected_disciplines %}checked{% endif %} class="rounded border-hairline text-lagoon focus:ring-0">
+              <span class="text-xs text-ink truncate">{{ d }}</span>
+            </label>
             {% endfor %}
-          </select>
+          </div>
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Procurement Nature</label>
-          <select name="nature" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
-            <option value="">All (Supply, Service, Lease)</option>
+          <label class="block font-bold text-slate-800 mb-1.5">Procurement Nature</label>
+          <div class="max-h-32 overflow-y-auto border border-hairline rounded bg-white p-2 space-y-1">
             {% for n in ["Supply", "Service", "Lease"] %}
-            <option value="{{ n }}" {% if active_nature == n %}selected{% endif %}>{{ n }}</option>
+            <label class="flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+              <input type="checkbox" name="nature" value="{{ n }}" {% if n in selected_natures %}checked{% endif %} class="rounded border-hairline text-lagoon focus:ring-0">
+              <span class="text-xs text-ink">{{ n }}</span>
+            </label>
             {% endfor %}
-          </select>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="block font-semibold text-slate-700 mb-1">Entity Type</label>
           <select name="entity_type" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
             <option value="">All Entity Types</option>
             {% for et in entity_types %}
-            <option value="{{ et }}" {% if active_entity_type == et %}selected{% endif %}>{{ et }}</option>
+            <option value="{{ et }}" {% if et in selected_entity_types %}selected{% endif %}>{{ et }}</option>
             {% endfor %}
           </select>
         </div>
@@ -98,23 +106,31 @@
           <select name="portal" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
             <option value="">All Portals (Gazette &amp; SOEs)</option>
             {% for p in portals %}
-            <option value="{{ p }}" {% if active_portal == p %}selected{% endif %}>{{ p }}</option>
+            <option value="{{ p }}" {% if p in selected_portals %}selected{% endif %}>{{ p }}</option>
             {% endfor %}
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Notice Type</label>
+        <select name="type" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
+          <option value="">All Notice Types</option>
+          {% for t in types %}
+          <option value="{{ t }}" {% if t in selected_types %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Notification Settings Banner matching News -->
+      <div class="p-3 bg-paper-soft border border-hairline rounded text-xs flex items-center justify-between gap-2">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Notice Type</label>
-          <select name="type" class="w-full p-2 bg-white border border-hairline rounded text-xs text-ink focus:outline-none focus:border-lagoon">
-            <option value="">All Notice Types</option>
-            {% for t in types %}
-            <option value="{{ t }}" {% if active_type == t %}selected{% endif %}>{{ t }}</option>
-            {% endfor %}
-          </select>
+          <span class="font-bold text-ink block">Instant Tender Notifications</span>
+          <span class="text-slate text-[11px]">Receive Telegram &amp; Viber alerts when procurement notices match your criteria.</span>
         </div>
-        <input type="hidden" name="lang" value="en"><span style="display:none;">Bilingual</span>
+        <a href="/account/alerts" class="source-action-btn py-1 px-2.5 text-xs shrink-0">
+          <span class="source-btn-text">Alert Settings &rarr;</span>
+        </a>
       </div>
 
       <div class="flex items-center justify-between pt-3 border-t border-hairline">
