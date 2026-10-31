@@ -385,7 +385,7 @@ img[src*="static/logos/"] {
 
 /* Complete Overflow Prevention for cards, grids, flex containers, and text */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
