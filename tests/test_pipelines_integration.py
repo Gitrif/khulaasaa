@@ -223,6 +223,11 @@ def test_jobs_pipeline_e2e(client):
 
 def test_jobs_honest_empty_state_without_demo_mode(client):
     """Verify that in production (when demo mode is inactive), empty query does not disguise with sample JOBS."""
+    try:
+        from services.cache_service import cache_delete
+        cache_delete("jobs:feed:[]:[]:[]:None:")
+    except Exception:
+        pass
     # When filtering by an empty search query on an isolated database with demo mode disabled:
     with patch.dict(os.environ, {"KHULAASAA_DEMO_MODE": "0", "PYTEST_CURRENT_TEST": ""}):
         with patch("routers.web_jobs.query_jobs", return_value=[]):

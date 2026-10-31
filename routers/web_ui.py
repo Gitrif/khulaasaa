@@ -19,33 +19,24 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from core.deps import get_current_user, is_authorized_editor, templates
 from data.database import (
     ATOLL_TAXONOMY,
-    get_agency_portal_statistics,
-    get_bids_filter_options,
     get_company_profile,
     get_db,
-    get_job_disciplines,
     get_telegram_subscriber,
     get_user_cv,
     list_obituaries,
     list_sponsored_ads,
     save_hooks85_subscription,
-    query_bids,
-    query_jobs,
 )
 from data.stories import (
     DEFAULT_EVENTS,
-    JOBS,
     SOURCES,
     TIMELINE_TAGS,
     TIMELINES,
     TOPICS,
     TRENDING,
 )
-from scrapers.jobs import JOB_DISCIPLINES
 from scrapers.translator import is_dhivehi, translate_dhivehi_title
 from services.news_service import enrich_event, get_live_news
-from services.jobs_service import enrich_job
-from services.tenders_service import trigger_bids_background_sync
 from alerts.telegram import get_telegram_credentials
 from data.modules import is_service_module_enabled, get_service_module
 
@@ -133,9 +124,16 @@ def public_feed(
     active_ads = []
     latest_obituaries = []
     try:
+        from services.cache_service import cache_get, cache_set
+        cached_obs = cache_get("obituaries:home_widget")
+        if cached_obs is not None:
+            latest_obituaries = cached_obs
+        else:
+            with get_db() as conn:
+                latest_obituaries = list_obituaries(conn, limit=3, active_only=True)
+            cache_set("obituaries:home_widget", latest_obituaries, ttl_seconds=60)
         with get_db() as conn:
             active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
-            latest_obituaries = list_obituaries(conn, limit=3, active_only=True)
     except Exception:
         pass
 
