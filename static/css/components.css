@@ -3,18 +3,63 @@
    Header, Navbars, Cards, Badges, Buttons, Wire, Tenders, Ads & Footer
    ========================================================================== */
 
-/* Brand Link & Thaana Kaafu Mark */
+/* Brand Link & Thaana Kaafu Mark + Page Title Block */
+.top-leaderboard-ad-bar {
+  display: block;
+  background: var(--paper-soft);
+  border-bottom: 1px solid var(--hairline);
+  padding: 0.35rem 0;
+}
+.top-leaderboard-ad-bar .ad-card {
+  margin-bottom: 0 !important;
+  padding: 0.45rem 0.75rem !important;
+}
+@media (min-width: 768px) {
+  .top-leaderboard-ad-bar {
+    padding: 0.45rem 0;
+  }
+  .top-leaderboard-ad-bar .ad-card {
+    padding: 0.55rem 0.85rem !important;
+  }
+}
+
+.appbar-inner {
+  min-height: 3.75rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+@media (min-width: 768px) {
+  .appbar-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+  }
+  .appbar-brand {
+    justify-self: start;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .appbar-actions {
+    justify-self: end;
+  }
+}
 .brand-link, a.brand-link, a.brand-link:visited {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   text-decoration: none !important;
   color: var(--ink) !important;
   cursor: pointer;
 }
 .brand-link:hover {
   text-decoration: none !important;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 .brand-mark {
   display: inline-flex;
@@ -25,7 +70,7 @@
   border-radius: 6px;
   background: linear-gradient(135deg, #0b5d57 0%, #004d47 100%);
   color: #ffffff !important;
-  font-family: 'Noto Sans Thaana', 'Faruma', 'MV Boli', sans-serif;
+  font-family: 'Faruma', 'MV Waheed', 'Noto Sans Thaana', 'MV Boli', sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
   line-height: 1;
@@ -44,8 +89,43 @@
 .brand-mark.lg {
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 1.6rem;
-  border-radius: 8px;
+  font-size: 1.55rem;
+  border-radius: 9px;
+}
+.brand-heading-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 1px;
+}
+.appbar-page-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ink) !important;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.appbar-page-subtitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--slate) !important;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 56vw;
+}
+@media (min-width: 768px) {
+  .appbar-page-title {
+    font-size: 1.35rem;
+  }
+  .appbar-page-subtitle {
+    max-width: 340px;
+  }
 }
 .brand-title {
   font-family: 'Inter', system-ui, sans-serif;
@@ -59,47 +139,47 @@
   display: none;
 }
 
-/* Nav Tabs Bar in Header */
-.nav-tabs-bar {
+/* Nav Tabs Bar in Header (Inline inside Unified App Bar on Desktop) */
+.appbar-nav {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.2rem;
-  background: rgba(16, 34, 46, 0.05);
-  border: 1px solid var(--hairline);
-  border-radius: 8px;
-  flex-shrink: 0;
+  gap: 0.25rem;
 }
 .nav-tab, a.nav-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.75rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  border-radius: 6px;
-  color: #475569 !important;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid transparent;
+  color: var(--slate) !important;
   background: transparent;
   text-decoration: none !important;
   transition: all 0.15s ease-in-out;
   white-space: nowrap;
   line-height: 1.25;
 }
+.nav-tab-icon {
+  flex-shrink: 0;
+}
 .nav-tab:visited, a.nav-tab:visited {
-  color: #475569 !important;
+  color: var(--slate) !important;
   text-decoration: none !important;
 }
 .nav-tab:hover, a.nav-tab:hover {
-  background: rgba(16, 34, 46, 0.08);
+  background: rgba(16, 34, 46, 0.05);
   color: var(--ink) !important;
   text-decoration: none !important;
 }
 .nav-tab.active, a.nav-tab.active,
 .nav-tab.active:visited, a.nav-tab.active:visited {
-  background: var(--ink) !important;
-  color: #ffffff !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  border-bottom-color: var(--lagoon) !important;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(16, 34, 46, 0.2);
 }
 
 /* Primary and Secondary Action Buttons */
@@ -969,49 +1049,6 @@
   border-color: var(--lagoon);
 }
 
-/* Header Search Field with Inside Icon and Corner Style */
-.header-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-.header-search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-  fill: #64748B;
-  z-index: 2;
-}
-.header-search-input {
-  width: 100%;
-  height: 32px;
-  padding: 0 10px 0 32px;
-  font-size: 12px;
-  color: var(--ink);
-  background: #ffffff;
-  border: 1px solid var(--hairline);
-  border-radius: 4px; /* Exact corner style matching tabs & cards */
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  box-sizing: border-box;
-}
-.header-search-input:hover {
-  border-color: #B8B0A2;
-}
-.header-search-input:focus {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
-}
-.header-search-input::placeholder {
-  color: var(--slate);
-  opacity: 0.85;
-}
-
 
 /* Mobile Fixed Navigation & Tender Meta */
 /* ==========================================================================
@@ -1111,16 +1148,16 @@ header, .site-header {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
-/* Desktop Navigation Menu (Directly Below Top App Bar) */
+/* Desktop Navigation Menu (Inline Inside Single-Row App Bar) */
 .desktop-nav-menu {
   display: none;
-  border-top: 1px solid var(--hairline);
-  background: rgba(253, 252, 250, 0.96);
-  padding: 0.35rem 0;
+  align-items: center;
+  justify-content: center;
 }
 @media (min-width: 768px) {
   .desktop-nav-menu {
-    display: block;
+    display: flex;
+    justify-self: center;
   }
 }
 
@@ -1328,10 +1365,7 @@ header, .site-header {
   scrollbar-width: none;
 }
 .filter-pills::-webkit-scrollbar { display: none; }
-.filter-toolbar {
-  background: var(--color-surface-muted);
-  border-bottom: 1px solid var(--color-border);
-}
+/* .filter-toolbar surface and border are defined once in the responsive filter dock block below. */
 .filter-toggle { flex: 0 0 auto; }
 .filter-toggle .filter-chevron { transition: transform .18s ease; }
 .filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
@@ -1348,4 +1382,146 @@ header, .site-header {
   .filter-toolbar-inner { flex-wrap: nowrap; }
   .filter-pills { flex: 1 1 auto; }
   .filter-toggle { min-width: max-content; }
+}
+
+
+/* ==========================================================================
+   Khulaasaa responsive filter dock
+   One shared filter component: inline below the desktop header, docked above
+   mobile navigation on small screens. The news cards themselves are untouched.
+   ========================================================================== */
+.filter-toolbar {
+  position: relative;
+  z-index: 35;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+}
+.filter-toolbar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 4px 0;
+}
+.filter-row + .filter-row {
+  border-top: 1px solid var(--dock-row-divider);
+}
+.filter-row-stories { background: transparent; }
+.filter-row-topics { background: var(--dock-row-tint); }
+.filter-row-label {
+  flex: 0 0 82px;
+  color: var(--slate);
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: .045em;
+  white-space: nowrap;
+}
+.filter-row .filter-pills {
+  flex: 1 1 auto;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.filter-row .filter-pills::-webkit-scrollbar { display: none; }
+.filter-row .filter-pill {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 4px !important;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.filter-select {
+  flex: 0 0 auto;
+  width: 104px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface-white);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+@media (max-width: 767px) { .filter-select { width: 88px; height: 27px; font-size: 10px; } }
+.filter-more-btn {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface-white);
+  color: var(--slate);
+}
+.filter-more-btn[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
+.filter-more-btn .filter-chevron { transition: transform .18s ease; }
+.filter-drawer {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 1px solid var(--hairline);
+}
+@media (min-width: 768px) {
+  .filter-toolbar { position: relative; }
+  .filter-toolbar-inner { max-width: 64rem; }
+  .filter-row { min-height: 40px; }
+}
+@media (max-width: 767px) {
+  .filter-toolbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 0;
+    box-shadow: var(--dock-shadow);
+    padding: 2px 0;
+  }
+  .filter-toolbar-inner { padding-left: 10px; padding-right: 10px; }
+  .filter-row {
+    min-height: 39px;
+    gap: 6px;
+  }
+  .filter-row-label {
+    flex-basis: 70px;
+    font-size: 9px;
+    letter-spacing: .025em;
+  }
+  .filter-row .filter-pills { gap: 5px; }
+  .filter-row .filter-pill {
+    min-height: 27px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  .filter-more-btn {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+  }
+  .filter-drawer {
+    max-height: min(42vh, 300px);
+    overflow-y: auto;
+    background: var(--paper);
+    box-shadow: var(--dock-shadow);
+  }
+  .mobile-bottom-nav {
+    bottom: 0;
+    height: 56px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important; }
 }

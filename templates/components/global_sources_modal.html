@@ -24,25 +24,3 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function openSourcesModal(evt, cardId, headline) {
-      if (evt) evt.stopPropagation();
-      const dataEl = document.getElementById('sources-data-' + cardId);
-      const listEl = document.getElementById('globalSourcesModalList');
-      const titleEl = document.getElementById('globalSourcesModalHeadline');
-      if (dataEl && listEl) {
-        listEl.innerHTML = dataEl.innerHTML;
-      }
-      if (titleEl && headline) {
-        titleEl.textContent = headline;
-      }
-      const modal = document.getElementById('globalSourcesModal');
-      if (modal) modal.classList.remove('hidden');
-    }
-
-    function closeSourcesModal() {
-      const modal = document.getElementById('globalSourcesModal');
-      if (modal) modal.classList.add('hidden');
-    }
-  </script>

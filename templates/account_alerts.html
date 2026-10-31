@@ -299,57 +299,5 @@
   </form>
 </main>
 
-<script>
-async function handleSavePreferences(e) {
-  e.preventDefault();
-  const form = document.getElementById('preferencesForm');
-  const btn = document.getElementById('saveBtn');
-  const statusEl = document.getElementById('saveStatus');
-
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-  statusEl.className = 'hidden';
-
-  const freqEl = form.querySelector('input[name="frequency"]:checked');
-  const payload = {
-    is_paused: document.getElementById('prefIsPaused').checked ? 1 : 0,
-    news_alerts: document.getElementById('prefNewsAlerts').checked ? 1 : 0,
-    tender_alerts: document.getElementById('prefTenderAlerts').checked ? 1 : 0,
-    job_alerts: document.getElementById('prefJobAlerts').checked ? 1 : 0,
-    rental_alerts: document.getElementById('prefRentalAlerts').checked ? 1 : 0,
-    breaking_alerts: document.getElementById('prefBreakingAlerts').checked ? 1 : 0,
-    followed_content_alerts: document.getElementById('prefFollowedAlerts').checked ? 1 : 0,
-    telegram_enabled: document.getElementById('prefTelegramEnabled').checked ? 1 : 0,
-    viber_enabled: document.getElementById('prefViberEnabled').checked ? 1 : 0,
-    frequency: freqEl ? freqEl.value : 'instant',
-    quiet_hours_enabled: document.getElementById('prefQuietEnabled').checked ? 1 : 0,
-    quiet_hours_start: document.getElementById('quietStart').value || '23:00',
-    quiet_hours_end: document.getElementById('quietEnd').value || '07:00',
-    timezone: document.getElementById('timezone').value.trim() || 'Indian/Maldives',
-  };
-
-  try {
-    const res = await fetch('/api/account/preferences', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (res.ok && data.status === 'ok') {
-      statusEl.className = 'text-xs py-2.5 px-3.5 rounded bg-green-50 text-green-800 border border-green-200 block';
-      statusEl.textContent = 'Notification preferences successfully saved.';
-      setTimeout(() => { statusEl.className = 'hidden'; }, 3000);
-    } else {
-      statusEl.className = 'text-xs py-2.5 px-3.5 rounded bg-red-50 text-red-800 border border-red-200 block';
-      statusEl.textContent = data.detail || 'Failed to save preferences.';
-    }
-  } catch (err) {
-    statusEl.className = 'text-xs py-2.5 px-3.5 rounded bg-red-50 text-red-800 border border-red-200 block';
-    statusEl.textContent = 'Error: ' + err.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save Notification Preferences';
-  }
-}
-</script>
+<script src="/static/js/account_pages.js" defer></script>
 {% endblock %}

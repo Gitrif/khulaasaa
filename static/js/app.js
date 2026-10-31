@@ -1,7 +1,8 @@
 /**
  * Khulaasaa Vanilla JS Client Engine
  * 100% Native Browser APIs — Zero external dependencies, zero framework overhead.
- * Clean, robust server-rendered HTML navigation with native browser bfcache.
+ * Manages saved jobs, toast notifications, vacancy alerts, and in-app notification center.
+ * Strictly under 500 lines. Zero emojis.
  */
 
 // LocalStorage Saved Jobs Bookmark Manager
@@ -148,7 +149,6 @@ async function saveJobAlertPreferences(event) {
   if (empCheck && empCheck.checked && empCheck.value) alerts.push({ type: 'employer', value: empCheck.value });
   const channel = channelEl ? channelEl.value : 'telegram';
 
-  // Save to localStorage
   try {
     let existing = JSON.parse(localStorage.getItem('khulaasaa_job_alerts') || '[]');
     alerts.forEach(a => {
@@ -159,7 +159,6 @@ async function saveJobAlertPreferences(event) {
     localStorage.setItem('khulaasaa_job_alerts', JSON.stringify(existing));
   } catch (e) {}
 
-  // If user is authenticated, post to backend API
   try {
     const discValues = alerts.filter(a => a.type === 'discipline').map(a => a.value);
     await fetch('/api/user/job-alerts', {
@@ -171,4 +170,161 @@ async function saveJobAlertPreferences(event) {
 
   closeJobAlertModal();
   showToast(`Alert set for ${alerts.map(a => a.value).join(' & ')} via ${channel.toUpperCase()}!`);
+}
+
+// In-App Notification Center
+function closeNotificationsMenu() {
+  const menu = document.getElementById('userNotifDropdown');
+  if (menu && !menu.classList.contains('hidden')) {
+    menu.classList.add('hidden');
+  }
+}
+
+async function refreshNotificationBadge() {
+  try {
+    const res = await fetch('/api/account/notifications?limit=5');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.status === 'ok') {
+      const badge = document.getElementById('headerNotifBadge');
+      const unread = data.unread_count || 0;
+      if (badge) {
+        if (unread > 0) {
+          badge.textContent = unread > 99 ? '99+' : unread;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+  } catch (err) {}
+}
+
+async function toggleNotificationsMenu(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  if (typeof closeUserAvatarMenu === 'function') closeUserAvatarMenu();
+  const menu = document.getElementById('userNotifDropdown');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    await loadNotificationsList();
+  } else {
+    menu.classList.add('hidden');
+  }
+}
+
+async function loadNotificationsList() {
+  const listEl = document.getElementById('userNotifList');
+  if (!listEl) return;
+  listEl.textContent = '';
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'py-6 text-center text-xs text-slate';
+  loadingEl.textContent = 'Loading notifications...';
+  listEl.appendChild(loadingEl);
+
+  try {
+    const res = await fetch('/api/account/notifications?limit=15');
+    const data = await res.json();
+    listEl.textContent = '';
+    if (!res.ok || data.status !== 'ok') {
+      const errEl = document.createElement('div');
+      errEl.className = 'py-6 text-center text-xs text-red-600';
+      errEl.textContent = 'Failed to load notifications.';
+      listEl.appendChild(errEl);
+      return;
+    }
+    const notifs = data.notifications || [];
+    if (notifs.length === 0) {
+      const emptyEl = document.createElement('div');
+      emptyEl.className = 'py-8 text-center text-xs text-slate';
+      emptyEl.textContent = 'No notifications yet.';
+      listEl.appendChild(emptyEl);
+      return;
+    }
+
+    notifs.forEach(n => {
+      const notifId = parseInt(n.id, 10);
+      if (isNaN(notifId) || notifId <= 0) return;
+
+      let safeUrl = null;
+      if (typeof n.url === 'string' && n.url.startsWith('/') && !n.url.startsWith('//') && !n.url.includes('\\')) {
+        safeUrl = n.url;
+      }
+
+      const itemEl = document.createElement('div');
+      itemEl.className = 'p-3 hover:bg-paper cursor-pointer transition flex items-start gap-2.5 ' + (n.is_read ? 'bg-white' : 'bg-paper-soft');
+
+      if (!n.is_read) {
+        const dot = document.createElement('span');
+        dot.className = 'w-2 h-2 rounded-full bg-lagoon shrink-0 mt-1';
+        itemEl.appendChild(dot);
+      }
+
+      const contentCol = document.createElement('div');
+      contentCol.className = 'min-w-0 flex-1';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'text-xs font-semibold text-ink line-clamp-2 leading-tight';
+      titleEl.textContent = n.title || 'Alert Notification';
+      contentCol.appendChild(titleEl);
+
+      if (n.summary) {
+        const sumEl = document.createElement('div');
+        sumEl.className = 'text-[11px] text-slate line-clamp-2 mt-0.5';
+        sumEl.textContent = n.summary;
+        contentCol.appendChild(sumEl);
+      }
+
+      const metaEl = document.createElement('div');
+      metaEl.className = 'text-[10px] text-slate/70 mt-1 flex items-center gap-2';
+
+      const typeSpan = document.createElement('span');
+      typeSpan.className = 'uppercase tracking-wider font-semibold';
+      typeSpan.textContent = n.content_type || 'alert';
+      metaEl.appendChild(typeSpan);
+
+      if (n.created_at) {
+        const timeSpan = document.createElement('span');
+        timeSpan.textContent = '• ' + n.created_at.slice(0, 16).replace('T', ' ');
+        metaEl.appendChild(timeSpan);
+      }
+
+      contentCol.appendChild(metaEl);
+      itemEl.appendChild(contentCol);
+
+      itemEl.addEventListener('click', (e) => handleNotificationClick(e, notifId, safeUrl));
+      listEl.appendChild(itemEl);
+    });
+  } catch (err) {
+    listEl.textContent = '';
+    const netErrEl = document.createElement('div');
+    netErrEl.className = 'py-6 text-center text-xs text-red-600';
+    netErrEl.textContent = 'Network error.';
+    listEl.appendChild(netErrEl);
+  }
+}
+
+async function handleNotificationClick(e, notifId, url) {
+  if (e) e.stopPropagation();
+  try {
+    await fetch(`/api/account/notifications/${notifId}/read`, { method: 'POST' });
+    refreshNotificationBadge();
+  } catch (err) {}
+  if (url && typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
+    window.location.href = url;
+  } else {
+    await loadNotificationsList();
+  }
+}
+
+async function markAllNotificationsAsRead() {
+  try {
+    await fetch('/api/account/notifications/read-all', { method: 'POST' });
+    refreshNotificationBadge();
+    await loadNotificationsList();
+  } catch (err) {}
 }

@@ -973,21 +973,20 @@
   </div>
 </div>
 
-<script>
-window.BID_CONTEXT = {
-  noticeId: {{ (bid.notice_id or bid.id)|tojson }},
-  referenceNumber: {{ (bid.reference_number or '')|tojson }},
-  title: {{ (bid.title or '')|tojson }},
-  titleEn: {{ (bid.title_en or bid.title or '')|tojson }},
-  titleDv: {{ (bid.title_dv or '')|tojson }},
-  agency: {{ (bid.agency_name_en or bid.agency or 'Public Authority')|tojson }},
-  agencyDv: {{ (bid.agency_name_dv or '')|tojson }},
-  deadline: {{ (bid.submission_date or 'Specified in Gazette notice')|tojson }},
-  submissionLocation: {{ (bid.submission_location or 'Agency Secretariat')|tojson }},
-  agencyEmail: {{ (agency_email or '')|tojson }}
-};
-window.SERVER_PROFILE = {{ (profile if profile else None)|tojson }};
-window.SERVER_IS_PAID = {{ ('true' if current_user and current_user.get('is_paid') else 'false') }};
-</script>
+<div id="bidWorkspaceBootstrap" class="hidden"
+  data-bid="{{ {
+    'noticeId': (bid.notice_id or bid.id),
+    'referenceNumber': (bid.reference_number or ''),
+    'title': (bid.title or ''),
+    'titleEn': (bid.title_en or bid.title or ''),
+    'titleDv': (bid.title_dv or ''),
+    'agency': (bid.agency_name_en or bid.agency or 'Public Authority'),
+    'agencyDv': (bid.agency_name_dv or ''),
+    'deadline': (bid.submission_date or 'Specified in Gazette notice'),
+    'submissionLocation': (bid.submission_location or 'Agency Secretariat'),
+    'agencyEmail': (agency_email or '')
+  }|tojson|forceescape }}"
+  data-profile="{{ (profile if profile else None)|tojson|forceescape }}"
+  data-is-paid="{{ 'true' if current_user and current_user.get('is_paid') else 'false' }}"></div>
 <script src="/static/js/bid_workspace.js"></script>
 {% endblock %}

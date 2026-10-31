@@ -312,16 +312,16 @@ def test_account_menu_xss_protection():
         "';alert(String.fromCharCode(88,83,83))//",
     ]
 
-    # Verify that in templates/base.html, renderUserAvatarMenu sets textContent and does not use innerHTML
-    with open("templates/base.html", "r", encoding="utf-8") as f:
-        base_html = f.read()
+    # Verify that in static/js/app_shell.js, renderUserAvatarMenu sets textContent and does not use innerHTML
+    with open("static/js/app_shell.js", "r", encoding="utf-8") as f:
+        shell_js = f.read()
 
     # Assert DOM construction functions exist and contain zero innerHTML
-    assert "function renderUserAvatarMenu(" in base_html
-    assert "function renderGuestAvatarButton(" in base_html
+    assert "function renderUserAvatarMenu(" in shell_js
+    assert "function renderGuestAvatarButton(" in shell_js
 
     # Extract the renderUserAvatarMenu function body
-    fn_match = re.search(r"function renderUserAvatarMenu\(container, u\)\s*\{(.*?)\n    \}", base_html, re.DOTALL)
+    fn_match = re.search(r"function renderUserAvatarMenu\(container, u\)\s*\{(.*?)\n\}", shell_js, re.DOTALL)
     assert fn_match is not None, "renderUserAvatarMenu function must be defined"
     fn_body = fn_match.group(1)
 

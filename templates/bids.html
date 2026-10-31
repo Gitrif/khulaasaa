@@ -1,72 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Bids &amp; Tenders — Dispatch{% endblock %}
+{% block appbar_title %}Bids &amp; Tenders{% endblock %}
+{% block appbar_subtitle %}Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %} (filtered){% endif %} &middot; LIVE FEED{% endblock %}
 
 {% block content %}
-<!-- Minimalist High-Real-Estate Header -->
-<header class="border-b border-hairline bg-paper">
-  <div class="max-w-3xl mx-auto px-4 pt-4 pb-3">
-    <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-      Bids &amp; Tenders
-    </h1>
-    <p class="text-xs sm:text-sm text-slate mt-0.5 flex items-center gap-2 flex-wrap">
-      <span>Maldives Government Procurement &amp; SOE Portals &middot; {{ bids|length }} active notices{% if active_agency or active_discipline or active_type or active_entity_type or active_portal or active_nature or cross_listed or search_q %} (filtered){% endif %}</span>
-      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800">
-        <span class="w-1.5 h-1.5 rounded-full bg-sky-600 mr-1 animate-pulse"></span>
-        LIVE FEED
-      </span>
-      <a href="?refresh=1&source={{ source }}&lang={{ lang_mode }}" class="text-xs text-lagoon hover:underline inline-flex items-center" title="Fetch latest notices from portals">
-        Refresh
-      </a>
-    </p>
-  </div>
-</header>
-
-<main class="px-4 py-2 max-w-3xl mx-auto" id="bids-container">
-  <!-- Single-Row Horizontal Quick Filters & Advanced Filters Trigger -->
-  <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-1 text-xs mb-2.5">
-    <div class="flex items-center gap-1.5 shrink-0">
-      <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Discipline:</span>
-      <a href="/bids{% if search_q %}?q={{ search_q }}{% endif %}" 
-         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if not active_discipline else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
-        All
-      </a>
-      {% for d in ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"] %}
-      <a href="?discipline={{ d }}{% if search_q %}&q={{ search_q }}{% endif %}{% if active_portal %}&portal={{ active_portal }}{% endif %}{% if cross_listed %}&cross_listed=1{% endif %}"
-         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if active_discipline == d else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
-        {{ d }}
-      </a>
-      {% endfor %}
-
-      <span class="text-slate-300 mx-1 shrink-0">|</span>
-
-      <!-- Cross-published quick toggle in the single row -->
-      <a href="?cross_listed={{ '0' if cross_listed else '1' }}{% if active_discipline %}&discipline={{ active_discipline }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
-         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition flex items-center gap-1 {{ 'bg-emerald-100 text-emerald-900 border-emerald-300 font-semibold' if cross_listed else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
-        <span>Cross-Published</span>
-        {% if cross_listed %}&times;{% endif %}
-      </a>
-
-      {% if active_agency or active_discipline or active_nature or active_portal or active_type or cross_listed or search_q %}
-      <a href="/bids" class="text-xs text-rose-600 hover:underline shrink-0 ml-1.5">
-        Reset
-      </a>
-      {% endif %}
+{% from "components/filter_dock.html" import render_filter_dock %}
+{% set _bid_cross = '1' if cross_listed else None %}
+{% set _bids_row1 %}
+    <div class="filter-row">
+      <select class="filter-select" aria-label="Filter tenders by discipline" onchange="window.location.href=this.value">
+        <option value="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if not active_discipline }}>All fields</option>
+        {% for d in quick_disciplines %}
+        <option value="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
+        {% endfor %}
+      </select>
+      <div class="filter-pills" aria-label="Discipline filters">
+        <a href="{{ build_filter_url('/bids', q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
+        {% for d in quick_disciplines %}
+        <a href="{{ build_filter_url('/bids', discipline=d, q=search_q, portal=active_portal, cross_listed=_bid_cross) }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
+        {% endfor %}
+      </div>
+      <button type="button" class="filter-more-btn" onclick="openAdvancedFilterModal()" aria-label="Open advanced tender filters" aria-haspopup="dialog" title="Advanced filters">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+      </button>
     </div>
+{% endset %}
+{% set _bids_row2 %}
+    <div class="filter-row filter-row-topics">
+      <span class="filter-row-label">Options</span>
+      <div class="filter-pills" aria-label="Tender options">
+        <a href="{{ build_filter_url('/bids', cross_listed=('0' if cross_listed else '1'), discipline=active_discipline, q=search_q, portal=active_portal) }}" class="filter-pill {{ 'active' if cross_listed else '' }}">Cross-Published{% if cross_listed %} &times;{% endif %}</a>
+        {% if active_agency or active_nature or active_entity_type or active_portal or active_type %}<span class="filter-pill active">Advanced filters on</span>{% endif %}
+        {% if active_agency or active_discipline or active_nature or active_portal or active_type or cross_listed or search_q %}<a href="/bids" class="filter-pill">Reset</a>{% endif %}
+      </div>
+    </div>
+{% endset %}
+{{ render_filter_dock(_bids_row1, _bids_row2) }}
 
-    <!-- Advanced Filters Button (opens modal) -->
-    <button type="button" onclick="openAdvancedFilterModal()" class="px-2.5 py-1 text-xs font-semibold rounded-full border border-hairline bg-white text-ink hover:bg-slate-50 transition shadow-2xs flex items-center gap-1.5 shrink-0 cursor-pointer" title="Open Advanced Filters">
-      <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-      <span>Advanced Filters</span>
-      {% if active_agency or active_nature or active_entity_type or active_portal or active_type %}
-        <span class="w-1.5 h-1.5 rounded-full bg-lagoon"></span>
-      {% endif %}
-    </button>
-  </div>
-
-  <div class="my-2">
-    {% include "_ad_leaderboard.html" %}
-  </div>
-
+<main class="px-4 py-4 max-w-3xl mx-auto" id="bids-container">
   {% include "components/bids_stream.html" %}
 </main>
 

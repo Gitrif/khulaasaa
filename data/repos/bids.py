@@ -125,7 +125,7 @@ def upsert_bid(conn: sqlite3.Connection, bid: dict[str, Any]) -> int:
 
     nature = bid.get("procurement_nature")
     if not nature:
-        from scrapers.gazette import classify_procurement
+        from scrapers.tenders.classifier import classify_procurement
         nature, _ = classify_procurement(title, bid.get("raw_details") or bid.get("body"))
 
     # Normalize source URL so it always points to the actual tender notice

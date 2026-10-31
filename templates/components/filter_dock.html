@@ -1,0 +1,21 @@
+{# Shared responsive filter dock shell used across News, Tenders, Jobs, Rentals, and Notices.
+   Inline below the desktop header on >=768px; fixed above .mobile-bottom-nav on <768px. #}
+{% macro render_filter_dock(row1, row2, drawer='') -%}
+<div class="filter-toolbar" id="pageFilterToolbar">
+  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+    {{ row1 }}
+    {{ row2 }}
+  </div>
+  {%- if drawer %}
+  <div id="filterDrawer" class="filter-drawer max-w-5xl mx-auto px-4 hidden">
+    {{ drawer }}
+  </div>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{% macro filter_more_btn(label='More filters') -%}
+<button id="toggleFilterBtn" type="button" class="filter-more-btn" aria-expanded="false" aria-controls="filterDrawer" onclick="toggleFilterDrawer()" aria-label="{{ label }}">
+  {{ svg_icon('chevron-down', 'filter-chevron', 15, 15, 2) }}
+</button>
+{%- endmacro %}

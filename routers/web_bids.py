@@ -9,7 +9,7 @@ import re
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from core.deps import get_current_user, is_authorized_editor, templates
 from data.database import (
@@ -21,6 +21,7 @@ from data.database import (
     query_bids,
 )
 from alerts.telegram import get_telegram_credentials
+from services.estimator_service import calculate_full_boq
 from services.tenders_service import trigger_bids_background_sync, prepare_bids_presentation
 from data.modules import is_service_module_enabled, get_service_module
 
@@ -98,6 +99,7 @@ def bids(
             "is_live": use_live,
             "agencies": filter_options["agencies"],
             "disciplines": filter_options["disciplines"],
+            "quick_disciplines": ["Construction", "IT", "Medical", "Real Estate & Leasing", "Other"],
             "natures": ["Supply", "Service", "Lease"],
             "types": filter_options["types"],
             "entity_types": ["SOE", "Ministry", "Council", "Healthcare", "Education", "Independent", "Other"],
@@ -227,6 +229,20 @@ def construction_estimator_view(request: Request):
             "current_user": user,
             "profile": profile,
             "active_ads": active_ads,
+            "initial_boq": calculate_full_boq({}),
             "page_title": "Construction Cost Estimator & Material Calculator | Khulaasaa",
         },
     )
+
+
+@router.post("/api/bids/estimate-boq", response_class=JSONResponse)
+@router.post("/api/tools/construction-estimator", response_class=JSONResponse)
+async def api_calculate_construction_boq(request: Request):
+    """Calculate Maldivian construction material quantities and MVR BOQ cost."""
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    return JSONResponse(calculate_full_boq(payload))

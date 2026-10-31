@@ -34,13 +34,13 @@ def test_telegram_init_data_accepts_valid_signature():
 def test_telegram_init_data_rejects_tampered_payload():
     payload = _signed_init_data("test-bot-token", {"id": 987654321})
     tampered = payload.replace("987654321", "987654322")
-    assert _validate_telegram_webapp_init_data(tampered, "test-bot-token") is None
+    assert validate_telegram_webapp_init_data(tampered, "test-bot-token") is None
 
 
 def test_telegram_init_data_rejects_stale_signature():
     stale_date = int(time.time()) - 86401
     payload = _signed_init_data("test-bot-token", {"id": 987654321}, stale_date)
-    assert _validate_telegram_webapp_init_data(payload, "test-bot-token") is None
+    assert validate_telegram_webapp_init_data(payload, "test-bot-token") is None
 
 
 def test_platform_identity_upsert_is_idempotent_and_tracks_last_seen(tmp_path: Path):

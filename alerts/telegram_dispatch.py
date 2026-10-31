@@ -169,6 +169,10 @@ def dispatch_tender_alerts(
                             record_ad_impression(conn, active_ad["id"])
                         except Exception:
                             pass
+                    try:
+                        conn.commit()
+                    except Exception:
+                        pass
                     sent_records.append({
                         "notice_id": notice_id,
                         "chat_id": chat_id,
@@ -285,6 +289,10 @@ def dispatch_news_alerts(
             )
             if ok:
                 record_alert_sent(conn, alert_key, chat_id)
+                try:
+                    conn.commit()
+                except Exception:
+                    pass
                 sent_records.append({"article_id": art_id, "chat_id": chat_id, "status": "delivered"})
                 if active_ad:
                     try:
@@ -372,6 +380,10 @@ def dispatch_obituary_alerts(
             )
             if ok:
                 record_alert_sent(conn, alert_key, chat_id)
+                try:
+                    conn.commit()
+                except Exception:
+                    pass
                 sent_records.append({"obituary_id": ob_id, "chat_id": chat_id, "status": "delivered"})
             else:
                 sent_records.append({"obituary_id": ob_id, "chat_id": chat_id, "status": "failed", "error": status_msg})
@@ -453,6 +465,10 @@ def dispatch_job_alerts(
             ok, _ = tg.send_telegram_message(msg_html, chat_id=chat_id, bot_token=token, session=session)
             if ok:
                 record_alert_sent(conn, alert_key, chat_id)
+                try:
+                    conn.commit()
+                except Exception:
+                    pass
                 delivered += 1
             else:
                 failed += 1

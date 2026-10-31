@@ -1,7 +1,6 @@
 /**
  * Client-side Tenders & Procurement Filter Controller.
- * Handles instant client query matching, advanced modal filtering,
- * and test alert dispatch to connected subscriber endpoints.
+ * Handles instant client query matching and advanced modal filtering.
  * Strictly under 500 lines. Zero emojis.
  */
 
@@ -31,30 +30,4 @@ function closeAdvancedFilterModal() {
 function toggleTelegramPanel() {
   const p = document.getElementById("telegram-panel");
   if (p) p.classList.toggle("hidden");
-}
-
-async function sendSpecificTenderAlert(noticeId) {
-  let chatId = localStorage.getItem("khulaasaa_tg_chat");
-  let botToken = localStorage.getItem("khulaasaa_tg_token");
-
-  if (!chatId) {
-    toggleTelegramPanel();
-    return;
-  }
-
-  try {
-    const resp = await fetch("/api/alerts/telegram/test", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, bot_token: botToken, notice_id: noticeId })
-    });
-    const data = await resp.json();
-    if (data.ok) {
-      alert("Tender alert successfully sent to Telegram!");
-    } else {
-      alert("Failed to send alert: " + (data.error || "Unknown error"));
-    }
-  } catch (err) {
-    alert("Error sending tender alert: " + err.message);
-  }
 }

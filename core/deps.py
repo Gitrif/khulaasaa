@@ -7,6 +7,7 @@ import os
 import secrets
 import warnings
 from typing import Any, Optional
+from urllib.parse import urlencode
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -19,12 +20,23 @@ from data.database import (
     get_user_by_id,
     get_user_from_session,
 )
+from core.icons import svg_icon
 from data.utils import format_tender_date, normalize_tender_info
 from services.hooks85_service import verify_hooks85_session
+
+def build_filter_url(base_path: str, **params: Any) -> str:
+    """Build a canonical filter URL preserving non-empty query parameters."""
+    clean = {k: str(v) for k, v in params.items() if v not in (None, "", False)}
+    if not clean:
+        return base_path
+    return f"{base_path}?{urlencode(clean)}"
+
 
 templates = Jinja2Templates(directory="templates")
 templates.env.filters["format_tender_date"] = format_tender_date
 templates.env.filters["normalize_tender_info"] = normalize_tender_info
+templates.env.globals["build_filter_url"] = build_filter_url
+templates.env.globals["svg_icon"] = svg_icon
 
 security = HTTPBasic()
 EDITOR_USER = os.environ.get("EDITOR_USERNAME", "editor")

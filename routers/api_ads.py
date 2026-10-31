@@ -4,10 +4,10 @@ Sponsored Ads and Commercial Broadcasts API Router.
 from __future__ import annotations
 
 import time
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from core.deps import templates
+from core.deps import require_editor, templates
 from data.database import get_db, list_sponsored_ads, upsert_sponsored_ad
 from alerts.telegram import dispatch_sponsored_broadcast
 from alerts.viber import dispatch_viber_sponsored_broadcast
@@ -29,8 +29,8 @@ def api_list_ads():
 
 
 @router.post("/api/ads")
-async def api_create_ad(request: Request):
-    """Register or update a sponsor campaign."""
+async def api_create_ad(request: Request, _: str = Depends(require_editor)):
+    """Register or update a sponsor campaign (authenticated editor only)."""
     payload = await request.json()
     with get_db() as conn:
         ad_id = upsert_sponsored_ad(conn, payload)
@@ -38,8 +38,8 @@ async def api_create_ad(request: Request):
 
 
 @router.post("/api/alerts/telegram/broadcast-ad")
-async def api_broadcast_sponsored_ad(request: Request):
-    """Broadcast a dedicated sponsored message or partner offer to subscribers."""
+async def api_broadcast_sponsored_ad(request: Request, _: str = Depends(require_editor)):
+    """Broadcast a dedicated sponsored message or partner offer to subscribers (authenticated editor only)."""
     payload = await request.json()
     campaign_name = payload.get("campaign_name") or f"broadcast-{int(time.time())}"
     sponsor_name = payload.get("sponsor_name", "Khulaasaa Commercial Partner")

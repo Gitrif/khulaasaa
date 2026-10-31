@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock
 import pytest
 
-from scrapers.gazette import (
+from scrapers.tenders.gazette import (
     BASE_URL,
     TYPE_SLUGS,
     TYPES,

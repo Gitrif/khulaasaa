@@ -81,20 +81,10 @@ CREATE TABLE IF NOT EXISTS ref_districts (
 CREATE TABLE IF NOT EXISTS addresses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     country_code TEXT NOT NULL DEFAULT 'MDV',
-    atoll_code TEXT,
-    atoll_name_en TEXT,
-    atoll_name_dv TEXT,
-    island_name_en TEXT,
-    island_name_dv TEXT,
-    district TEXT,
-    road TEXT,
-    building_name TEXT,
-    floor TEXT,
-    unit TEXT,
-    postal_code TEXT,
-    latitude REAL,
-    longitude REAL,
-    formatted_address TEXT,
+    atoll_code TEXT, atoll_name_en TEXT, atoll_name_dv TEXT,
+    island_name_en TEXT, island_name_dv TEXT,
+    district TEXT, road TEXT, building_name TEXT, floor TEXT, unit TEXT, postal_code TEXT,
+    latitude REAL, longitude REAL, formatted_address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -490,29 +480,12 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token);
 
 CREATE VIEW IF NOT EXISTS v_bids_enriched AS
 SELECT
-    b.id,
-    b.notice_id,
-    b.reference_number,
-    b.title,
-    COALESCE(b.title_en, b.title) AS title_en,
-    b.gazette_type,
-    b.discipline,
-    b.published_date,
-    b.submission_date,
-    b.submission_location,
-    b.info_date,
-    b.info_location,
-    b.source_url,
-    b.sources,
-    b.document_urls,
-    b.is_active,
-    e.id AS entity_id,
-    COALESCE(e.name_en, 'Unknown Agency') AS agency_name_en,
-    e.name_dv AS agency_name_dv,
-    COALESCE(e.entity_type, 'Other') AS entity_type,
-    e.slug AS entity_slug,
-    e.location AS entity_location,
-    e.website AS entity_website
+    b.id, b.notice_id, b.reference_number, b.title, COALESCE(b.title_en, b.title) AS title_en,
+    b.gazette_type, b.discipline, b.published_date, b.submission_date, b.submission_location,
+    b.info_date, b.info_location, b.source_url, b.sources, b.document_urls, b.is_active,
+    e.id AS entity_id, COALESCE(e.name_en, 'Unknown Agency') AS agency_name_en,
+    e.name_dv AS agency_name_dv, COALESCE(e.entity_type, 'Other') AS entity_type,
+    e.slug AS entity_slug, e.location AS entity_location, e.website AS entity_website
 FROM bids b
 LEFT JOIN entities e ON b.entity_id = e.id;
 """

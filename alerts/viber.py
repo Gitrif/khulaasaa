@@ -70,20 +70,14 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         if user_id:
             try:
                 with get_db() as conn:
-                    # Automatically subscribe user if they interact from Viber first
                     register_or_update_viber_subscriber(
-                        conn,
-                        viber_user_id=user_id,
-                        name=user_name,
+                        conn, viber_user_id=user_id, name=user_name,
                         avatar=user.get("avatar"),
-                        categories=["all", "news", "janaza", "bids", "jobs"],
-                        is_active=1,
+                        categories=["all", "news", "janaza", "bids", "jobs"], is_active=1,
                     )
                     upsert_platform_identity(
-                        conn, "viber", user_id,
-                        provider_username=None,
-                        display_name=user_name,
-                        is_active=True,
+                        conn, "viber", user_id, provider_username=None,
+                        display_name=user_name, is_active=True,
                     )
             except Exception as e:
                 logger.error("Error auto-subscribing Viber user on conversation_started: %s", e)
@@ -122,18 +116,11 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         if user_id:
             with get_db() as conn:
                 register_or_update_viber_subscriber(
-                    conn,
-                    viber_user_id=user_id,
-                    name=user_name,
+                    conn, viber_user_id=user_id, name=user_name,
                     avatar=user.get("avatar"),
-                    categories=["all", "news", "janaza", "bids", "jobs"],
-                    is_active=1,
+                    categories=["all", "news", "janaza", "bids", "jobs"], is_active=1,
                 )
-                upsert_platform_identity(
-                    conn, "viber", user_id,
-                    display_name=user_name,
-                    is_active=True,
-                )
+                upsert_platform_identity(conn, "viber", user_id, display_name=user_name, is_active=True)
             send_viber_message(
                 user_id,
                 f"Subscribed to Khulaasaa alerts!\n\nYour Viber ID: {user_id}\n\nYou will receive real-time news, Janaza announcements, tenders, and job postings.",
@@ -183,38 +170,31 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         try:
             with get_db() as conn:
                 register_or_update_viber_subscriber(
-                    conn,
-                    viber_user_id=user_id,
-                    name=user_name,
+                    conn, viber_user_id=user_id, name=user_name,
                     avatar=sender.get("avatar"),
-                    categories=["all", "news", "janaza", "bids", "jobs"],
-                    is_active=1,
+                    categories=["all", "news", "janaza", "bids", "jobs"], is_active=1,
                 )
-                upsert_platform_identity(
-                    conn, "viber", user_id,
-                    display_name=user_name,
-                    is_active=True,
-                )
+                upsert_platform_identity(conn, "viber", user_id, display_name=user_name, is_active=True)
         except Exception as e:
             logger.error("Error auto-subscribing Viber user on message: %s", e)
 
         # Handle Commands
         if msg_text in ["/start", "start", "hi", "hello", "hey", "/subscribe", "subscribe"]:
             welcome_reply = (
-                f"Assalaamu Alaikum, {user_name}! 🇲🇻\n\n"
+                f"Assalaamu Alaikum, {user_name}!\n\n"
                 f"You are actively subscribed to Khulaasaa alerts:\n"
-                f"• 🔴 Breaking & Verified News\n"
-                f"• 🕌 Janaza Notices (ކަށުނަމާދު)\n"
-                f"• 📑 Government Tenders (ބީލަން)\n"
-                f"• 💼 Job Vacancies & Free CV Builder\n\n"
-                f"🆔 Your Viber ID: {user_id}\n\n"
+                f"• Breaking & Verified News\n"
+                f"• Janaza Notices (ކަށުނަމާދު)\n"
+                f"• Government Tenders (ބީލަން)\n"
+                f"• Job Vacancies & Free CV Builder\n\n"
+                f"Your Viber ID: {user_id}\n\n"
                 f"Tap an option below to explore:"
             )
             send_viber_message(user_id, welcome_reply, keyboard=keyboard)
 
         elif msg_text in ["/myid", "myid", "id", "whoami", "/id"]:
             id_reply = (
-                f"🆔 Your Viber User ID:\n\n"
+                f"Your Viber User ID:\n\n"
                 f"{user_id}\n\n"
                 f"You can use this ID on https://khulaasaa.tech/jobs/cv or in Web Alert Preferences to receive direct alerts!"
             )
@@ -222,9 +202,9 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
 
         elif msg_text in ["/cv", "cv"]:
             cv_reply = (
-                f"📝 Build your Maldivian CV (Free):\n\n"
+                f"Build your Maldivian CV (Free):\n\n"
                 f"Create a verified, ATS-friendly CV formatted specifically for Maldivian government and corporate jobs.\n\n"
-                f"🔗 {base_url}/jobs/cv"
+                f"{base_url}/jobs/cv"
             )
             send_viber_message(user_id, cv_reply, keyboard=keyboard)
 
@@ -242,20 +222,20 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
                 paid = is_viber_subscriber_paid(conn, user_id)
             if paid:
                 pro_reply = (
-                    "⭐️ Khulaasaa Pro (Active Subscription)\n"
+                    "Khulaasaa Pro (Active Subscription)\n"
                     "━━━━━━━━━━━━━━━━━━━━━━\n"
                     "Status: ACTIVE (MVR 50 / month)\n\n"
                     "Your Pro Benefits:\n"
-                    "✅ Custom Tender Alerts by Industry\n"
-                    "✅ Real-time Business Keyword Tracking\n"
-                    "✅ Storyline Topic Alerts\n"
-                    "✅ Immediate Priority Delivery\n\n"
-                    f"🆔 Viber ID: {user_id}\n"
+                    "• Custom Tender Alerts by Industry\n"
+                    "• Real-time Business Keyword Tracking\n"
+                    "• Storyline Topic Alerts\n"
+                    "• Immediate Priority Delivery\n\n"
+                    f"Viber ID: {user_id}\n"
                     f"Web Dashboard: {base_url}/alerts"
                 )
             else:
                 pro_reply = (
-                    "⭐️ Upgrade to Khulaasaa Pro (MVR 50 / month)\n"
+                    "Upgrade to Khulaasaa Pro (MVR 50 / month)\n"
                     "━━━━━━━━━━━━━━━━━━━━━━\n"
                     "Current Plan: Free Tier (Normal Feed)\n\n"
                     "Free users receive the standard broadcast of all tenders and news. "
@@ -274,9 +254,9 @@ def handle_viber_webhook_event(event_data: dict[str, Any], base_url: str = "http
         elif msg_text in ["/alerts", "alerts", "/settings", "settings"]:
             with get_db() as conn:
                 paid = is_viber_subscriber_paid(conn, user_id)
-            plan_badge = "⭐️ Pro Tier (Active — MVR 50/mo)" if paid else "Free Tier (Normal Feed — /pro to customize)"
+            plan_badge = "Pro Tier (Active — MVR 50/mo)" if paid else "Free Tier (Normal Feed — /pro to customize)"
             alerts_text = (
-                f"🔔 Khulaasaa Alert Status:\n\n"
+                f"Khulaasaa Alert Status:\n\n"
                 f"• Status: Active\n"
                 f"• Subscription Plan: {plan_badge}\n"
                 f"• Channels: News, Janaza, Bids, Jobs\n"

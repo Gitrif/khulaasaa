@@ -1,4 +1,22 @@
 
+const _cvBoot = document.getElementById("cvCreatorBootstrap");
+window.currentUser = null;
+window.savedCvRecord = null;
+if (_cvBoot) {
+  try { window.currentUser = JSON.parse(_cvBoot.getAttribute("data-user") || "null"); } catch (e) {}
+  try { window.savedCvRecord = JSON.parse(_cvBoot.getAttribute("data-saved-cv") || "null"); } catch (e) {}
+}
+let currentUser = window.currentUser;
+let currentTemplate = "standard";
+let userIsPaid = currentUser ? Boolean(currentUser.is_paid) : false;
+if (!currentUser) {
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(function () {
+      if (typeof openGlobalAlertsModal === "function") openGlobalAlertsModal("auth");
+    }, 400);
+  });
+}
+
 // Standard Constants (mirrored from backend)
 const STANDARD_LANGUAGES = [
   "English", "Dhivehi", "Arabic", "Hindi", "Urdu", "Sinhala", "Bengali", "Malayalam", "Tamil", "French", "Russian", "Chinese", "German"

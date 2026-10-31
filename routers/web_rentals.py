@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request, status, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from core.deps import get_current_user, templates
 from data.database import get_db, list_sponsored_ads
-from data.rentals import list_rentals, get_rental_by_id, save_rental_contract
+from data.repos.rentals import list_rentals, get_rental_by_id, save_rental_contract
 from data.modules import is_service_module_enabled, get_service_module
 
 logger = logging.getLogger(__name__)

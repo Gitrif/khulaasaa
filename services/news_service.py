@@ -1,6 +1,7 @@
 """
 News Aggregation, Enrichment, and In-Memory Caching Service.
 Strictly non-blocking for HTTP requests with stale-while-revalidate caching.
+Delegates scraping, obituary split, persistence, and alert evaluation to services.ingestion.news_ingestion.
 """
 from __future__ import annotations
 
@@ -9,18 +10,19 @@ import threading
 import time
 from typing import Any, Optional
 
-from data.database import get_db, query_articles, upsert_article
+from alerts.telegram import dispatch_news_alerts
+from data.database import get_db, query_articles
 from data.stories import DEFAULT_EVENTS, SOURCES, TIMELINE_TAGS, TOPICS
 from scrapers.news import (
     calculate_minutes_ago,
     cluster_articles,
     fetch_all_live_news,
     fetch_raw_news_articles,
-    split_news_and_obituaries,
     format_relative_time,
+    split_news_and_obituaries,
 )
 from scrapers.translator import is_dhivehi
-from alerts.telegram import dispatch_news_alerts
+from services.ingestion.news_ingestion import execute_news_ingestion
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,7 @@ _LIVE_NEWS_LAST_SYNC: float = 0.0
 _LIVE_NEWS_LAST_ATTEMPT: float = 0.0
 _LIVE_NEWS_LAST_SUCCESS: float = 0.0
 _LIVE_NEWS_LAST_ERROR: Optional[str] = None
+_LIVE_NEWS_RECORDS_PROCESSED: int = 0
 
 
 def get_news_sync_status() -> dict[str, Any]:
@@ -45,6 +48,7 @@ def get_news_sync_status() -> dict[str, Any]:
         "last_attempt": _LIVE_NEWS_LAST_ATTEMPT,
         "last_success": _LIVE_NEWS_LAST_SUCCESS,
         "last_error": _LIVE_NEWS_LAST_ERROR,
+        "records_processed": _LIVE_NEWS_RECORDS_PROCESSED,
     }
 
 
@@ -62,102 +66,22 @@ def init_news_cache() -> None:
 
 
 def _run_news_sync() -> None:
-    """Background worker to fetch live news and obituaries from external outlets without blocking web traffic."""
-    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC, _LIVE_NEWS_LAST_ATTEMPT, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ERROR
+    """Background worker to synchronize live news and obituaries without blocking web traffic."""
+    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC, _LIVE_NEWS_LAST_ATTEMPT, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ERROR, _LIVE_NEWS_RECORDS_PROCESSED
     _LIVE_NEWS_LAST_ATTEMPT = time.time()
     try:
-        raw_items = fetch_raw_news_articles()
-        news_items, obit_items = split_news_and_obituaries(raw_items)
-
-        # 1. Ingest obituary notices into database via domain repository
-        if obit_items:
-            try:
-                from data.database import upsert_scraped_obituary
-                with get_db() as conn:
-                    for ob in obit_items:
-                        try:
-                            text = f"{ob.get('headline', '')}\n{ob.get('summary', '')}"
-                            upsert_scraped_obituary(conn, text, ob.get("url"))
-                        except Exception as e:
-                            logger.warning("Failed to persist obituary notice: %s", e)
-            except Exception as e:
-                logger.warning("Error during obituary ingestion: %s", e)
-
-        # 2. Persist individual publisher articles to canonical database
-        from data.database import log_db_error
-        persisted_news_items = []
-        if news_items:
-            with get_db() as conn:
-                for item in news_items:
-                    try:
-                        conn.execute("SAVEPOINT art_sp;")
-                        upsert_article(conn, item)
-                        conn.execute("RELEASE SAVEPOINT art_sp;")
-                        persisted_news_items.append(item)
-                    except Exception as exc:
-                        try:
-                            conn.execute("ROLLBACK TO SAVEPOINT art_sp;")
-                        except Exception:
-                            pass
-                        log_db_error(logger, f"upsert_article_{item.get('id')}", "services.news_service", exc)
-
-        # 3. Cluster regular news articles across publishers for feed presentation
-        articles = cluster_articles(persisted_news_items) if persisted_news_items else []
+        articles = execute_news_ingestion(
+            raw_fetcher=fetch_raw_news_articles,
+            alert_dispatcher=dispatch_news_alerts,
+            sync_telegram_obits=False,
+        )
         if articles:
-            # Update in-memory cache immediately so web requests get fresh news with 0ms delay
             _LIVE_NEWS_CACHE["data"] = articles
             _LIVE_NEWS_CACHE["timestamp"] = time.time()
             _LIVE_NEWS_LAST_SYNC = time.time()
             _LIVE_NEWS_LAST_SUCCESS = time.time()
             _LIVE_NEWS_LAST_ERROR = None
-
-            # Dispatch legacy broadcast alerts with isolated transaction
-            try:
-                with get_db() as conn:
-                    dispatch_news_alerts(conn, articles)
-            except Exception as e:
-                log_db_error(logger, "dispatch_news_alerts", "services.news_service", e)
-
-            # Evaluate personalized follow and breaking alerts strictly after persistence
-            try:
-                import hashlib
-                from services.alert_decision_service import process_content_event
-                with get_db() as conn:
-                    for art in articles:
-                        s_id = art.get("story_id") or art.get("id")
-                        if s_id:
-                            try:
-                                conn.execute("SAVEPOINT alert_decision_sp;")
-                                is_brk = bool(art.get("is_breaking") or art.get("category") == "breaking")
-                                topics = [art.get("category")] if art.get("category") else []
-                                headline = art.get("headline", "")
-                                summary = art.get("summary")
-                                sources = art.get("sources") or []
-                                fp_raw = f"{headline.strip()}|{(summary or '').strip()[:100]}|{len(sources)}"
-                                fp = hashlib.sha256(fp_raw.encode("utf-8")).hexdigest()[:10]
-                                process_content_event(
-                                    conn,
-                                    content_type="news",
-                                    content_id=str(s_id),
-                                    title=headline,
-                                    summary=summary,
-                                    url=art.get("url") or f"/story/{s_id}",
-                                    is_breaking=is_brk,
-                                    topics=topics,
-                                    section=art.get("section") or "news",
-                                    source_id=art.get("source_name") or art.get("source"),
-                                    event_version=art.get("event_version", 1),
-                                    update_fingerprint=fp,
-                                )
-                                conn.execute("RELEASE SAVEPOINT alert_decision_sp;")
-                            except Exception as exc:
-                                try:
-                                    conn.execute("ROLLBACK TO SAVEPOINT alert_decision_sp;")
-                                except Exception:
-                                    pass
-                                log_db_error(logger, f"process_news_alert_{s_id}", "services.news_service", exc)
-            except Exception as e:
-                log_db_error(logger, "evaluate_news_alerts_batch", "services.news_service", e)
+            _LIVE_NEWS_RECORDS_PROCESSED = len(articles)
     except Exception as e:
         _LIVE_NEWS_LAST_ERROR = str(e)
         logger.warning("Background news sync failed: %s", e)
@@ -244,15 +168,9 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
         trigger_news_background_sync(force=True)
 
     now = time.time()
-    # Fast Path 1: Fresh in-memory cache
     if _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
 
-    # Fast Path 2: Stale in-memory cache is preserved and served immediately
-    if _LIVE_NEWS_CACHE["data"]:
-        return _LIVE_NEWS_CACHE["data"]
-
-    # Fast Path 3: Read stored database articles from SQLite
     try:
         with get_db() as conn:
             stored = query_articles(conn, limit=100)
@@ -264,5 +182,7 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
     except Exception as e:
         logger.warning("Error loading cached news articles: %s", e)
 
-    # Return empty list when no live or persisted articles exist (never fabricate mock news as live news)
+    if _LIVE_NEWS_CACHE["data"]:
+        return _LIVE_NEWS_CACHE["data"]
+
     return []

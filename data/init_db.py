@@ -165,156 +165,102 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
     with get_db(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
 
-        # Migration: ensure title_en, sources, and procurement_nature columns exist on existing bids tables
-        columns = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
-        if columns and "title_en" not in columns:
-            conn.execute("ALTER TABLE bids ADD COLUMN title_en TEXT;")
-        if columns and "sources" not in columns:
-            conn.execute("ALTER TABLE bids ADD COLUMN sources TEXT DEFAULT '[\"gazette.gov.mv\"]';")
-        if columns and "procurement_nature" not in columns:
-            conn.execute("ALTER TABLE bids ADD COLUMN procurement_nature TEXT NOT NULL DEFAULT 'Supply';")
+        # Migration: ensure columns exist across existing SQLite tables
+        def _ensure_cols(table: str, specs: list[tuple[str, str]]) -> None:
+            cols = [row[1] for row in conn.execute(f"PRAGMA table_info({table});").fetchall()]
+            if not cols:
+                return
+            for col_name, col_def in specs:
+                if col_name not in cols:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_def};")
 
-        # Migration: ensure atoll and region columns exist on existing obituaries tables
-        ob_columns = [row[1] for row in conn.execute("PRAGMA table_info(obituaries);").fetchall()]
-        if ob_columns and "atoll_code" not in ob_columns:
-            conn.execute("ALTER TABLE obituaries ADD COLUMN atoll_code TEXT DEFAULT 'K-MALE';")
-        if ob_columns and "atoll_name_dv" not in ob_columns:
-            conn.execute("ALTER TABLE obituaries ADD COLUMN atoll_name_dv TEXT DEFAULT 'މާލެ / ހުޅުމާލެ';")
-        if ob_columns and "island_name" not in ob_columns:
-            conn.execute("ALTER TABLE obituaries ADD COLUMN island_name TEXT DEFAULT 'މާލެ';")
-        if ob_columns and "region_group" not in ob_columns:
-            conn.execute("ALTER TABLE obituaries ADD COLUMN region_group TEXT DEFAULT 'male';")
-        if ob_columns and "sort_order" not in ob_columns:
-            conn.execute("ALTER TABLE obituaries ADD COLUMN sort_order INTEGER DEFAULT 0;")
-
-        # Migration: ensure quota and duration columns exist on sponsored_ads
-        ad_columns = [row[1] for row in conn.execute("PRAGMA table_info(sponsored_ads);").fetchall()]
-        if ad_columns and "max_impressions" not in ad_columns:
-            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN max_impressions INTEGER DEFAULT NULL;")
-        if ad_columns and "expires_at" not in ad_columns:
-            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN expires_at TIMESTAMP DEFAULT NULL;")
-        if ad_columns and "pricing_tier" not in ad_columns:
-            conn.execute("ALTER TABLE sponsored_ads ADD COLUMN pricing_tier TEXT DEFAULT 'custom';")
-
-        # Migration: ensure entity_type, country, and international contractor columns exist on company_profiles
-        cp_columns = [row[1] for row in conn.execute("PRAGMA table_info(company_profiles);").fetchall()]
-        if cp_columns and "entity_type" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN entity_type TEXT DEFAULT 'maldivian';")
-        if cp_columns and "country_of_origin" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN country_of_origin TEXT DEFAULT 'Maldives';")
-        if cp_columns and "foreign_reg_no" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN foreign_reg_no TEXT DEFAULT '';")
-        if cp_columns and "foreign_tax_id" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN foreign_tax_id TEXT DEFAULT '';")
-        if cp_columns and "local_agent_name" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_name TEXT DEFAULT '';")
-        if cp_columns and "local_agent_reg" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_reg TEXT DEFAULT '';")
-        if cp_columns and "local_agent_phone" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_phone TEXT DEFAULT '';")
-        if cp_columns and "local_agent_email" not in cp_columns:
-            conn.execute("ALTER TABLE company_profiles ADD COLUMN local_agent_email TEXT DEFAULT '';")
-
+        _ensure_cols("bids", [
+            ("title_en", "TEXT"),
+            ("sources", "TEXT DEFAULT '[\"gazette.gov.mv\"]'"),
+            ("procurement_nature", "TEXT NOT NULL DEFAULT 'Supply'"),
+            ("source_id", "INTEGER REFERENCES sources(id)"),
+            ("posted_date", "TEXT"),
+            ("posted_time", "TEXT"),
+            ("published_at", "TIMESTAMP"),
+            ("submission_deadline", "TIMESTAMP"),
+        ])
+        _ensure_cols("obituaries", [
+            ("atoll_code", "TEXT DEFAULT 'K-MALE'"),
+            ("atoll_name_dv", "TEXT DEFAULT 'މާލެ / ހުޅުމާލެ'"),
+            ("island_name", "TEXT DEFAULT 'މާލެ'"),
+            ("region_group", "TEXT DEFAULT 'male'"),
+            ("sort_order", "INTEGER DEFAULT 0"),
+            ("source_id", "INTEGER REFERENCES sources(id)"),
+            ("person_id", "INTEGER REFERENCES people(id)"),
+            ("residence_address_id", "INTEGER REFERENCES addresses(id)"),
+            ("funeral_time", "TEXT"),
+            ("funeral_datetime", "TIMESTAMP"),
+        ])
+        _ensure_cols("sponsored_ads", [
+            ("max_impressions", "INTEGER DEFAULT NULL"),
+            ("expires_at", "TIMESTAMP DEFAULT NULL"),
+            ("pricing_tier", "TEXT DEFAULT 'custom'"),
+        ])
+        _ensure_cols("company_profiles", [
+            ("entity_type", "TEXT DEFAULT 'maldivian'"),
+            ("country_of_origin", "TEXT DEFAULT 'Maldives'"),
+            ("foreign_reg_no", "TEXT DEFAULT ''"),
+            ("foreign_tax_id", "TEXT DEFAULT ''"),
+            ("local_agent_name", "TEXT DEFAULT ''"),
+            ("local_agent_reg", "TEXT DEFAULT ''"),
+            ("local_agent_phone", "TEXT DEFAULT ''"),
+            ("local_agent_email", "TEXT DEFAULT ''"),
+        ])
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_obituaries_atoll ON obituaries(sort_order, atoll_code, island_name, funeral_date DESC);"
         )
 
-        # Migration: ensure subscribed_at exists on telegram_subscribers
         sub_columns = [row[1] for row in conn.execute("PRAGMA table_info(telegram_subscribers);").fetchall()]
         if sub_columns and "subscribed_at" not in sub_columns:
             conn.execute("ALTER TABLE telegram_subscribers ADD COLUMN subscribed_at TIMESTAMP;")
             conn.execute("UPDATE telegram_subscribers SET subscribed_at = created_at WHERE subscribed_at IS NULL;")
 
-        # Migration: ensure is_paid exists on telegram_subscribers and viber_subscribers
         try:
-            tg_cols = [row[1] for row in conn.execute("PRAGMA table_info(telegram_subscribers);").fetchall()]
-            if tg_cols and "is_paid" not in tg_cols:
-                conn.execute("ALTER TABLE telegram_subscribers ADD COLUMN is_paid INTEGER DEFAULT 0;")
-            vb_cols = [row[1] for row in conn.execute("PRAGMA table_info(viber_subscribers);").fetchall()]
-            if vb_cols and "is_paid" not in vb_cols:
-                conn.execute("ALTER TABLE viber_subscribers ADD COLUMN is_paid INTEGER DEFAULT 0;")
-        except Exception:
-            pass
-
-        # Migration: ensure normalized source_id, entity_id, address_id, person_id exist across all tables
-        try:
-            bids_cols = [row[1] for row in conn.execute("PRAGMA table_info(bids);").fetchall()]
-            if bids_cols and "source_id" not in bids_cols:
-                conn.execute("ALTER TABLE bids ADD COLUMN source_id INTEGER REFERENCES sources(id);")
-            if bids_cols and "posted_date" not in bids_cols:
-                conn.execute("ALTER TABLE bids ADD COLUMN posted_date TEXT;")
-            if bids_cols and "posted_time" not in bids_cols:
-                conn.execute("ALTER TABLE bids ADD COLUMN posted_time TEXT;")
-            if bids_cols and "published_at" not in bids_cols:
-                conn.execute("ALTER TABLE bids ADD COLUMN published_at TIMESTAMP;")
-            if bids_cols and "submission_deadline" not in bids_cols:
-                conn.execute("ALTER TABLE bids ADD COLUMN submission_deadline TIMESTAMP;")
-
-            art_cols = [row[1] for row in conn.execute("PRAGMA table_info(articles);").fetchall()]
-            if art_cols and "source_id" not in art_cols:
-                conn.execute("ALTER TABLE articles ADD COLUMN source_id INTEGER REFERENCES sources(id);")
-            if art_cols and "posted_date" not in art_cols:
-                conn.execute("ALTER TABLE articles ADD COLUMN posted_date TEXT;")
-            if art_cols and "posted_time" not in art_cols:
-                conn.execute("ALTER TABLE articles ADD COLUMN posted_time TEXT;")
-            if art_cols and "published_at" not in art_cols:
-                conn.execute("ALTER TABLE articles ADD COLUMN published_at TIMESTAMP;")
-
-            job_cols = [row[1] for row in conn.execute("PRAGMA table_info(jobs);").fetchall()]
-            if job_cols and "source_id" not in job_cols:
-                conn.execute("ALTER TABLE jobs ADD COLUMN source_id INTEGER REFERENCES sources(id);")
-            if job_cols and "entity_id" not in job_cols:
-                conn.execute("ALTER TABLE jobs ADD COLUMN entity_id INTEGER REFERENCES entities(id);")
-            if job_cols and "posted_date" not in job_cols:
-                conn.execute("ALTER TABLE jobs ADD COLUMN posted_date TEXT;")
-            if job_cols and "posted_time" not in job_cols:
-                conn.execute("ALTER TABLE jobs ADD COLUMN posted_time TEXT;")
-            if job_cols and "deadline_at" not in job_cols:
-                conn.execute("ALTER TABLE jobs ADD COLUMN deadline_at TIMESTAMP;")
-
-            ob_cols = [row[1] for row in conn.execute("PRAGMA table_info(obituaries);").fetchall()]
-            if ob_cols and "source_id" not in ob_cols:
-                conn.execute("ALTER TABLE obituaries ADD COLUMN source_id INTEGER REFERENCES sources(id);")
-            if ob_cols and "person_id" not in ob_cols:
-                conn.execute("ALTER TABLE obituaries ADD COLUMN person_id INTEGER REFERENCES people(id);")
-            if ob_cols and "residence_address_id" not in ob_cols:
-                conn.execute("ALTER TABLE obituaries ADD COLUMN residence_address_id INTEGER REFERENCES addresses(id);")
-            if ob_cols and "funeral_time" not in ob_cols:
-                conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_time TEXT;")
-            if ob_cols and "funeral_datetime" not in ob_cols:
-                conn.execute("ALTER TABLE obituaries ADD COLUMN funeral_datetime TIMESTAMP;")
-
-            usr_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
-            if usr_cols and "reset_token_hash" not in usr_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN reset_token_hash TEXT;")
-            if usr_cols and "reset_token_expires" not in usr_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN reset_token_expires TIMESTAMP;")
-            if usr_cols and "telegram_verified" not in usr_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN telegram_verified INTEGER DEFAULT 0;")
-            if usr_cols and "viber_verified" not in usr_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN viber_verified INTEGER DEFAULT 0;")
-            if usr_cols and "account_origin" not in usr_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN account_origin TEXT NOT NULL DEFAULT 'web';")
+            _ensure_cols("telegram_subscribers", [("is_paid", "INTEGER DEFAULT 0")])
+            _ensure_cols("viber_subscribers", [("is_paid", "INTEGER DEFAULT 0")])
+            _ensure_cols("articles", [
+                ("source_id", "INTEGER REFERENCES sources(id)"),
+                ("posted_date", "TEXT"),
+                ("posted_time", "TEXT"),
+                ("published_at", "TIMESTAMP"),
+            ])
+            _ensure_cols("jobs", [
+                ("source_id", "INTEGER REFERENCES sources(id)"),
+                ("entity_id", "INTEGER REFERENCES entities(id)"),
+                ("posted_date", "TEXT"),
+                ("posted_time", "TEXT"),
+                ("deadline_at", "TIMESTAMP"),
+            ])
+            _ensure_cols("users", [
+                ("reset_token_hash", "TEXT"),
+                ("reset_token_expires", "TIMESTAMP"),
+                ("telegram_verified", "INTEGER DEFAULT 0"),
+                ("viber_verified", "INTEGER DEFAULT 0"),
+                ("account_origin", "TEXT NOT NULL DEFAULT 'web'"),
+                ("viber_user_id", "TEXT"),
+                ("job_alert_sources", "TEXT DEFAULT '[\"all\"]'"),
+                ("tender_alert_disciplines", "TEXT DEFAULT '[\"All\"]'"),
+                ("tender_alert_sources", "TEXT DEFAULT '[\"all\"]'"),
+                ("alerts_enabled", "INTEGER DEFAULT 1"),
+            ])
             conn.execute(
                 "UPDATE users SET account_origin = 'telegram' WHERE account_origin = 'web' AND telegram_chat_id IS NOT NULL AND email LIKE 'telegram_%@khulaasaa.tech';"
             )
-
-            nd_cols = [row[1] for row in conn.execute("PRAGMA table_info(notification_deliveries);").fetchall()]
-            if nd_cols and "claim_token" not in nd_cols:
-                conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claim_token TEXT;")
-            if nd_cols and "claimed_at" not in nd_cols:
-                conn.execute("ALTER TABLE notification_deliveries ADD COLUMN claimed_at TIMESTAMP;")
-
-            pref_cols = [row[1] for row in conn.execute("PRAGMA table_info(user_notification_preferences);").fetchall()]
-            if pref_cols:
-                if "news_alerts" not in pref_cols:
-                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN news_alerts INTEGER NOT NULL DEFAULT 1;")
-                if "tender_alerts" not in pref_cols:
-                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN tender_alerts INTEGER NOT NULL DEFAULT 1;")
-                if "job_alerts" not in pref_cols:
-                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN job_alerts INTEGER NOT NULL DEFAULT 1;")
-                if "rental_alerts" not in pref_cols:
-                    conn.execute("ALTER TABLE user_notification_preferences ADD COLUMN rental_alerts INTEGER NOT NULL DEFAULT 1;")
+            _ensure_cols("notification_deliveries", [
+                ("claim_token", "TEXT"),
+                ("claimed_at", "TIMESTAMP"),
+            ])
+            _ensure_cols("user_notification_preferences", [
+                ("news_alerts", "INTEGER NOT NULL DEFAULT 1"),
+                ("tender_alerts", "INTEGER NOT NULL DEFAULT 1"),
+                ("job_alerts", "INTEGER NOT NULL DEFAULT 1"),
+                ("rental_alerts", "INTEGER NOT NULL DEFAULT 1"),
+            ])
         except Exception:
             pass
 
@@ -344,53 +290,19 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
         except Exception as e:
             logger.warning("Could not seed reference tables: %s", e)
 
-        # Migration: ensure viber_user_id and alert columns exist on users table
-        try:
-            u_cols = [row[1] for row in conn.execute("PRAGMA table_info(users);").fetchall()]
-            if u_cols and "viber_user_id" not in u_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN viber_user_id TEXT;")
-            if u_cols and "job_alert_sources" not in u_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN job_alert_sources TEXT DEFAULT '[\"all\"]';")
-            if u_cols and "tender_alert_disciplines" not in u_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN tender_alert_disciplines TEXT DEFAULT '[\"All\"]';")
-            if u_cols and "tender_alert_sources" not in u_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN tender_alert_sources TEXT DEFAULT '[\"all\"]';")
-            if u_cols and "alerts_enabled" not in u_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN alerts_enabled INTEGER DEFAULT 1;")
-        except Exception:
-            pass
-
-
         # Refresh v_bids_enriched view
         conn.execute("DROP VIEW IF EXISTS v_bids_enriched;")
         conn.execute(
             """
             CREATE VIEW v_bids_enriched AS
             SELECT
-                b.id,
-                b.notice_id,
-                b.reference_number,
-                b.title,
-                COALESCE(b.title_en, b.title) AS title_en,
-                b.gazette_type,
-                b.discipline,
-                COALESCE(b.procurement_nature, 'Supply') AS procurement_nature,
-                b.published_date,
-                b.submission_date,
-                b.submission_location,
-                b.info_date,
-                b.info_location,
-                b.source_url,
-                b.sources,
-                b.document_urls,
-                b.is_active,
-                e.id AS entity_id,
-                COALESCE(e.name_en, 'Unknown Agency') AS agency_name_en,
-                e.name_dv AS agency_name_dv,
-                COALESCE(e.entity_type, 'Other') AS entity_type,
-                e.slug AS entity_slug,
-                e.location AS entity_location,
-                e.website AS entity_website
+                b.id, b.notice_id, b.reference_number, b.title, COALESCE(b.title_en, b.title) AS title_en,
+                b.gazette_type, b.discipline, COALESCE(b.procurement_nature, 'Supply') AS procurement_nature,
+                b.published_date, b.submission_date, b.submission_location, b.info_date, b.info_location,
+                b.source_url, b.sources, b.document_urls, b.is_active, e.id AS entity_id,
+                COALESCE(e.name_en, 'Unknown Agency') AS agency_name_en, e.name_dv AS agency_name_dv,
+                COALESCE(e.entity_type, 'Other') AS entity_type, e.slug AS entity_slug,
+                e.location AS entity_location, e.website AS entity_website
             FROM bids b
             LEFT JOIN entities e ON b.entity_id = e.id;
             """
@@ -403,14 +315,7 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 INSERT OR IGNORE INTO entities (slug, name_en, name_dv, entity_type, location, website)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (
-                    ent["slug"],
-                    ent["name_en"],
-                    ent["name_dv"],
-                    ent["entity_type"],
-                    ent["location"],
-                    ent["website"],
-                ),
+                (ent["slug"], ent["name_en"], ent["name_dv"], ent["entity_type"], ent["location"], ent["website"]),
             )
 
         # Migration: Heal any entities where name_en or slug contains raw Thaana
@@ -506,26 +411,12 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
-                    ob["slug"],
-                    ob["name_dv"],
-                    ob.get("name_en"),
-                    ob.get("address_dv"),
-                    ob.get("address_en"),
-                    ob.get("age"),
-                    ob.get("funeral_mosque_dv"),
-                    ob.get("funeral_mosque_en"),
-                    ob.get("prayer_time_dv"),
-                    ob.get("prayer_time_en"),
-                    ob.get("funeral_date"),
-                    ob.get("death_date"),
-                    ob.get("photo_url"),
-                    ob.get("contact_numbers"),
-                    ob.get("source_channel", "KashunamaadhuMV"),
-                    ob.get("announcement_type", "Janaza"),
-                    ob.get("atoll_code") or geo["atoll_code"],
-                    ob.get("atoll_name_dv") or geo["atoll_name_dv"],
-                    ob.get("island_name") or geo["island_name"],
-                    ob.get("region_group") or geo["region_group"],
+                    ob["slug"], ob["name_dv"], ob.get("name_en"), ob.get("address_dv"), ob.get("address_en"), ob.get("age"),
+                    ob.get("funeral_mosque_dv"), ob.get("funeral_mosque_en"), ob.get("prayer_time_dv"), ob.get("prayer_time_en"),
+                    ob.get("funeral_date"), ob.get("death_date"), ob.get("photo_url"), ob.get("contact_numbers"),
+                    ob.get("source_channel", "KashunamaadhuMV"), ob.get("announcement_type", "Janaza"),
+                    ob.get("atoll_code") or geo["atoll_code"], ob.get("atoll_name_dv") or geo["atoll_name_dv"],
+                    ob.get("island_name") or geo["island_name"], ob.get("region_group") or geo["region_group"],
                     ob.get("sort_order", geo["sort_order"]),
                 ),
             )
@@ -562,7 +453,7 @@ def init_db(db_path: Optional[Path] = None, seed_bids: bool = False) -> None:
 
         # Initialize rentals schema and seed initial apartment listings
         try:
-            from data.rentals import init_rentals_schema, seed_initial_rentals
+            from data.repos.rentals import init_rentals_schema, seed_initial_rentals
             init_rentals_schema(conn)
             seed_initial_rentals(conn)
         except Exception:

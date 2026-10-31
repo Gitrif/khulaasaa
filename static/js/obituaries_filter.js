@@ -14,7 +14,7 @@ function filterByRegion(region) {
   const atollSelect = document.getElementById('atollSelect');
   if (atollSelect) atollSelect.value = 'all';
 
-  document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('#pageFilterToolbar .filter-pill').forEach(btn => btn.classList.remove('active'));
   const activeBtn = document.getElementById('btn-reg-' + region);
   if (activeBtn) activeBtn.classList.add('active');
 

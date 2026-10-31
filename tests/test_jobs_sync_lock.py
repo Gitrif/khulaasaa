@@ -41,7 +41,7 @@ def teardown_function():
 def test_run_jobs_sync_success_resets_lock():
     """Verify run_jobs_sync executes and releases the sync lock upon completion."""
     mock_result = {"fetched": 5, "new": 2, "updated": 1, "alerts_sent": 0}
-    with patch("scrapers.jobs.sync_jobs", return_value=mock_result):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", return_value=mock_result):
         res = run_jobs_sync(pages=1, trigger_alerts=False)
 
     assert res == mock_result
@@ -55,7 +55,7 @@ def test_run_jobs_sync_success_resets_lock():
 
 def test_run_jobs_sync_exception_safely_releases_lock():
     """Verify that an unhandled exception inside scrapers safely releases the sync lock in finally."""
-    with patch("scrapers.jobs.sync_jobs", side_effect=RuntimeError("Gazette portal down")):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", side_effect=RuntimeError("Gazette portal down")):
         res = run_jobs_sync(pages=1, trigger_alerts=False)
 
     assert res.get("status") == "failed"
@@ -86,7 +86,7 @@ def test_concurrent_triggers_atomically_schedule_only_one_worker():
         time.sleep(0.1)
         return {"fetched": 2, "new": 1, "updated": 0, "alerts_sent": 0}
 
-    with patch("scrapers.jobs.sync_jobs", side_effect=slow_mock):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", side_effect=slow_mock):
         threads = [threading.Thread(target=worker_attempt) for _ in range(10)]
         for t in threads:
             t.start()
@@ -114,7 +114,7 @@ def test_worker_start_failure_cleans_up_state():
         assert js._LIVE_JOBS_IS_SYNCING is False
 
     # A subsequent trigger without the error must succeed immediately
-    with patch("scrapers.jobs.sync_jobs", return_value={"fetched": 1, "new": 0, "updated": 0, "alerts_sent": 0}):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", return_value={"fetched": 1, "new": 0, "updated": 0, "alerts_sent": 0}):
         subsequent = trigger_jobs_background_sync(force=True, pages=1)
         assert subsequent is True
 
@@ -132,7 +132,7 @@ def test_subsequent_sync_runs_after_failed_background_sync():
         first_worker_ran.set()
         raise ConnectionError("Upstream Gazette connection failed")
 
-    with patch("scrapers.jobs.sync_jobs", side_effect=failing_worker):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", side_effect=failing_worker):
         triggered_1 = trigger_jobs_background_sync(force=True, pages=1)
         assert triggered_1 is True
 
@@ -154,7 +154,7 @@ def test_subsequent_sync_runs_after_failed_background_sync():
         second_worker_ran.set()
         return {"fetched": 4, "new": 2, "updated": 0, "alerts_sent": 0}
 
-    with patch("scrapers.jobs.sync_jobs", side_effect=successful_worker):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", side_effect=successful_worker):
         triggered_2 = trigger_jobs_background_sync(force=True, pages=1)
         assert triggered_2 is True
         assert second_worker_ran.wait(timeout=3.0)
@@ -177,7 +177,7 @@ def test_concurrent_status_reads_safe_during_execution():
         stop_event.wait(timeout=0.5)
         return {"fetched": 3, "new": 1, "updated": 1, "alerts_sent": 0}
 
-    with patch("scrapers.jobs.sync_jobs", side_effect=mock_worker):
+    with patch("services.ingestion.jobs_ingestion.sync_jobs", side_effect=mock_worker):
         trigger_jobs_background_sync(force=True, pages=1)
 
         def reader():

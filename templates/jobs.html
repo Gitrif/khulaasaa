@@ -1,52 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Jobs &amp; Vacancies — Khulaasaa{% endblock %}
+{% block appbar_title %}Jobs &amp; Vacancies{% endblock %}
+{% block appbar_subtitle %}Verified career openings across the Maldives &middot; {{ jobs|length }} active openings{% endblock %}
 
 {% block content %}
-<header class="border-b border-hairline bg-paper">
-  <div class="max-w-4xl mx-auto px-4 pt-6 pb-5">
-    <h1 class="font-serif-display text-2xl sm:text-3xl font-semibold tracking-tight text-ink">
-      Job Vacancies &amp; Career Hub
-    </h1>
-    <p class="text-xs sm:text-sm text-slate mt-1">
-      Sourced live from gazette.gov.mv, government agencies, and top Maldivian employers &middot; {{ jobs|length }} active openings
-    </p>
-  </div>
-</header>
-
-<main class="max-w-4xl mx-auto px-4 py-6">
-  <!-- Non-invasive Sponsored Leaderboard Ad -->
-  <div class="my-3">
-    {% include "_ad_leaderboard.html" %}
-  </div>
-
-  <!-- Single-Row Horizontal Quick Filters & Actions -->
-  <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-1 text-xs mb-3.5">
-    <div class="flex items-center gap-1.5 shrink-0">
-      <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Discipline:</span>
-      <a href="/jobs{% if search_query %}?q={{ search_query }}{% endif %}" 
-         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if not active_discipline else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
-        All
-      </a>
-      {% for d in disciplines %}
-      <a href="?discipline={{ d }}{% if search_query %}&q={{ search_query }}{% endif %}"
-         class="px-2.5 py-1 rounded-full border text-xs font-medium whitespace-nowrap transition {{ 'bg-ink text-white border-ink font-semibold' if active_discipline == d else 'bg-white text-slate-600 border-hairline hover:border-slate-400' }}">
-        {{ d }}
-      </a>
-      {% endfor %}
-
-      {% if active_discipline or search_query %}
-      <a href="/jobs" class="text-xs text-rose-600 hover:underline shrink-0 ml-1.5">
-        Reset
-      </a>
-      {% endif %}
+{% from "components/filter_dock.html" import render_filter_dock %}
+{% set _jobs_row1 %}
+    <div class="filter-row">
+      <select class="filter-select" aria-label="Filter jobs by discipline" onchange="window.location.href=this.value">
+        <option value="{{ build_filter_url('/jobs', q=search_query) }}" {{ 'selected' if not active_discipline }}>All fields</option>
+        {% for d in disciplines %}
+        <option value="{{ build_filter_url('/jobs', discipline=d, q=search_query) }}" {{ 'selected' if active_discipline == d }}>{{ d }}</option>
+        {% endfor %}
+      </select>
+      <div class="filter-pills" aria-label="Discipline filters">
+        <a href="{{ build_filter_url('/jobs', q=search_query) }}" class="filter-pill {{ 'active' if not active_discipline else '' }}">All</a>
+        {% for d in disciplines %}
+        <a href="{{ build_filter_url('/jobs', discipline=d, q=search_query) }}" class="filter-pill {{ 'active' if active_discipline == d else '' }}">{{ d }}</a>
+        {% endfor %}
+      </div>
     </div>
+{% endset %}
+{% set _jobs_row2 %}
+    <div class="filter-row filter-row-topics">
+      <span class="filter-row-label">Actions</span>
+      <div class="filter-pills" aria-label="Job actions">
+        <a href="/jobs/cv" class="filter-pill" title="Build your Maldivian Standard CV">CV Creator &rarr;</a>
+        {% if active_discipline or search_query %}<a href="/jobs" class="filter-pill">Reset</a>{% endif %}
+      </div>
+    </div>
+{% endset %}
+{{ render_filter_dock(_jobs_row1, _jobs_row2) }}
 
-    <!-- Quick Action: Create CV -->
-    <a href="/jobs/cv" class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 transition shadow-2xs flex items-center gap-1.5 shrink-0 whitespace-nowrap" title="Build your Maldivian Standard CV">
-      <span>CV Creator &rarr;</span>
-    </a>
-  </div>
-
+<main class="max-w-4xl mx-auto px-4 py-4">
   <!-- Job Vacancies Grid / List -->
   <div id="jobs-container">
     {% include "components/jobs_stream.html" %}

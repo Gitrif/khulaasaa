@@ -116,12 +116,7 @@ def admin_ads(request: Request, msg: Optional[str] = None, editor: str = Depends
         ads = list_sponsored_ads(conn)
     return templates.TemplateResponse(
         "admin_ads.html",
-        {
-            "request": request,
-            "editor": editor,
-            "ads": ads,
-            "message": msg,
-        },
+        {"request": request, "editor": editor, "ads": ads, "message": msg},
     )
 
 
@@ -347,13 +342,7 @@ def admin_obituaries(request: Request, msg: Optional[str] = None, editor: str = 
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     return templates.TemplateResponse(
         "admin_obituaries.html",
-        {
-            "request": request,
-            "editor": editor,
-            "obituaries": obs,
-            "message": msg,
-            "today_date": today_str,
-        },
+        {"request": request, "editor": editor, "obituaries": obs, "message": msg, "today_date": today_str},
     )
 
 
@@ -440,7 +429,7 @@ async def admin_quick_import_obituary(
     photo_file: Optional[UploadFile] = File(None),
     editor: str = Depends(require_editor),
 ):
-    from scrapers.facebook import import_kashunamaadhu_text
+    from services.ingestion.obituary_ingestion import import_kashunamaadhu_text
     photo_url = None
     if photo_file and photo_file.filename:
         ext = Path(photo_file.filename).suffix.lower()

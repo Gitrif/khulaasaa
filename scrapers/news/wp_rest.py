@@ -8,8 +8,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-import requests
-
+from scrapers.common.http_client import fetch_json
 from scrapers.news.base import (
     HEADERS,
     strip_html_tags,
@@ -26,10 +25,9 @@ def fetch_wp_rest_posts(source_key: str, url: str, limit: int = 12) -> list[dict
     """Fetch posts from WordPress REST API (e.g. Haftha Online)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=6)
-        if resp.status_code != 200:
+        posts = fetch_json(url, headers=HEADERS, timeout=6, retries=2)
+        if not isinstance(posts, list):
             return []
-        posts = resp.json()
         for p in posts[:limit]:
             post_id = str(p.get("id"))
             title = strip_html_tags(p.get("title", {}).get("rendered", ""))

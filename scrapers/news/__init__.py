@@ -23,7 +23,7 @@ from scrapers.news.engine import (
     split_news_and_obituaries,
     is_obituary_article,
 )
-from services.clustering import cluster_articles, KNOWN_STORY_CLUSTERS
+from scrapers.news.clustering import cluster_articles, KNOWN_STORY_CLUSTERS
 
 __all__ = [
     "HEADERS",

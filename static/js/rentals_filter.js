@@ -29,18 +29,6 @@ let currentWard = '';
 let currentRooms = 0;
 let currentMaxPrice = 0;
 const activeLegendFeatures = new Set();
-let isRentalFilterExpanded = false;
-
-function toggleRentalFilterCollapse() {
-  isRentalFilterExpanded = !isRentalFilterExpanded;
-  const body = document.getElementById('rentalFilterBody');
-  const lbl = document.getElementById('filterToggleLabel');
-  const chevron = document.getElementById('filterChevronIcon');
-  if (body) body.style.display = isRentalFilterExpanded ? 'block' : 'none';
-  if (lbl) lbl.innerHTML = isRentalFilterExpanded ? 'Hide filters &uarr;' : 'Show filters &darr;';
-  if (chevron) chevron.style.transform = isRentalFilterExpanded ? 'rotate(180deg)' : 'none';
-}
-
 function onAtollChange(atoll) {
   currentAtoll = atoll;
   if (atoll === 'k') {
@@ -78,8 +66,7 @@ function setRoomsFilter(rooms, btn) {
   document.querySelectorAll('.bhk-btn').forEach(b => {
     const r = parseInt(b.getAttribute('data-rooms'), 10);
     const isAct = (r === currentRooms) || (r === 5 && currentRooms >= 5);
-    b.className = 'bhk-btn px-3 h-[32px] rounded-lg border text-xs transition cursor-pointer select-none ' +
-      (isAct ? 'font-bold bg-[#0b5d57] text-white border-[#0b5d57]' : 'font-semibold bg-white text-slate-700 border-hairline hover:bg-slate-100');
+    b.className = 'bhk-btn filter-pill' + (isAct ? ' active' : '');
   });
   applyAllCardFilters();
 }
@@ -88,9 +75,7 @@ function setCustomRooms(val) {
   const num = parseInt(val, 10);
   if (!isNaN(num) && num > 0) {
     currentRooms = num;
-    document.querySelectorAll('.bhk-btn').forEach(b => {
-      b.className = b.className.replace('bg-[#0b5d57] text-white border-[#0b5d57]', 'bg-white text-slate-700 border-hairline hover:bg-slate-100');
-    });
+    document.querySelectorAll('.bhk-btn').forEach(b => b.classList.remove('active'));
     applyAllCardFilters();
   } else if (!val) {
     setRoomsFilter(0);
@@ -128,18 +113,18 @@ function toggleFeatureFilter(feat, btn) {
   const on = activeLegendFeatures.has(feat);
   if (on) {
     activeLegendFeatures.delete(feat);
-    btn.style.backgroundColor = '#ffffff';
-    btn.style.borderColor = '#cbd5e1';
-    btn.style.color = '#334155';
+    btn.style.backgroundColor = 'var(--surface-white)';
+    btn.style.borderColor = 'var(--color-border)';
+    btn.style.color = 'var(--color-ink)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');
     if (b) { b.style.backgroundColor = '#ecfdf5'; b.style.borderColor = '#6ee7b7'; const s = b.querySelector('svg'); if (s) s.style.stroke = '#047857'; }
   } else {
     activeLegendFeatures.add(feat);
-    btn.style.backgroundColor = '#047857';
-    btn.style.borderColor = '#047857';
-    btn.style.color = '#ffffff';
+    btn.style.backgroundColor = 'var(--color-accent)';
+    btn.style.borderColor = 'var(--color-accent)';
+    btn.style.color = 'var(--surface-white)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');
@@ -151,9 +136,9 @@ function toggleFeatureFilter(feat, btn) {
 function clearAllFeatureFilters() {
   activeLegendFeatures.clear();
   document.querySelectorAll('.legend-filter-btn').forEach(btn => {
-    btn.style.backgroundColor = '#ffffff';
-    btn.style.borderColor = '#cbd5e1';
-    btn.style.color = '#334155';
+    btn.style.backgroundColor = 'var(--surface-white)';
+    btn.style.borderColor = 'var(--color-border)';
+    btn.style.color = 'var(--color-ink)';
     btn.style.fontWeight = '600';
     btn.style.boxShadow = 'none';
     const b = btn.querySelector('.legend-badge');

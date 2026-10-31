@@ -1,5 +1,5 @@
 import pytest
-from scrapers.gazette import classify_procurement
+from scrapers.tenders.gazette import classify_procurement
 from scrapers.news import fetch_telegram_posts, format_relative_time
 from unittest.mock import patch, MagicMock
 

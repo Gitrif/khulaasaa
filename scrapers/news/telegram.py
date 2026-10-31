@@ -9,9 +9,10 @@ import re
 from datetime import datetime
 from typing import Any
 
-import requests
 from bs4 import BeautifulSoup
 
+from scrapers.common.http_client import fetch_text
+from scrapers.common.source_result import stable_digest
 from scrapers.news.base import (
     HEADERS,
     classify_topic,
@@ -26,10 +27,10 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
     """Fetch live public posts from Telegram channel preview (e.g. https://t.me/s/mvcrisis)."""
     articles = []
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=6)
-        if resp.status_code != 200:
+        html = fetch_text(url, headers=HEADERS, timeout=6, retries=2)
+        if not html:
             return []
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         messages = soup.select(".tgme_widget_message")
         for m in messages:
             text_el = m.select_one(".tgme_widget_message_text")
@@ -96,22 +97,17 @@ def fetch_telegram_posts(source_key: str, url: str) -> list[dict[str, Any]]:
                 "ކަށުކަމާކެމީގެ", "إِنَّا لِلَّهِ", "އިންނާލިއްލާހި", "އާސަހަރާ މިސްކިތް"
             ])
             if is_obituary:
-                try:
-                    from data.database import get_db, upsert_scraped_obituary
-                    with get_db() as db_conn:
-                        upsert_scraped_obituary(db_conn, txt, link_el.get("href") if link_el else url)
-                except Exception:
-                    pass
+                # Exclude obituary notices from general news feed; obituary ingestion handles persistence.
                 continue
             date_iso = date_el.get("datetime") if date_el else None
             link = link_el.get("href") if link_el else url
 
-            # Generate stable ID from telegram post link or text hash
-            post_id = link.rstrip("/").split("/")[-1] if link else str(abs(hash(txt)))
+            # Generate stable ID from telegram post link or deterministic SHA-256 text digest
+            post_id = link.rstrip("/").split("/")[-1] if link else stable_digest(source_key, url, txt)
 
             # Clean first line as headline
             headline = txt.split("\n")[0].strip()
-            headline = re.sub(r"^🚨\s*#Breaking\s*:\s*", "", headline, flags=re.I)
+            headline = re.sub(r"^\uD83D\uDEA8\s*#Breaking\s*:\s*", "", headline, flags=re.I)
             if len(headline) > 110:
                 headline = headline[:107] + "..."
 

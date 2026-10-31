@@ -113,7 +113,7 @@ def fetch_all_live_news(max_workers: int = 6) -> list[dict[str, Any]]:
     Filters out obituary notices from the general news articles without persisting them
     to the database directly. Database persistence is handled by domain/ingestion services.
     """
-    from services.clustering import cluster_articles
+    from scrapers.news.clustering import cluster_articles
 
     all_articles = fetch_raw_news_articles(max_workers=max_workers)
     filtered_articles, _ = split_news_and_obituaries(all_articles)
