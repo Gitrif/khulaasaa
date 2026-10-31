@@ -75,6 +75,32 @@ def test_janaza_mobile_nav_uses_crescent_not_plus():
     assert "M12 4v16m-6-10h12" not in block
 
 
+def test_removed_redundant_ui_rows():
+    client = TestClient(app)
+
+    # 1. Homepage Major Stories subheader & counter removed
+    home = client.get("/").text
+    assert "Tracked, cross-checked narratives" not in home
+    assert '<h2 class="text-sm font-semibold uppercase tracking-wide text-slate">Major stories</h2>' not in home
+    # But card stack remains
+    assert 'class="card-stack"' in home
+
+    # 2. Rentals Listings Stream Header row removed
+    rentals = client.get("/rentals").text
+    assert "consolidated rental listings" not in rentals
+    assert "Send alert when listings become available for this search" not in rentals
+    # But rental cards or container remain
+    assert 'id="rentalNoResults"' in rentals
+    assert 'id="activeFeatureCountBadge"' in rentals
+
+    # 3. Obituaries redundant summary row removed
+    obits = client.get("/obituaries").text
+    assert "active announcements (7-day window)" not in obits
+    assert "+ Submit Notice" not in obits
+    # Search input preserved
+    assert 'id="obituarySearch"' in obits
+
+
 def test_notices_and_rentals_keep_js_hooks():
     obits = _read("templates/obituaries.html")
     for hook in ("btn-reg-all", "btn-reg-south", "atollSelect", "obituarySearch"):
@@ -211,9 +237,9 @@ def test_appbar_displays_logo_and_page_title_without_header_search_bar():
         assert expected_subtitle in html
         assert 'id="globalSearchBox"' not in html
         assert '<span class="brand-title">Khulaasaa</span>' not in html
-        # Ad bar placements: desktop above app bar, mobile below bottom nav
-        assert html.index('class="desktop-top-ad-bar') < html.index('class="site-header"')
-        assert html.index('class="mobile-bottom-nav"') < html.index('class="mobile-bottom-ad-bar')
+        # Ad bar placement: top leaderboard above app bar, mobile bottom ad bar removed
+        assert html.index('class="top-leaderboard-ad-bar') < html.index('class="site-header"')
+        assert 'class="mobile-bottom-ad-bar' not in html
 
     # Verify Janaza & Obituaries strip is removed from the News homepage
     home_html = client.get("/").text

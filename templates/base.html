@@ -56,8 +56,8 @@
     {% set _default_appbar_subtitle = 'News from trusted Maldivian sources, in one place.' %}
   {% endif %}
 
-  <!-- DESKTOP LEADERBOARD AD (Above App Bar on Desktop) -->
-  <div class="desktop-top-ad-bar print:hidden">
+  <!-- TOP LEADERBOARD AD (Above App Bar on Both Desktop and Mobile) -->
+  <div class="top-leaderboard-ad-bar print:hidden">
     <div class="max-w-6xl mx-auto px-4">
       {% include "_ad_leaderboard.html" %}
     </div>
@@ -300,11 +300,6 @@
       <span>Janaza</span>
     </a>
   </nav>
-
-  <!-- MOBILE BOTTOM AD BAR (Below Bottom Navigation on Mobile) -->
-  <div class="mobile-bottom-ad-bar print:hidden" aria-label="Sponsored Banner">
-    {% include "_ad_leaderboard.html" %}
-  </div>
 
   {% include "components/global_auth_modal.html" %}
   {% include "components/global_sources_modal.html" %}

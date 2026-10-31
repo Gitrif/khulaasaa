@@ -106,10 +106,6 @@
       <!-- 1. Major Stories FIRST: Cross-checked, tracked multi-outlet narratives -->
       {% if sections.major %}
       <section class="mb-6">
-        <div class="flex items-baseline justify-between mb-2">
-          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate">Major stories</h2>
-          <span class="text-sm text-slate">Tracked, cross-checked narratives &middot; {{ sections.major|length }}</span>
-        </div>
         <div class="card-stack">
           {% for evt in sections.major %}
           {% include "components/story_card.html" %}

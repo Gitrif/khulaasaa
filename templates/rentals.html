@@ -28,6 +28,7 @@
         <select id="filterWard" aria-label="Filter by ward or phase" onchange="onWardChange(this.value)" class="filter-select">
           <option value="">All Wards</option>
         </select>
+        <span id="activeFeatureCountBadge" style="display:none;" class="filter-pill active"></span>
         <span id="collapsedFilterBadge" style="display:none;" class="filter-pill active"></span>
       </div>
       {{ filter_more_btn('More rental filters') }}
@@ -67,20 +68,6 @@
 {% endset %}
 {{ render_filter_dock(_rentals_row1, _rentals_row2, _rentals_drawer) }}
 <main class="max-w-6xl mx-auto px-4 py-4 text-ink">
-
-  <!-- Listings Stream Header with Send Alert Button -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-    <div class="text-xs text-slate flex items-center gap-2 flex-wrap">
-      <span>Showing <strong id="rentalVisibleCount" class="text-ink font-bold">{{ rentals|length }}</strong> consolidated rental listing{% if rentals|length != 1 %}s{% endif %}</span>
-      <span id="activeFeatureCountBadge" style="display:none;" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"></span>
-    </div>
-
-    <!-- Prominent Alert CTA: "Send alert when listings come available for this search" -->
-    <button type="button" onclick="openAlertModalForCurrentFilter()" class="px-3.5 py-2 rounded-lg bg-[#0b5d57] hover:bg-[#084541] text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs transition cursor-pointer self-start sm:self-auto shrink-0">
-      <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
-      <span>Send alert when listings become available for this search</span>
-    </button>
-  </div>
 
   <!-- Real-time Filter No Results Notice -->
   <div id="rentalNoResults" style="display:none;" class="bg-white border border-hairline rounded-lg p-8 text-center text-slate mb-8">

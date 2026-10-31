@@ -88,6 +88,41 @@ def test_news_pipeline_e2e(client):
     assert "Khulaasaa" in res_ui.text
 
 
+def test_news_cache_ttl_expiration_and_db_reload():
+    """Verify fresh cache returns within TTL, reloads from DB on expiry, and falls back if DB read fails."""
+    import time
+    from services import news_service
+    from services.news_service import get_live_news
+
+    # 1. Warm cache with initial payload
+    fake_old = [{"id": "old-1", "headline": "Old News", "tags": [], "sources": ["sun"], "topic": "General"}]
+    news_service._LIVE_NEWS_CACHE["data"] = fake_old
+    news_service._LIVE_NEWS_CACHE["timestamp"] = time.time()
+
+    # Within TTL: returns cached
+    res = get_live_news(force_refresh=False)
+    assert res == fake_old
+
+    # 2. Expire cache: age beyond NEWS_CACHE_TTL_SECONDS
+    news_service._LIVE_NEWS_CACHE["timestamp"] = time.time() - (news_service.NEWS_CACHE_TTL_SECONDS + 10)
+    fake_fresh_db = [
+        {"id": "new-1", "headline": "Fresh DB Story", "summary": "", "source_key": "sun", "url": "https://sun.mv/new1", "published_iso": "2026-10-31T12:00:00Z"}
+    ]
+
+    with patch("services.news_service.query_articles", return_value=fake_fresh_db):
+        res_expired = get_live_news(force_refresh=False)
+        assert len(res_expired) >= 1
+        assert res_expired[0]["headline"] == "Fresh DB Story"
+        assert news_service._LIVE_NEWS_CACHE["data"] == res_expired
+        assert time.time() - news_service._LIVE_NEWS_CACHE["timestamp"] < 5
+
+    # 3. If DB read throws an exception after expiration, does NOT crash and falls back to existing cached data
+    news_service._LIVE_NEWS_CACHE["timestamp"] = time.time() - (news_service.NEWS_CACHE_TTL_SECONDS + 10)
+    with patch("services.news_service.query_articles", side_effect=RuntimeError("DB read error")):
+        res_fallback = get_live_news(force_refresh=False)
+        assert res_fallback == res_expired
+
+
 # -----------------------------------------------------------------------------
 # 2. TENDERS PIPELINE INTEGRATION
 # -----------------------------------------------------------------------------

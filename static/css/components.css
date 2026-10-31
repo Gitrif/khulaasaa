@@ -4,19 +4,22 @@
    ========================================================================== */
 
 /* Brand Link & Thaana Kaafu Mark + Page Title Block */
-.desktop-top-ad-bar {
-  display: none;
+.top-leaderboard-ad-bar {
+  display: block;
   background: var(--paper-soft);
   border-bottom: 1px solid var(--hairline);
-  padding: 0.45rem 0;
+  padding: 0.35rem 0;
 }
-.desktop-top-ad-bar .ad-card {
+.top-leaderboard-ad-bar .ad-card {
   margin-bottom: 0 !important;
-  padding: 0.55rem 0.85rem !important;
+  padding: 0.45rem 0.75rem !important;
 }
 @media (min-width: 768px) {
-  .desktop-top-ad-bar {
-    display: block;
+  .top-leaderboard-ad-bar {
+    padding: 0.45rem 0;
+  }
+  .top-leaderboard-ad-bar .ad-card {
+    padding: 0.55rem 0.85rem !important;
   }
 }
 
@@ -1481,7 +1484,7 @@ header, .site-header {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     z-index: 45;
     border-top: 1px solid var(--hairline);
     border-bottom: 0;
@@ -1516,36 +1519,9 @@ header, .site-header {
     box-shadow: var(--dock-shadow);
   }
   .mobile-bottom-nav {
-    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
-    height: 56px;
-    padding-bottom: 0;
-  }
-  .mobile-bottom-ad-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
     bottom: 0;
-    z-index: 42;
-    min-height: calc(48px + env(safe-area-inset-bottom, 0px));
-    padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
-    background: var(--paper);
-    border-top: 1px solid var(--hairline);
-    display: flex;
-    align-items: center;
+    height: 56px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .mobile-bottom-ad-bar .ad-card {
-    margin-bottom: 0 !important;
-    padding: 4px 8px !important;
-    border-radius: 6px !important;
-  }
-  .mobile-bottom-ad-bar .source-action-btn {
-    padding: 0.25rem 0.55rem !important;
-    font-size: 11px !important;
-  }
-  body { padding-bottom: calc(196px + env(safe-area-inset-bottom, 0px)) !important; }
-}
-@media (min-width: 768px) {
-  .mobile-bottom-ad-bar {
-    display: none !important;
-  }
+  body { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important; }
 }

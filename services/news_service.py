@@ -37,6 +37,7 @@ _LIVE_NEWS_LAST_SYNC: float = 0.0
 _LIVE_NEWS_LAST_ATTEMPT: float = 0.0
 _LIVE_NEWS_LAST_SUCCESS: float = 0.0
 _LIVE_NEWS_LAST_ERROR: Optional[str] = None
+_LIVE_NEWS_RECORDS_PROCESSED: int = 0
 
 
 def get_news_sync_status() -> dict[str, Any]:
@@ -47,6 +48,7 @@ def get_news_sync_status() -> dict[str, Any]:
         "last_attempt": _LIVE_NEWS_LAST_ATTEMPT,
         "last_success": _LIVE_NEWS_LAST_SUCCESS,
         "last_error": _LIVE_NEWS_LAST_ERROR,
+        "records_processed": _LIVE_NEWS_RECORDS_PROCESSED,
     }
 
 
@@ -65,7 +67,7 @@ def init_news_cache() -> None:
 
 def _run_news_sync() -> None:
     """Background worker to synchronize live news and obituaries without blocking web traffic."""
-    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC, _LIVE_NEWS_LAST_ATTEMPT, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ERROR
+    global _LIVE_NEWS_IS_SYNCING, _LIVE_NEWS_LAST_SYNC, _LIVE_NEWS_LAST_ATTEMPT, _LIVE_NEWS_LAST_SUCCESS, _LIVE_NEWS_LAST_ERROR, _LIVE_NEWS_RECORDS_PROCESSED
     _LIVE_NEWS_LAST_ATTEMPT = time.time()
     try:
         articles = execute_news_ingestion(
@@ -79,6 +81,7 @@ def _run_news_sync() -> None:
             _LIVE_NEWS_LAST_SYNC = time.time()
             _LIVE_NEWS_LAST_SUCCESS = time.time()
             _LIVE_NEWS_LAST_ERROR = None
+            _LIVE_NEWS_RECORDS_PROCESSED = len(articles)
     except Exception as e:
         _LIVE_NEWS_LAST_ERROR = str(e)
         logger.warning("Background news sync failed: %s", e)
@@ -168,9 +171,6 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
     if _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
 
-    if _LIVE_NEWS_CACHE["data"]:
-        return _LIVE_NEWS_CACHE["data"]
-
     try:
         with get_db() as conn:
             stored = query_articles(conn, limit=100)
@@ -181,5 +181,8 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
                 return clustered
     except Exception as e:
         logger.warning("Error loading cached news articles: %s", e)
+
+    if _LIVE_NEWS_CACHE["data"]:
+        return _LIVE_NEWS_CACHE["data"]
 
     return []

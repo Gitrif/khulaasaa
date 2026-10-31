@@ -4,12 +4,33 @@ News and Alert Preferences API Router.
 from __future__ import annotations
 
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 
+from core.deps import require_editor
 from data.database import get_db, register_or_update_telegram_subscriber
-from services.news_service import get_live_news
+from services.news_service import get_live_news, get_news_sync_status
+from services.tenders_service import get_bids_sync_status
+from services.jobs_service import get_jobs_sync_status
+from services.ingestion.rentals_ingestion import get_rentals_sync_status
+from services.sync_scheduler import is_scheduler_running
 
 router = APIRouter()
+
+
+@router.get("/admin/api/sync-status")
+def admin_sync_status(editor: str = Depends(require_editor)):
+    """Expose operational sync status for News, Tenders, Jobs, and Rentals to authorized editors only."""
+    return JSONResponse({
+        "status": "ok",
+        "scheduler_running": is_scheduler_running(),
+        "sync": {
+            "news": get_news_sync_status(),
+            "tenders": get_bids_sync_status(),
+            "jobs": get_jobs_sync_status(),
+            "rentals": get_rentals_sync_status(),
+        },
+    })
 
 
 @router.get("/api/news")

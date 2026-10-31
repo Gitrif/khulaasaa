@@ -291,3 +291,29 @@ def test_sync_scheduler_lifecycle_and_single_instance_protection(monkeypatch, tm
     finally:
         stop_sync_scheduler(join_timeout=2.0)
         assert is_scheduler_running() is False
+
+
+def test_admin_sync_status_endpoint_and_observability(monkeypatch):
+    """Verify /admin/api/sync-status returns operational status and requires editor auth."""
+    from main import app
+    from fastapi.testclient import TestClient
+    import base64
+
+    client = TestClient(app)
+
+    # Unauthenticated access must be rejected
+    unauth = client.get("/admin/api/sync-status")
+    assert unauth.status_code == 401
+
+    # Authenticated editor access returns status for news, tenders, jobs, rentals
+    creds = base64.b64encode(b"editor:changeme").decode("ascii")
+    auth_res = client.get("/admin/api/sync-status", headers={"Authorization": f"Basic {creds}"})
+    assert auth_res.status_code == 200
+    data = auth_res.json()
+    assert data["status"] == "ok"
+    assert "scheduler_running" in data
+    sync = data["sync"]
+    assert "news" in sync and "is_syncing" in sync["news"]
+    assert "tenders" in sync and "status" in sync["tenders"]
+    assert "jobs" in sync and "status" in sync["jobs"]
+    assert "rentals" in sync and "status" in sync["rentals"]
