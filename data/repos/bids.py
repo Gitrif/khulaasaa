@@ -312,11 +312,11 @@ def query_bids(
             WHEN submission_date IS NULL THEN 1
             ELSE 2
         END ASC,
+        published_date DESC,
         CASE
             WHEN submission_date >= ? THEN submission_date
         END ASC,
-        submission_date DESC,
-        published_date DESC
+        submission_date DESC
     LIMIT ?;
     """
     params.extend([today_str, today_str, limit])

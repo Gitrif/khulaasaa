@@ -46,6 +46,7 @@ from alerts.viber_client import (
     format_viber_obituary,
     format_viber_bid,
     format_viber_job,
+    dispatch_viber_sponsored_broadcast,
 )
 
 logger = logging.getLogger(__name__)
@@ -342,6 +343,7 @@ def dispatch_viber_news_alerts(
 
     with get_db() as conn:
         subscribers = get_viber_subscribers(conn, active_only=True)
+        active_ad = get_active_sponsored_ad(conn, target_category="news")
     if not subscribers:
         return 0
 
@@ -349,9 +351,24 @@ def dispatch_viber_news_alerts(
     delivered = 0
     for art in articles[:2]:
         for sub in subscribers:
-            res = send_viber_news_post(sub["viber_user_id"], art, base_url=base_url, keyboard=keyboard, bot_token=token)
+            uid = sub["viber_user_id"]
+            res = send_viber_news_post(uid, art, base_url=base_url, keyboard=keyboard, bot_token=token)
             if res.get("status") == 0:
                 delivered += 1
+                try:
+                    with get_db() as conn:
+                        record_alert_sent(conn, f"viber-news-{art.get('id')}", uid)
+                        count_row = conn.execute(
+                            "SELECT COUNT(*) FROM sent_alerts WHERE chat_id = ?;",
+                            (uid,),
+                        ).fetchone()
+                        total_sent = count_row[0] if count_row else 0
+                        if total_sent > 0 and total_sent % 5 == 0 and active_ad:
+                            ad_body = f"SPONSORED: {active_ad.get('sponsor_name', 'Partner')}\n{active_ad.get('body_text', '')}\n\nLearn more: {active_ad.get('link_url', base_url)}"
+                            send_viber_message(uid, text=ad_body, bot_token=token)
+                            record_ad_impression(conn, active_ad["id"])
+                except Exception as ad_err:
+                    logger.debug("Failed to dispatch Viber 5th post ad: %s", ad_err)
     return delivered
 
 
@@ -443,56 +460,4 @@ def dispatch_viber_bid_alerts(
                 if res.get("status") == 0:
                     delivered += 1
     return delivered
-
-
-def dispatch_viber_sponsored_broadcast(
-    conn: Any,
-    campaign_name: str,
-    sponsor_name: str,
-    html_content: str,
-    target_category: str = "all",
-    link_url: Optional[str] = None,
-    bot_token: Optional[str] = None,
-    base_url: str = "https://khulaasaa.tech",
-) -> dict[str, Any]:
-    """Broadcast a dedicated sponsored message campaign to active Viber subscribers."""
-    import re
-    token, _, _ = get_viber_credentials(bot_token)
-    if not token:
-        return {"delivered": 0, "failed": 0, "status": "no_token"}
-
-    subscribers = get_viber_subscribers(conn, active_only=True)
-    if not subscribers:
-        return {"delivered": 0, "failed": 0, "status": "no_subscribers"}
-
-    clean_content = re.sub(r"<[^>]+>", "", html_content).strip()
-    clean_content = clean_content.replace("&bull;", "•").replace("&mdash;", "—").replace("&rarr;", "→")
-
-    lines = [
-        f"SPONSORED DISPATCH — {sponsor_name}",
-        "━━━━━━━━━━━━━━━━━━━━━━",
-        clean_content,
-    ]
-    if link_url:
-        lines.extend(["", f"Learn More: {link_url}"])
-    lines.extend([
-        "",
-        "━━━━━━━━━━━━━━━━━━━━━━",
-        "This partner update was sent to Khulaasaa Viber subscribers.",
-    ])
-    msg_text = "\n".join(lines)
-    keyboard = build_viber_main_keyboard(base_url)
-
-    sent_count = fail_count = 0
-    for sub in subscribers:
-        cats = sub.get("categories") or ["all"]
-        if target_category != "all" and "all" not in cats and target_category not in cats:
-            continue
-        res = send_viber_message(sub["viber_user_id"], msg_text, keyboard=keyboard, bot_token=token)
-        if res.get("status") == 0:
-            sent_count += 1
-        else:
-            fail_count += 1
-
-    return {"delivered": sent_count, "failed": fail_count, "status": "ok"}
 

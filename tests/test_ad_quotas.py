@@ -74,8 +74,8 @@ class TestAdQuotasAndDuration(unittest.TestCase):
             ad_id_future = upsert_sponsored_ad(
                 conn,
                 {
-                    "campaign_name": "test-future-ad",
-                    "sponsor_name": "Future Sponsor",
+                    "campaign_name": "hooks85-test-future-ad",
+                    "sponsor_name": "hooks85 Future Sponsor",
                     "text_html": "Test future creative",
                     "target_category": "news",
                     "is_active": 1,
@@ -88,8 +88,8 @@ class TestAdQuotasAndDuration(unittest.TestCase):
             ad_id_past = upsert_sponsored_ad(
                 conn,
                 {
-                    "campaign_name": "test-past-ad",
-                    "sponsor_name": "Past Sponsor",
+                    "campaign_name": "hooks85-test-past-ad",
+                    "sponsor_name": "hooks85 Past Sponsor",
                     "text_html": "Test past creative",
                     "target_category": "news",
                     "is_active": 1,

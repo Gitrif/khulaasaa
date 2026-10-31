@@ -46,6 +46,8 @@ from data.repos.subscribers import (
     get_viber_subscribers,
     get_viber_subscriber,
     unsubscribe_viber_subscriber,
+    record_alert_sent,
+    is_alert_already_sent,
 )
 from data.repos.ads import (
     get_active_sponsored_ad,

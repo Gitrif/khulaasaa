@@ -81,7 +81,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8" style="display:grid; gap:0.75rem;">
       {% for r in rentals %}
         {% include "rentals/rental_card.html" %}
-        {% if loop.index == 2 or loop.index == 6 %}
+        {% if loop.index % 5 == 0 %}
           <div class="col-span-full md:col-span-2 my-1" style="grid-column: 1 / -1; width:100%;">
             {% include "_ad_infeed.html" %}
           </div>

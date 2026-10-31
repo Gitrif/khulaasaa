@@ -9,6 +9,26 @@ import logging
 
 logger = logging.getLogger("khulaasaa.subscribers")
 
+def record_alert_sent(conn: sqlite3.Connection, notice_id: str, chat_id: str) -> None:
+    """Record that an alert was dispatched to prevent duplicate notification."""
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO sent_alerts (notice_id, chat_id, sent_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP);
+        """,
+        (notice_id, chat_id),
+    )
+
+
+def is_alert_already_sent(conn: sqlite3.Connection, notice_id: str, chat_id: str) -> bool:
+    """Check if an alert has already been dispatched to a specific recipient."""
+    row = conn.execute(
+        "SELECT id FROM sent_alerts WHERE notice_id = ? AND chat_id = ? LIMIT 1;",
+        (notice_id, chat_id),
+    ).fetchone()
+    return bool(row)
+
+
 def baseline_mark_existing_alerts_for_subscriber(conn: sqlite3.Connection, chat_id: str) -> None:
     """
     Mark all current articles, bids, and obituaries in the database as already sent

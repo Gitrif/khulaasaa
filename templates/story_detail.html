@@ -4,22 +4,22 @@
 {% block content %}
 <header class="border-b border-hairline bg-paper">
   <div class="max-w-4xl mx-auto px-5 pt-6 pb-6">
-    <!-- Contextual Navigation Toolbar: Single Line (Image 2 Fix) -->
-    <div class="flex items-center gap-2 mb-4 text-xs overflow-x-auto no-scrollbar whitespace-nowrap">
+    <!-- Contextual Navigation Toolbar: Horizontal scrollable with high visibility -->
+    <div class="flex items-center gap-2 mb-4 text-xs overflow-x-auto no-scrollbar whitespace-nowrap" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
       <a href="/" class="px-3 py-1.5 rounded border border-hairline bg-white hover:bg-cream text-ink font-semibold inline-flex items-center gap-1.5 shadow-xs transition shrink-0" title="Return to news feed">
         &larr; <span>Back to Feed</span>
       </a>
       {% for t in story.tag_objs %}
-      <a href="/?tag={{ t.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0" style="border-color: {{ t.color }}; color: {{ t.color }};">
+      <a href="/?tag={{ t.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0 bg-white" style="border-color: {{ t.color }}; color: {{ t.color }};">
         {{ t.label }}
       </a>
       {% endfor %}
       {% if story.topic_obj %}
-      <a href="/?topic={{ story.topic_obj.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0" style="border-color: {{ story.topic_obj.color }}; color: {{ story.topic_obj.color }};">
+      <a href="/?topic={{ story.topic_obj.id }}" class="px-2.5 py-1.5 rounded border font-semibold hover:bg-cream transition shrink-0 bg-white" style="border-color: {{ story.topic_obj.color }}; color: {{ story.topic_obj.color }};">
         {{ story.topic_obj.label }}
       </a>
       {% endif %}
-      <span class="ml-auto text-xs text-slate font-medium shrink-0">Updated {{ story.time_ago or story.published_raw }}</span>
+      <span class="ml-auto text-xs text-slate font-medium shrink-0 pl-2">Updated {{ story.time_ago or story.published_raw }}</span>
     </div>
 
     <!-- Cluster Overview Box -->

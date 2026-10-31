@@ -322,6 +322,59 @@ def send_viber_news_post(
     return res
 
 
+def dispatch_viber_sponsored_broadcast(
+    conn: Any,
+    campaign_name: str,
+    sponsor_name: str,
+    html_content: str,
+    target_category: str = "all",
+    link_url: Optional[str] = None,
+    bot_token: Optional[str] = None,
+    base_url: str = "https://khulaasaa.tech",
+) -> dict[str, Any]:
+    """Broadcast a dedicated sponsored message campaign to active Viber subscribers."""
+    import re
+    token, _, _ = get_viber_credentials(bot_token)
+    if not token:
+        return {"delivered": 0, "failed": 0, "status": "no_token"}
+
+    from data.database import get_viber_subscribers
+    subscribers = get_viber_subscribers(conn, active_only=True)
+    if not subscribers:
+        return {"delivered": 0, "failed": 0, "status": "no_subscribers"}
+
+    clean_content = re.sub(r"<[^>]+>", "", html_content).strip()
+    clean_content = clean_content.replace("&bull;", "•").replace("&mdash;", "—").replace("&rarr;", "→")
+
+    lines = [
+        f"SPONSORED DISPATCH — {sponsor_name}",
+        "━━━━━━━━━━━━━━━━━━━━━━",
+        clean_content,
+    ]
+    if link_url:
+        lines.extend(["", f"Learn More: {link_url}"])
+    lines.extend([
+        "",
+        "━━━━━━━━━━━━━━━━━━━━━━",
+        "This partner update was sent to Khulaasaa Viber subscribers.",
+    ])
+    msg_text = "\n".join(lines)
+    keyboard = build_viber_main_keyboard(base_url)
+
+    sent_count = fail_count = 0
+    for sub in subscribers:
+        cats = sub.get("categories") or ["all"]
+        if target_category != "all" and "all" not in cats and target_category not in cats:
+            continue
+        res = send_viber_message(sub["viber_user_id"], msg_text, keyboard=keyboard, bot_token=token)
+        if res.get("status") == 0:
+            sent_count += 1
+        else:
+            fail_count += 1
+
+    return {"delivered": sent_count, "failed": fail_count, "status": "ok"}
+
+
 def format_viber_obituary(ob: dict[str, Any], base_url: str = "https://khulaasaa.tech") -> str:
     """Format a respectful Islamic Janaza / funeral announcement for Viber."""
     name_dv = ob.get("name_dv") or "މަރުޙޫމް"

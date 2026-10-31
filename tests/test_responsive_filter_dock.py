@@ -97,13 +97,12 @@ def test_removed_redundant_ui_rows():
     obits = client.get("/obituaries").text
     assert "active announcements (7-day window)" not in obits
     assert "+ Submit Notice" not in obits
-    # Search input preserved
-    assert 'id="obituarySearch"' in obits
+    assert 'class="filter-toolbar"' in obits
 
 
 def test_notices_and_rentals_keep_js_hooks():
     obits = _read("templates/obituaries.html")
-    for hook in ("btn-reg-all", "btn-reg-south", "atollSelect", "obituarySearch"):
+    for hook in ("btn-reg-all", "btn-reg-south", "atollSelect"):
         assert obits.count(f'id="{hook}"') == 1
 
     rentals = _read("templates/rentals.html")

@@ -91,7 +91,7 @@
       <!-- Global Actions: Viber, Telegram, In-App Notifications, Sign In / Avatar -->
       <div class="appbar-actions flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="headerViberBtn" onclick="handleHeaderChannelClick('viber')"
-                class="app-icon-btn group" title="Connect Viber Alerts" aria-label="Viber Alerts">
+                class="app-icon-btn group hidden sm:inline-flex" title="Connect Viber Alerts" aria-label="Viber Alerts">
           <span class="status-pip"></span>
           <svg class="w-4 h-4 fill-current transition group-hover:scale-110" viewBox="0 0 24 24">
             <path d="M19.78 14.88c-.65-.4-1.63-.98-2.31-1.3-.68-.32-1.07-.3-1.47.23-.4.53-.88 1.1-1.19 1.25-.32.15-.72.06-1.12-.13-.76-.37-2.61-1.61-3.64-3.32-.27-.45-.03-.7.18-.94.2-.23.45-.58.68-.87.23-.29.3-.5.45-.84.15-.34.08-.65-.04-.89-.12-.24-1.07-2.58-1.47-3.53-.39-.93-.79-.8-1.08-.82l-.93-.01c-.32 0-.84.12-1.28.6-.44.48-1.68 1.64-1.68 4 0 2.36 1.72 4.64 1.96 4.96.24.32 3.39 5.18 8.21 7.26 1.15.5 2.05.8 2.75 1.02.7.22 1.34.19 1.84.11.56-.08 1.72-.7 1.96-1.38.24-.68.24-1.26.17-1.38-.07-.12-.27-.2-.59-.36z"/>
@@ -99,7 +99,7 @@
         </button>
 
         <button id="headerTelegramBtn" onclick="handleHeaderChannelClick('telegram')"
-                class="app-icon-btn group" title="Connect Telegram Alerts" aria-label="Telegram Alerts">
+                class="app-icon-btn group hidden sm:inline-flex" title="Connect Telegram Alerts" aria-label="Telegram Alerts">
           <span class="status-pip"></span>
           <svg class="w-4 h-4 fill-current transition group-hover:scale-110" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
@@ -154,7 +154,7 @@
                 </div>
               </div>
 
-              <!-- Menu Items (5 Exact Destinations) -->
+              <!-- Menu Items (5 Exact Destinations + Mobile Alerts Quick Links) -->
               <div class="py-1">
                 <a href="/account" class="user-avatar-dropdown-item">
                   <svg class="w-3.5 h-3.5 text-slate" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -172,6 +172,16 @@
                   <svg class="w-3.5 h-3.5 text-slate" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                   <span>Connected Channels</span>
                 </a>
+                <div class="sm:hidden border-t border-hairline/60 my-1 pt-1">
+                  <button type="button" onclick="handleHeaderChannelClick('telegram')" class="user-avatar-dropdown-item w-full text-left">
+                    <svg class="w-3.5 h-3.5 text-slate fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    <span>Telegram Alerts</span>
+                  </button>
+                  <button type="button" onclick="handleHeaderChannelClick('viber')" class="user-avatar-dropdown-item w-full text-left">
+                    <svg class="w-3.5 h-3.5 text-slate fill-current" viewBox="0 0 24 24"><path d="M19.78 14.88c-.65-.4-1.63-.98-2.31-1.3-.68-.32-1.07-.3-1.47.23-.4.53-.88 1.1-1.19 1.25-.32.15-.72.06-1.12-.13-.76-.37-2.61-1.61-3.64-3.32-.27-.45-.03-.7.18-.94.2-.23.45-.58.68-.87.23-.29.3-.5.45-.84.15-.34.08-.65-.04-.89-.12-.24-1.07-2.58-1.47-3.53-.39-.93-.79-.8-1.08-.82l-.93-.01c-.32 0-.84.12-1.28.6-.44.48-1.68 1.64-1.68 4 0 2.36 1.72 4.64 1.96 4.96.24.32 3.39 5.18 8.21 7.26 1.15.5 2.05.8 2.75 1.02.7.22 1.34.19 1.84.11.56-.08 1.72-.7 1.96-1.38.24-.68.24-1.26.17-1.38-.07-.12-.27-.2-.59-.36z"/></svg>
+                    <span>Viber Alerts</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Sign Out -->

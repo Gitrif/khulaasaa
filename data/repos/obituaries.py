@@ -212,11 +212,11 @@ def list_obituaries(
         params.extend([q, q, q, q, q, q, q, q])
 
     where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
-    # Sort by atoll sort_order ASC, atoll_code ASC, island_name ASC, then funeral_date DESC, created_at DESC
+    # Primary sort by funeral_date DESC, but within the same date sort by regional sort_order (Male' first, North to South)
     sql = f"""
         SELECT * FROM obituaries
         {where_sql}
-        ORDER BY sort_order ASC, atoll_code ASC, island_name ASC, funeral_date DESC, created_at DESC, id DESC
+        ORDER BY funeral_date DESC, sort_order ASC, atoll_code ASC, created_at DESC, id DESC
         LIMIT ?;
     """
     params.append(limit)

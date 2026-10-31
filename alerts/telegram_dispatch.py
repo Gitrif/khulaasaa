@@ -300,7 +300,7 @@ def dispatch_news_alerts(
                     except Exception:
                         pass
 
-                # Between every 5 posts, insert an actual ad served by our ad engine
+                # Between every 5 user-delivered alert posts, insert an actual ad served by our ad engine
                 try:
                     if sub_started_at:
                         count_row = conn.execute(
@@ -309,7 +309,7 @@ def dispatch_news_alerts(
                         ).fetchone()
                     else:
                         count_row = conn.execute(
-                            "SELECT COUNT(*) FROM sent_alerts WHERE chat_id = ?;",
+                            "SELECT COUNT(*) FROM sent_alerts WHERE chat_id = ? AND notice_id NOT LIKE 'baseline-%';",
                             (chat_id,),
                         ).fetchone()
                     total_sent = count_row[0] if count_row else 0
@@ -317,7 +317,7 @@ def dispatch_news_alerts(
                         ad_msg = format_standalone_ad_post(active_ad)
                         ad_kb = None
                         if active_ad.get("link_url"):
-                            ad_kb = {"inline_keyboard": [[{"text": f"Visit {active_ad.get('sponsor_name', 'Partner')} ↗", "url": active_ad["link_url"]}]]}
+                            ad_kb = {"inline_keyboard": [[{"text": f"Visit {active_ad.get('sponsor_name', 'Partner')} \u2197", "url": active_ad["link_url"]}]]}
                         tg.send_telegram_message(ad_msg, chat_id=chat_id, bot_token=token, reply_markup=ad_kb)
                         record_ad_impression(conn, active_ad["id"])
                 except Exception as ad_err:

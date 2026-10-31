@@ -284,12 +284,12 @@
 .event-card-sm[data-tag="bridge"] { border-left-color: var(--slate); }
 .source-badge.sm { padding: 0.08rem 0.4rem; font-size: 0.84rem; }
 
-/* Sponsored Ad Cards (Formatted natively to match story-card exactly) */
+/* Sponsored Ad Cards (Formatted natively with slightly darker contrast than white posts) */
 .ad-card {
   box-sizing: border-box !important;
   max-width: 100% !important;
   width: 100% !important;
-  background: #FFFFFF !important;
+  background: var(--paper-soft, #EFEBE1) !important;
   border: 1px solid var(--hairline) !important;
   border-radius: 8px !important;
   padding: 1.15rem 1.25rem !important;
@@ -1041,6 +1041,9 @@
   padding: 0 0.5rem;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
+  contain: layout size;
+  transform: translateZ(0);
+  will-change: transform;
 }
 @media (min-width: 768px) {
   .mobile-bottom-nav {
@@ -1301,12 +1304,7 @@ header, .site-header {
 }
 
 
-/* Canonical shared controls: use these classes on every page. */
-.btn-primary, a.btn-primary, button.btn-primary,
-.btn-secondary, a.btn-secondary, button.btn-secondary {
-  min-height: var(--control-height);
-  border-radius: var(--radius-control) !important;
-}
+/* Canonical shared controls: unified filter pills */
 .filter-pill, a.filter-pill, button.filter-pill {
   min-height: 34px;
   border-radius: var(--radius-pill) !important;
@@ -1335,7 +1333,6 @@ header, .site-header {
   scrollbar-width: none;
 }
 .filter-pills::-webkit-scrollbar { display: none; }
-/* .filter-toolbar surface and border are defined once in the responsive filter dock block below. */
 .filter-toggle { flex: 0 0 auto; }
 .filter-toggle .filter-chevron { transition: transform .18s ease; }
 .filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }

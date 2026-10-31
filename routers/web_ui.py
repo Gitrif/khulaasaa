@@ -37,6 +37,7 @@ from data.stories import (
 )
 from scrapers.translator import is_dhivehi, translate_dhivehi_title
 from services.news_service import enrich_event, get_live_news
+from services.tenders_service import trigger_bids_background_sync
 from alerts.telegram import get_telegram_credentials
 from data.modules import is_service_module_enabled, get_service_module
 

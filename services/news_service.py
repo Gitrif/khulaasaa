@@ -73,7 +73,7 @@ def _run_news_sync() -> None:
         articles = execute_news_ingestion(
             raw_fetcher=fetch_raw_news_articles,
             alert_dispatcher=dispatch_news_alerts,
-            sync_telegram_obits=False,
+            sync_telegram_obits=True,
         )
         if articles:
             _LIVE_NEWS_CACHE["data"] = articles
