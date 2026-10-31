@@ -2,12 +2,12 @@
    Inline below the desktop header on >=768px; fixed above .mobile-bottom-nav on <768px. #}
 {% macro render_filter_dock(row1, row2, drawer='') -%}
 <div class="filter-toolbar" id="pageFilterToolbar">
-  <div class="filter-toolbar-inner max-w-5xl mx-auto px-4">
+  <div class="filter-toolbar-inner max-w-6xl mx-auto px-4">
     {{ row1 }}
     {{ row2 }}
   </div>
   {%- if drawer %}
-  <div id="filterDrawer" class="filter-drawer max-w-5xl mx-auto px-4 hidden">
+  <div id="filterDrawer" class="filter-drawer max-w-6xl mx-auto px-4 hidden">
     {{ drawer }}
   </div>
   {%- endif %}

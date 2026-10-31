@@ -1476,7 +1476,7 @@ header, .site-header {
 }
 @media (min-width: 768px) {
   .filter-toolbar { position: relative; }
-  .filter-toolbar-inner { max-width: 64rem; }
+  .filter-toolbar-inner { max-width: 72rem; }
   .filter-row { min-height: 40px; }
 }
 @media (max-width: 767px) {
