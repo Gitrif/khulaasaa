@@ -33,8 +33,16 @@ def record_ad_impression(conn: sqlite3.Connection, ad_id: int) -> None:
 
 
 def list_sponsored_ads(conn: sqlite3.Connection, active_only: bool = False) -> list[dict[str, Any]]:
-    """List all configured sponsor campaigns and calculate quota & duration status."""
+    """List all configured sponsor campaigns and calculate quota & duration status with 60s cache."""
     from datetime import datetime
+    cache_key = f"sponsored_ads:list:{1 if active_only else 0}"
+    try:
+        from services.cache_service import cache_get
+        cached = cache_get(cache_key)
+        if cached is not None:
+            return cached
+    except Exception:
+        pass
 
     rows = conn.execute("SELECT * FROM sponsored_ads ORDER BY created_at DESC;").fetchall()
     results = []
@@ -94,10 +102,21 @@ def list_sponsored_ads(conn: sqlite3.Connection, active_only: bool = False) -> l
 
         results.append(d)
 
+    try:
+        from services.cache_service import cache_set
+        cache_set(cache_key, results, ttl_seconds=60)
+    except Exception:
+        pass
     return results
 
 
 def upsert_sponsored_ad(conn: sqlite3.Connection, ad: dict[str, Any]) -> int:
+    try:
+        from services.cache_service import cache_delete
+        cache_delete("sponsored_ads:list:0")
+        cache_delete("sponsored_ads:list:1")
+    except Exception:
+        pass
     """Insert or update a sponsored ad campaign with quota and time limits."""
     cursor = conn.execute(
         """

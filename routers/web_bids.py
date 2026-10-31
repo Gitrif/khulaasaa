@@ -73,27 +73,52 @@ def bids(
     if not selected_portals and portal:
         selected_portals = [portal]
 
-    with get_db() as conn:
-        if not is_service_module_enabled(conn, 'tenders'):
-            return templates.TemplateResponse(
-                'service_suspended.html',
-                {'request': request, 'module': get_service_module(conn, 'tenders'), 'current_user': get_current_user(request)},
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    import json
+    bids_cache_key = f"bids:feed:{sorted(selected_agencies)}:{sorted(selected_entity_types)}:{sorted(selected_disciplines)}:{sorted(selected_natures)}:{sorted(selected_types)}:{sorted(selected_portals)}:{cross_listed}:{q or ''}"
+    cached_bids_payload = None
+    try:
+        from services.cache_service import cache_get
+        cached_bids_payload = cache_get(bids_cache_key)
+    except Exception:
+        pass
+
+    if cached_bids_payload is not None:
+        rows = cached_bids_payload["rows"]
+        filter_options = cached_bids_payload["filter_options"]
+        stats = cached_bids_payload["stats"]
+        active_ads = cached_bids_payload["active_ads"]
+    else:
+        with get_db() as conn:
+            if not is_service_module_enabled(conn, 'tenders'):
+                return templates.TemplateResponse(
+                    'service_suspended.html',
+                    {'request': request, 'module': get_service_module(conn, 'tenders'), 'current_user': get_current_user(request)},
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            rows = query_bids(
+                conn,
+                agency_name=selected_agencies if selected_agencies else None,
+                entity_type=selected_entity_types if selected_entity_types else None,
+                discipline=selected_disciplines if selected_disciplines else None,
+                procurement_nature=selected_natures if selected_natures else None,
+                gazette_type=selected_types if selected_types else None,
+                portal=selected_portals if selected_portals else None,
+                cross_listed_only=(cross_listed == "1"),
+                search_q=q,
             )
-        rows = query_bids(
-            conn,
-            agency_name=selected_agencies if selected_agencies else None,
-            entity_type=selected_entity_types if selected_entity_types else None,
-            discipline=selected_disciplines if selected_disciplines else None,
-            procurement_nature=selected_natures if selected_natures else None,
-            gazette_type=selected_types if selected_types else None,
-            portal=selected_portals if selected_portals else None,
-            cross_listed_only=(cross_listed == "1"),
-            search_q=q,
-        )
-        filter_options = get_bids_filter_options(conn)
-        stats = get_agency_portal_statistics(conn)
-        active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+            filter_options = get_bids_filter_options(conn)
+            stats = get_agency_portal_statistics(conn)
+            active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+        try:
+            from services.cache_service import cache_set
+            cache_set(bids_cache_key, {
+                "rows": rows,
+                "filter_options": filter_options,
+                "stats": stats,
+                "active_ads": active_ads,
+            }, ttl_seconds=60)
+        except Exception:
+            pass
 
     rows = prepare_bids_presentation(rows)
 

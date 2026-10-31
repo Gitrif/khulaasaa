@@ -43,23 +43,45 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
     min_salary_str = qp.get("min_salary")
     min_salary = int(min_salary_str) if min_salary_str and min_salary_str.isdigit() else None
 
-    with get_db() as conn:
-        if not is_service_module_enabled(conn, "jobs"):
-            return templates.TemplateResponse(
-                "service_suspended.html",
-                {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    jobs_cache_key = f"jobs:feed:{sorted(selected_disciplines)}:{sorted(selected_agencies)}:{sorted(selected_locations)}:{min_salary}:{q or ''}"
+    cached_jobs_payload = None
+    try:
+        from services.cache_service import cache_get
+        cached_jobs_payload = cache_get(jobs_cache_key)
+    except Exception:
+        pass
+
+    if cached_jobs_payload is not None:
+        db_jobs = cached_jobs_payload["db_jobs"]
+        filter_opts = cached_jobs_payload["filter_opts"]
+        active_ads = cached_jobs_payload["active_ads"]
+    else:
+        with get_db() as conn:
+            if not is_service_module_enabled(conn, "jobs"):
+                return templates.TemplateResponse(
+                    "service_suspended.html",
+                    {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            db_jobs = query_jobs(
+                conn,
+                discipline=selected_disciplines if selected_disciplines else None,
+                agency=selected_agencies if selected_agencies else None,
+                location=selected_locations if selected_locations else None,
+                min_salary=min_salary,
+                search=q,
             )
-        db_jobs = query_jobs(
-            conn,
-            discipline=selected_disciplines if selected_disciplines else None,
-            agency=selected_agencies if selected_agencies else None,
-            location=selected_locations if selected_locations else None,
-            min_salary=min_salary,
-            search=q,
-        )
-        filter_opts = get_job_filter_options(conn)
-        active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+            filter_opts = get_job_filter_options(conn)
+            active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+        try:
+            from services.cache_service import cache_set
+            cache_set(jobs_cache_key, {
+                "db_jobs": db_jobs,
+                "filter_opts": filter_opts,
+                "active_ads": active_ads,
+            }, ttl_seconds=60)
+        except Exception:
+            pass
 
     all_disciplines = filter_opts["disciplines"]
     all_agencies = filter_opts["agencies"]

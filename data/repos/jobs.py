@@ -206,7 +206,16 @@ def query_jobs(
 
 
 def get_job_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
-    """Return sorted unique values for agencies, disciplines, and locations for jobs."""
+    """Return sorted unique values for agencies, disciplines, and locations for jobs with 300s cache."""
+    cache_key = "jobs:filter_options"
+    try:
+        from services.cache_service import cache_get
+        cached = cache_get(cache_key)
+        if cached is not None:
+            return cached
+    except Exception:
+        pass
+
     rows = conn.execute(
         "SELECT DISTINCT COALESCE(agency_name_en, agency) AS ag, discipline, location FROM jobs WHERE is_active = 1;"
     ).fetchall()
@@ -220,11 +229,17 @@ def get_job_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
             disciplines.add(r["discipline"].strip())
         if r["location"]:
             locations.add(r["location"].strip())
-    return {
+    res = {
         "agencies": sorted(agencies),
         "disciplines": sorted(disciplines),
         "locations": sorted(locations),
     }
+    try:
+        from services.cache_service import cache_set
+        cache_set(cache_key, res, ttl_seconds=300)
+    except Exception:
+        pass
+    return res
 
 
 def get_job_disciplines(conn: sqlite3.Connection) -> list[str]:

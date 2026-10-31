@@ -105,18 +105,38 @@ def get_service_module(conn: Any, module_key: str) -> Optional[dict[str, Any]]:
 
 
 def is_service_module_enabled(conn: Any, module_key: str) -> bool:
-    """Return True if the module is operational (enabled); False if suspended."""
+    """Return True if the module is operational (enabled); False if suspended with 60s cache."""
+    cache_key = f"service_module:enabled:{module_key}"
+    try:
+        from services.cache_service import cache_get, cache_set
+        cached = cache_get(cache_key)
+        if cached is not None:
+            return bool(cached)
+    except Exception:
+        pass
+
     try:
         cursor = conn.execute("SELECT is_enabled FROM service_modules WHERE module_key = ? LIMIT 1;", (module_key,))
         row = cursor.fetchone()
         if row is not None:
-            return bool(row[0])
+            val = bool(row[0])
+            try:
+                from services.cache_service import cache_set
+                cache_set(cache_key, val, ttl_seconds=60)
+            except Exception:
+                pass
+            return val
     except Exception:
         pass
     return True
 
 
 def update_service_module_status(conn: sqlite3.Connection, module_key: str, is_enabled: bool, suspended_message: Optional[str] = None) -> bool:
+    try:
+        from services.cache_service import cache_delete
+        cache_delete(f"service_module:enabled:{module_key}")
+    except Exception:
+        pass
     """Update enabled state and optional maintenance message for a service module."""
     if not _MODULES_INIT_DONE:
         init_modules_table(conn)

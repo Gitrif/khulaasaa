@@ -39,26 +39,46 @@ def rentals_directory_view(
     """Consolidated Apartment & Rental directory across Male, Hulhumale, and atolls."""
     user = get_current_user(request)
     active_ads = []
-    with get_db() as conn:
-        if not is_service_module_enabled(conn, "rentals"):
-            return templates.TemplateResponse(
-                "service_suspended.html",
-                {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    rentals_cache_key = f"rentals:feed:{location}:{bedrooms}:{max_rent}:{furnished}:{has_lift}:{has_ac}:{has_water_heater}:{q or ''}"
+    cached_rentals_payload = None
+    try:
+        from services.cache_service import cache_get
+        cached_rentals_payload = cache_get(rentals_cache_key)
+    except Exception:
+        pass
+
+    if cached_rentals_payload is not None:
+        rentals_list = cached_rentals_payload["rentals_list"]
+        active_ads = cached_rentals_payload["active_ads"]
+    else:
+        with get_db() as conn:
+            if not is_service_module_enabled(conn, "rentals"):
+                return templates.TemplateResponse(
+                    "service_suspended.html",
+                    {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            rentals_list = list_rentals(
+                conn,
+                location=location,
+                bedrooms=bedrooms,
+                max_rent=max_rent,
+                furnished=furnished,
+                has_lift=has_lift,
+                has_ac=has_ac,
+                has_water_heater=has_water_heater,
+                search_q=q,
             )
-        rentals_list = list_rentals(
-            conn,
-            location=location,
-            bedrooms=bedrooms,
-            max_rent=max_rent,
-            furnished=furnished,
-            has_lift=has_lift,
-            has_ac=has_ac,
-            has_water_heater=has_water_heater,
-            search_q=q,
-        )
+            try:
+                active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+            except Exception:
+                pass
         try:
-            active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
+            from services.cache_service import cache_set
+            cache_set(rentals_cache_key, {
+                "rentals_list": rentals_list,
+                "active_ads": active_ads,
+            }, ttl_seconds=60)
         except Exception:
             pass
 
