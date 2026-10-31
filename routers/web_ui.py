@@ -412,7 +412,7 @@ def obituaries_page(
     region: Optional[str] = None,
 ):
     with get_db() as conn:
-        obs = list_obituaries(conn, search_q=q, atoll_code=atoll, region_group=region, limit=100, active_only=True)
+        obs = list_obituaries(conn, search_q=q, atoll_code=atoll, region_group=region, limit=200, active_only=True)
         active_ads = [a for a in list_sponsored_ads(conn) if a.get("is_active") == 1]
     return templates.TemplateResponse(
         "obituaries.html",
