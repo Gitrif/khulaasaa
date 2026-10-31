@@ -209,84 +209,107 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- COMPREHENSIVE GLOBAL FOOTER (3 Columns) -->
+  <!-- COMPREHENSIVE GLOBAL FOOTER (3 Columns / Ultra-Compact Mobile Accordion) -->
   <footer class="site-footer border-t border-hairline bg-paper pt-8 pb-28 md:pb-12 text-xs text-slate mt-12">
     <div class="max-w-6xl mx-auto px-4">
-      
-      <!-- Top Brand Summary Banner -->
+
+      <!-- Brand — keep compact -->
       <div class="footer-brand-banner">
         <div class="flex items-center gap-2">
           <span class="brand-mark sm" aria-hidden="true">ކ</span>
           <span class="font-serif-display font-bold text-lg text-ink tracking-tight">Khulaasaa</span>
-          <span class="text-xs text-slate ml-2 hidden sm:inline">Consolidated Maldivian News, Gazette Procurement, Careers &amp; Apartment Rentals</span>
+          <span class="text-xs text-slate ml-2 hidden sm:inline">Free public tools for Maldivians</span>
         </div>
         <div class="text-[11px] text-slate-500">
-          <span>Ad-Supported Public Consolidator</span> &middot; <span>Hooks85 Subscription Features</span> &middot; <span>Act No. 23/2010 Fair Dealing</span>
+          Ad-Supported Public Consolidator · Act No. 23/2010
         </div>
       </div>
 
-      <!-- 3-Column Footer Links Grid -->
-      <div class="footer-3col-grid">
-        <!-- Column 1: Coverage & Feeds -->
+      <!-- Single row of 3 accordion headers (mobile) / 3 columns (desktop) -->
+      <div class="footer-3col-grid footer-accordion-grid">
+
+        <!-- 1. For Job Seekers -->
         <div>
-          <h4 class="footer-col-title">Coverage &amp; Feeds</h4>
-          <ul class="footer-links-list">
-            <li><a href="/">Live News Wire (All Outlets)</a></li>
-            <li><a href="/bids">Government Gazette Tenders</a></li>
-            <li><a href="/jobs">Careers &amp; Civil Service Vacancies</a></li>
-            <li><a href="/rentals">Apartments &amp; Rentals Directory</a></li>
-            <li><a href="/obituaries">Funeral &amp; Janaza Announcements</a></li>
-            <li><a href="/jobs/candidates">Candidate Talent Discovery</a></li>
-            <li><a href="/jobs/cv">Free Maldivian CV Builder</a></li>
-            <li><a href="/feed.xml">
-              <svg class="w-3.5 h-3.5 text-amber-600 fill-current shrink-0" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
-              <span>RSS 2.0 Syndication Feed</span>
-            </a></li>
-          </ul>
+          <h4 class="footer-col-title">For Job Seekers</h4>
+          <details class="footer-accordion-item">
+            <summary class="footer-accordion-trigger">
+              <span>For Job Seekers</span>
+            </summary>
+            <ul class="footer-links-list">
+              <li><a href="/jobs/cv">Free Maldivian CV Builder</a></li>
+              <li><a href="/jobs">Careers &amp; Civil Service Vacancies</a></li>
+              <li><a href="/jobs/candidates">Candidate Talent Discovery</a></li>
+              <li><a href="/jobs">Job Alerts</a></li>
+              <li><a href="/">Live News Wire</a></li>
+              <li><a href="/feed.xml">
+                <svg class="w-3.5 h-3.5 text-amber-600 fill-current shrink-0" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
+                <span>RSS Feed</span>
+              </a></li>
+            </ul>
+          </details>
         </div>
 
-        <!-- Column 2: Business & Advertising -->
+        <!-- 2. Help & Support -->
         <div>
-          <h4 class="footer-col-title">Business &amp; Advertising</h4>
-          <ul class="footer-links-list">
-            <li><a href="/advertise" style="color:var(--ink); font-weight:600;">Advertise with Us</a></li>
-            <li><a href="/rentals/contract">Tenancy Agreement &amp; Rent Ledger</a></li>
-            <li><a href="/jobs/hr-portal">Employer HR &amp; Shortlisting Portal</a></li>
-            <li><a href="/advertise#formats">Display Banners &amp; Native Slots</a></li>
-            <li><a href="/advertise#broadcasts">Telegram &amp; Viber Broadcasts</a></li>
-            <li><a href="/subscription" target="_blank" rel="noopener noreferrer">Hooks85 ERP &amp; Tender Suite &rarr;</a></li>
-            <li><a href="mailto:advertise@khulaasaa.tech" style="color:var(--lagoon);">advertise@khulaasaa.tech</a></li>
-          </ul>
+          <h4 class="footer-col-title">Help &amp; Support</h4>
+          <details class="footer-accordion-item">
+            <summary class="footer-accordion-trigger">
+              <span>Help &amp; Support</span>
+            </summary>
+            <ul class="footer-links-list">
+              <li><a href="/jobs/cv#how-it-works">How this CV builder works</a></li>
+              <li><a href="/jobs/cv#samples">Sample Maldivian CVs</a></li>
+              <li><a href="/about#faq">Common questions</a></li>
+              <li><a href="/rentals">Apartments &amp; Rentals</a></li>
+              <li><a href="/obituaries">Funeral &amp; Janaza</a></li>
+              <li><a href="/bids">Government Tenders</a></li>
+            </ul>
+          </details>
         </div>
 
-        <!-- Column 3: Trust & Governance -->
+        <!-- 3. Trust & Privacy -->
         <div>
-          <h4 class="footer-col-title">Trust &amp; Governance</h4>
-          <ul class="footer-links-list">
-            <li><a href="/about" style="color:var(--ink); font-weight:600;">About Us &amp; Standards</a></li>
-            <li><a href="/compliance#legality">Copyright &amp; Legal Basis</a></li>
-            <li><a href="/compliance#removal" style="color:var(--flag);">Content Removal / Opt-Out</a></li>
-            <li><a href="/compliance">Publisher Compliance Desk</a></li>
-            <li><a href="mailto:editorial@khulaasaa.tech" style="color:var(--lagoon);">editorial@khulaasaa.tech</a></li>
-          </ul>
+          <h4 class="footer-col-title">Trust &amp; Privacy</h4>
+          <details class="footer-accordion-item">
+            <summary class="footer-accordion-trigger">
+              <span>Trust &amp; Privacy</span>
+            </summary>
+            <ul class="footer-links-list">
+              <li><a href="/about" style="color:var(--ink);font-weight:600;">About Us &amp; Standards</a></li>
+              <li><a href="/compliance#privacy">Your data stays private</a></li>
+              <li><a href="/jobs/cv">No account needed to download</a></li>
+              <li><a href="/compliance#removal" style="color:var(--flag);">Content Removal / Opt-Out</a></li>
+              <li><a href="mailto:editorial@khulaasaa.tech" style="color:var(--lagoon);">editorial@khulaasaa.tech</a></li>
+            </ul>
+          </details>
         </div>
       </div>
 
-      <!-- Bottom Sub-Footer Bar -->
+      <!-- Business links — MUST stay on a single horizontal line -->
+      <div class="footer-biz">
+        <a href="/advertise">Advertise</a>
+        <span class="sep">·</span>
+        <a href="/jobs/hr-portal">Employer Portal</a>
+        <span class="sep">·</span>
+        <a href="/subscription" target="_blank" rel="noopener">Hooks85 Suite →</a>
+        <span class="sep">·</span>
+        <a href="mailto:advertise@khulaasaa.tech" class="email">advertise@khulaasaa.tech</a>
+      </div>
+
+      <!-- Legal bar — keep tight -->
       <div class="pt-6 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate">
-        <div>
-          &copy; 2026 Khulaasaa. All rights reserved. Zero full-text republishing policy.
-        </div>
-        <div class="flex items-center gap-4">
-          <a href="/about#standards" class="hover:text-ink hover:underline">Editorial Ethics</a>
-          <span>&middot;</span>
-          <a href="/compliance#legality" class="hover:text-ink hover:underline">Legal Framework</a>
-          <span>&middot;</span>
-          <a href="/compliance#removal" class="hover:text-ink hover:underline">Takedown Request (24-48h SLA)</a>
-          <span>&middot;</span>
+        <div>© 2026 Khulaasaa. All rights reserved.</div>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <a href="/about#standards" class="hover:text-ink hover:underline">Ethics</a>
+          <span>·</span>
+          <a href="/compliance#legality" class="hover:text-ink hover:underline">Legal</a>
+          <span>·</span>
+          <a href="/compliance#removal" class="hover:text-ink hover:underline">Takedown</a>
+          <span>·</span>
           <a href="/feed.xml" class="hover:text-ink hover:underline">XML</a>
         </div>
       </div>
+
     </div>
   </footer>
 
