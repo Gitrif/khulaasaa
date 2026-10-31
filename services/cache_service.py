@@ -76,7 +76,7 @@ def cache_set(key: str, value: Any, ttl_seconds: int = 300) -> bool:
     r = get_redis_client()
     if r is not None:
         try:
-            s_val = json.dumps(value)
+            s_val = json.dumps(value, default=str)
             r.set(key, s_val, ex=ttl_seconds)
             return True
         except Exception as exc:

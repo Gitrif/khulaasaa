@@ -73,6 +73,14 @@ def bids(
     if not selected_portals and portal:
         selected_portals = [portal]
 
+    with get_db() as conn:
+        if not is_service_module_enabled(conn, 'tenders'):
+            return templates.TemplateResponse(
+                'service_suspended.html',
+                {'request': request, 'module': get_service_module(conn, 'tenders'), 'current_user': get_current_user(request)},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     import json
     bids_cache_key = f"bids:feed:{sorted(selected_agencies)}:{sorted(selected_entity_types)}:{sorted(selected_disciplines)}:{sorted(selected_natures)}:{sorted(selected_types)}:{sorted(selected_portals)}:{cross_listed}:{q or ''}"
     cached_bids_payload = None
@@ -89,12 +97,6 @@ def bids(
         active_ads = cached_bids_payload["active_ads"]
     else:
         with get_db() as conn:
-            if not is_service_module_enabled(conn, 'tenders'):
-                return templates.TemplateResponse(
-                    'service_suspended.html',
-                    {'request': request, 'module': get_service_module(conn, 'tenders'), 'current_user': get_current_user(request)},
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
             rows = query_bids(
                 conn,
                 agency_name=selected_agencies if selected_agencies else None,

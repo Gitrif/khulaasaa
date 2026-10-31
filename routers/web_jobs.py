@@ -43,6 +43,14 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
     min_salary_str = qp.get("min_salary")
     min_salary = int(min_salary_str) if min_salary_str and min_salary_str.isdigit() else None
 
+    with get_db() as conn:
+        if not is_service_module_enabled(conn, "jobs"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     jobs_cache_key = f"jobs:feed:{sorted(selected_disciplines)}:{sorted(selected_agencies)}:{sorted(selected_locations)}:{min_salary}:{q or ''}"
     cached_jobs_payload = None
     try:
@@ -57,12 +65,6 @@ def jobs_view(request: Request, discipline: Optional[str] = None, q: Optional[st
         active_ads = cached_jobs_payload["active_ads"]
     else:
         with get_db() as conn:
-            if not is_service_module_enabled(conn, "jobs"):
-                return templates.TemplateResponse(
-                    "service_suspended.html",
-                    {"request": request, "module": get_service_module(conn, "jobs"), "current_user": user},
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
             db_jobs = query_jobs(
                 conn,
                 discipline=selected_disciplines if selected_disciplines else None,

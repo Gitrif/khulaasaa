@@ -39,6 +39,14 @@ def rentals_directory_view(
     """Consolidated Apartment & Rental directory across Male, Hulhumale, and atolls."""
     user = get_current_user(request)
     active_ads = []
+    with get_db() as conn:
+        if not is_service_module_enabled(conn, "rentals"):
+            return templates.TemplateResponse(
+                "service_suspended.html",
+                {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     rentals_cache_key = f"rentals:feed:{location}:{bedrooms}:{max_rent}:{furnished}:{has_lift}:{has_ac}:{has_water_heater}:{q or ''}"
     cached_rentals_payload = None
     try:
@@ -52,12 +60,6 @@ def rentals_directory_view(
         active_ads = cached_rentals_payload["active_ads"]
     else:
         with get_db() as conn:
-            if not is_service_module_enabled(conn, "rentals"):
-                return templates.TemplateResponse(
-                    "service_suspended.html",
-                    {"request": request, "module": get_service_module(conn, "rentals"), "current_user": user},
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
             rentals_list = list_rentals(
                 conn,
                 location=location,
