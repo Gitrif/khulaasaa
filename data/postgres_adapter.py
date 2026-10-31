@@ -108,6 +108,9 @@ def adapt_sql(sql: str) -> str:
 
     s = re.sub(r"(^|[^:])(?::([a-zA-Z_][a-zA-Z0-9_]*))", _repl_named, s)
 
+    # Translate SQLite json_array_length -> PostgreSQL jsonb_array_length
+    s = re.sub(r"\bjson_array_length\b", "jsonb_array_length", s)
+
     # Translate positional ? -> %s outside of single-quoted string literals,
     # and escape literal % inside string literals to %% for psycopg2
     parts: list[str] = []

@@ -2,13 +2,16 @@
 Jobs Ingestion Service.
 Coordinates job scrapers, persists job records to the database, and dispatches
 Telegram and Viber job alerts.
+Strictly owns its own database connection lifecycle: scrapers run before acquiring
+any database connection; persistence runs in a scoped transaction; alerts run after
+persistence finishes with an independent scoped connection.
 """
 from __future__ import annotations
 
 import logging
 import sqlite3
 import time
-from typing import Any, Optional
+from typing import Any
 
 from alerts.telegram import dispatch_job_alerts
 from data.database import get_db, log_db_error, upsert_job
@@ -18,11 +21,12 @@ from scrapers.jobs.mycareer import fetch_mycareer_jobs
 logger = logging.getLogger("khulaasaa.jobs.ingestion")
 
 
-def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
+def sync_jobs(pages: int = 1, trigger_alerts: bool = True) -> dict[str, Any]:
     """Sync recent jobs from Gazette & MyCareer to database and trigger subscriber alerts.
 
     Performs external network fetches first before acquiring any database connection.
     Alert notifications are dispatched after database persistence completes.
+    Owns its database connection lifecycle completely to prevent pool starvation.
     """
     fetched = fetch_gazette_job_vacancies(pages=pages)
     try:
@@ -34,8 +38,8 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
     new_jobs = updated_jobs = alerts_sent = 0
     new_job_records: list[dict[str, Any]] = []
 
-    def _persist(db_conn: Any) -> None:
-        nonlocal new_jobs, updated_jobs
+    # 1. Scoped DB write transaction: held only while upserting records
+    with get_db() as db_conn:
         for j in fetched:
             notice_id = j["notice_id"]
             existing = None
@@ -74,15 +78,9 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
         except Exception:
             pass
 
-    if conn is not None:
-        _persist(conn)
-    else:
-        with get_db() as db_conn:
-            _persist(db_conn)
-
+    # 2. Scoped alert dispatch: executed after persistence connection is fully closed
     if trigger_alerts and new_job_records:
-        def _dispatch(alert_conn: Any) -> None:
-            nonlocal alerts_sent
+        with get_db() as alert_conn:
             for j in new_job_records:
                 notice_id = j["notice_id"]
                 try:
@@ -95,12 +93,6 @@ def sync_jobs(conn: Optional[Any] = None, pages: int = 1, trigger_alerts: bool =
                     dispatch_viber_job_alerts([j])
                 except Exception as exc:
                     log_db_error(logger, f"dispatch_viber_job_{notice_id}", "services.ingestion.jobs_ingestion", exc)
-
-        if conn is not None:
-            _dispatch(conn)
-        else:
-            with get_db() as alert_conn:
-                _dispatch(alert_conn)
 
     return {
         "status": "ok",

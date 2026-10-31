@@ -239,6 +239,13 @@ def execute_tender_ingestion(
                 log_db_error(logger, f"upsert_bid_{n_id}", "services.ingestion.tender_ingestion", exc)
         conn.commit()
 
+    # Invalidate shared bids cache after successful persistence
+    try:
+        from data.repos.bids import invalidate_bids_cache
+        invalidate_bids_cache()
+    except Exception as exc:
+        logger.debug("Failed to invalidate bids cache after sync: %s", exc)
+
     if persisted_records:
         with get_db() as conn:
             try:

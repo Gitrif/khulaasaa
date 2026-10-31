@@ -65,10 +65,9 @@ def run_sync(category: str) -> None:
     if category in ("jobs", "all"):
         logger.info("--- Starting Jobs Synchronization ---")
         try:
-            with get_db() as conn:
-                res = sync_jobs(conn)
-                total = (res.get("new", 0) if isinstance(res, dict) else 0) + (res.get("updated", 0) if isinstance(res, dict) else 0)
-                logger.info("Jobs sync complete: %d jobs inserted/updated (fetched %d)", total, res.get("fetched", 0) if isinstance(res, dict) else 0)
+            res = sync_jobs()
+            total = (res.get("new", 0) if isinstance(res, dict) else 0) + (res.get("updated", 0) if isinstance(res, dict) else 0)
+            logger.info("Jobs sync complete: %d jobs inserted/updated (fetched %d)", total, res.get("fetched", 0) if isinstance(res, dict) else 0)
         except Exception as exc:
             logger.error("Jobs sync failed: %s", exc)
 

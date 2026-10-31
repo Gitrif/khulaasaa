@@ -5,16 +5,16 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone
 from typing import Any
 
 from bs4 import BeautifulSoup
 
+from core.time_utils import calculate_minutes_ago, format_relative_time
 from scrapers.common.http_client import fetch_text
 from scrapers.news.base import (
     HEADERS,
-    classify_topic,
     classify_section,
+    classify_topic,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,25 +51,35 @@ def fetch_mihaaru_posts(
 
             parent = a.find_parent("div")
             desc = ""
+            pub_iso = None
             if parent:
                 p_tag = parent.find("p")
                 if p_tag:
                     desc = p_tag.get_text(strip=True)
+                time_el = parent.find("time")
+                if time_el and time_el.get("datetime"):
+                    pub_iso = time_el.get("datetime")
             if not desc:
                 desc = title
 
-            minutes_ago = 30
+            if pub_iso:
+                minutes_ago = calculate_minutes_ago(pub_iso)
+                time_ago = format_relative_time(minutes_ago, pub_iso)
+            else:
+                minutes_ago = None
+                time_ago = "Recently"
+
             topic = classify_topic(title, desc)
-            section = classify_section(title, minutes_ago, topic)
+            section = classify_section(title, minutes_ago or 60, topic)
 
             articles.append({
                 "id": f"{source_key}-{slug_id}",
                 "headline": title,
                 "summary": desc[:240] + ("..." if len(desc) > 240 else ""),
-                "published_raw": "Today",
-                "published_iso": datetime.now(timezone.utc).isoformat(),
+                "published_raw": time_ago,
+                "published_iso": pub_iso,
                 "minutes_ago": minutes_ago,
-                "time_ago": "30m ago",
+                "time_ago": time_ago,
                 "sources": [source_key],
                 "url": href,
                 "section": section,

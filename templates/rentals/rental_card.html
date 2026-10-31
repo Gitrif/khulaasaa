@@ -334,10 +334,16 @@
       <div>
         <div class="flex items-center gap-1.5">
           <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          {% if r.rent_mvr and r.rent_mvr > 0 %}
           <span class="text-xl font-bold font-serif-display text-ink">
             MVR {{ "{:,}".format(r.rent_mvr) }}
           </span>
           <span class="text-xs font-sans font-normal text-slate">/ month</span>
+          {% else %}
+          <span class="text-base font-bold font-serif-display text-slate">
+            Rent on Request
+          </span>
+          {% endif %}
         </div>
         {% if r.deposit_mvr %}
           <div class="text-[11px] text-slate mt-0.5">

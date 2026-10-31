@@ -82,6 +82,11 @@ def _run_news_sync() -> None:
             _LIVE_NEWS_LAST_SUCCESS = time.time()
             _LIVE_NEWS_LAST_ERROR = None
             _LIVE_NEWS_RECORDS_PROCESSED = len(articles)
+            try:
+                from services.cache_service import cache_set
+                cache_set("news:clustered_feed", articles, ttl_seconds=NEWS_CACHE_TTL_SECONDS)
+            except Exception as ce:
+                logger.debug("Failed saving news to shared cache: %s", ce)
     except Exception as e:
         _LIVE_NEWS_LAST_ERROR = str(e)
         logger.warning("Background news sync failed: %s", e)
@@ -170,6 +175,17 @@ def get_live_news(force_refresh: bool = False) -> list[dict[str, Any]]:
     now = time.time()
     if _LIVE_NEWS_CACHE["data"] and (now - _LIVE_NEWS_CACHE["timestamp"] < NEWS_CACHE_TTL_SECONDS):
         return _LIVE_NEWS_CACHE["data"]
+
+    # Check shared Redis cache before querying DB
+    try:
+        from services.cache_service import cache_get
+        shared_feed = cache_get("news:clustered_feed")
+        if shared_feed:
+            _LIVE_NEWS_CACHE["data"] = shared_feed
+            _LIVE_NEWS_CACHE["timestamp"] = now
+            return shared_feed
+    except Exception as ce:
+        logger.debug("Shared news cache lookup error: %s", ce)
 
     try:
         with get_db() as conn:

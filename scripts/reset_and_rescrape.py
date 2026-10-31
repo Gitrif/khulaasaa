@@ -49,7 +49,7 @@ def run_full_reset_and_rescrape():
     # 2. Rescrape Jobs with detailed salary & location enrichment
     logger.info("Rescraping live jobs from Gazette and MyCareer with salary packages...")
     from scrapers.jobs import sync_jobs
-    job_res = sync_jobs(conn, pages=2, trigger_alerts=False)
+    job_res = sync_jobs(pages=2, trigger_alerts=False)
     logger.info("Jobs sync completed: %s", job_res)
     conn.commit()
 

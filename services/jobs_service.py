@@ -45,7 +45,7 @@ def _execute_jobs_sync(pages: int = 1, trigger_alerts: bool = True) -> dict[str,
 
     try:
         from services.ingestion.jobs_ingestion import sync_jobs
-        result = sync_jobs(conn=None, pages=pages, trigger_alerts=trigger_alerts)
+        result = sync_jobs(pages=pages, trigger_alerts=trigger_alerts)
         if isinstance(result, int):
             result = {"fetched": result, "new": result, "updated": 0, "alerts_sent": 0}
 

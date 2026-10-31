@@ -270,7 +270,7 @@ def query_bids(
         params.append(f"%{portal}%")
 
     if cross_listed_only:
-        query += " AND CAST(sources AS TEXT) LIKE '%,%'"
+        query += " AND json_array_length(sources) > 1" 
 
     if search_q:
         query += " AND (LOWER(title) LIKE ? OR LOWER(title_en) LIKE ? OR LOWER(reference_number) LIKE ? OR LOWER(agency_name_en) LIKE ?)"
@@ -327,16 +327,26 @@ def query_bids(
     return results
 
 
-_FILTER_OPTIONS_CACHE: dict[str, Any] = {"data": None, "timestamp": 0.0}
-_PORTAL_STATS_CACHE: dict[str, Any] = {"data": None, "timestamp": 0.0}
-CACHE_TTL_STATS = 300  # 5 minutes in-memory cache
+BIDS_CACHE_TTL = 300  # 5 minutes shared Redis / in-memory cache
+
+
+def invalidate_bids_cache() -> None:
+    """Invalidate bids filter options and portal stats cache across all workers."""
+    try:
+        from services.cache_service import cache_delete
+        cache_delete("bids:filter_options")
+        cache_delete("bids:portal_stats")
+    except Exception as exc:
+        logger.debug("Bids cache invalidation skipped: %s", exc)
 
 
 def get_bids_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
-    """Return sorted unique values for agencies, disciplines, and gazette types efficiently."""
-    now = time.time()
-    if _FILTER_OPTIONS_CACHE["data"] is not None and (now - _FILTER_OPTIONS_CACHE["timestamp"] < CACHE_TTL_STATS):
-        return _FILTER_OPTIONS_CACHE["data"]
+    """Return sorted unique values for agencies, disciplines, and gazette types with shared cache."""
+    from services.cache_service import cache_get, cache_set
+    cached = cache_get("bids:filter_options")
+    if cached is not None:
+        return cached
+
     rows = conn.execute(
         """
         SELECT DISTINCT agency_name_en, discipline, gazette_type
@@ -359,16 +369,16 @@ def get_bids_filter_options(conn: sqlite3.Connection) -> dict[str, list[str]]:
         "disciplines": sorted(disciplines),
         "types": sorted(types),
     }
-    _FILTER_OPTIONS_CACHE["data"] = result
-    _FILTER_OPTIONS_CACHE["timestamp"] = now
+    cache_set("bids:filter_options", result, ttl_seconds=BIDS_CACHE_TTL)
     return result
 
 
 def get_agency_portal_statistics(conn: sqlite3.Connection) -> dict[str, Any]:
-    """Return counts of tenders per agency and cross-source repetition statistics."""
-    now = time.time()
-    if _PORTAL_STATS_CACHE["data"] is not None and (now - _PORTAL_STATS_CACHE["timestamp"] < CACHE_TTL_STATS):
-        return _PORTAL_STATS_CACHE["data"]
+    """Return counts of tenders per agency and cross-source repetition statistics with shared cache."""
+    from services.cache_service import cache_get, cache_set
+    cached = cache_get("bids:portal_stats")
+    if cached is not None:
+        return cached
 
     rows = conn.execute("SELECT id, agency_name_en, sources FROM v_bids_enriched WHERE is_active = 1;").fetchall()
     by_agency: dict[str, dict[str, int]] = {}
@@ -401,8 +411,7 @@ def get_agency_portal_statistics(conn: sqlite3.Connection) -> dict[str, Any]:
         "by_portal": portal_counts,
         "portal_counts": portal_counts,
     }
-    _PORTAL_STATS_CACHE["data"] = res
-    _PORTAL_STATS_CACHE["timestamp"] = now
+    cache_set("bids:portal_stats", res, ttl_seconds=BIDS_CACHE_TTL)
     return res
 
 from data.repos.bid_milestones import extract_milestones_and_venues, purge_expired_bids
